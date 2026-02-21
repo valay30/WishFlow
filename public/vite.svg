@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F5A623"/>
+      <stop offset="100%" stop-color="#E09210"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#000000" flood-opacity="0.25"/>
+    </filter>
+  </defs>
+
+  <!-- Background rounded rectangle -->
+  <rect width="512" height="512" rx="112" ry="112" fill="url(#bg)"/>
+
+  <!-- Inner border -->
+  <rect x="16" y="16" width="480" height="480" rx="96" ry="96" fill="none" stroke="#FFFFFF" stroke-opacity="0.2" stroke-width="4"/>
+
+  <!-- Icon group with drop shadow -->
+  <g filter="url(#shadow)" fill="#000000" stroke="#000000" stroke-width="24" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Shopping bag body -->
+    <path d="M128 192 l24 224 c2 16 16 28 32 28 h144 c16 0 30 -12 32 -28 l24 -224 Z" />
+    
+    <!-- Bag handle -->
+    <path d="M176 192 v-48 c0 -44 36 -80 80 -80 c44 0 80 36 80 80 v48" fill="none" stroke-width="40"/>
+    
+    <!-- Sparkle 1 -->
+    <path d="M370 120 c0 15 15 30 30 30 c-15 0 -30 15 -30 30 c0 -15 -15 -30 -30 -30 c15 0 30 -15 30 -30 Z" stroke-width="0"/>
+    
+    <!-- Sparkle 2 (smaller) -->
+    <path d="M110 240 c0 10 10 20 20 20 c-10 0 -20 10 -20 20 c0 -10 -10 -20 -20 -20 c10 0 20 -10 20 -20 Z" stroke-width="0"/>
+  </g>
+</svg>
