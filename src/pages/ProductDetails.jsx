@@ -120,27 +120,33 @@ export default function ProductDetails() {
             {/* ── Hero Section (Image Showcase) ── */}
             <div style={{
                 background: `linear-gradient(160deg, #051A44 0%, #0A2665 55%, #10367D 100%)`,
-                padding: '1.5rem 1.5rem 5rem',
+                padding: '1.5rem 1.5rem 6.5rem',
                 position: 'relative',
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
-                color: '#fff'
+                color: '#fff',
+                overflow: 'hidden'
             }}>
+                {/* Decorative Background Elements */}
+                <div style={{ position: 'absolute', top: '-10%', right: '-5%', width: '300px', height: '300px', background: 'radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%)', borderRadius: '50%' }} />
+                <div style={{ position: 'absolute', bottom: '10%', left: '-10%', width: '250px', height: '250px', background: 'radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 70%)', borderRadius: '50%' }} />
+
                 {/* Back Button */}
-                <div style={{ position: 'absolute', top: '2.5rem', left: '1.5rem' }}>
+                <div style={{ position: 'absolute', top: '2.5rem', left: '1.5rem', zIndex: 10 }}>
                     <button
                         onClick={() => navigate(-1)}
                         style={{
                             display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
                             background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)',
-                            color: 'rgba(255,255,255,0.8)', fontWeight: 600, fontSize: '0.85rem',
+                            color: 'rgba(255,255,255,0.9)', fontWeight: 600, fontSize: '0.85rem',
                             cursor: 'pointer', fontFamily: 'inherit',
-                            padding: '0.5rem 1rem', borderRadius: '99px',
-                            transition: 'all 0.2s'
+                            padding: '0.6rem 1.1rem', borderRadius: '99px',
+                            backdropFilter: 'blur(10px)',
+                            transition: 'all 0.2s cubic-bezier(0.4,0,0.2,1)'
                         }}
-                        onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.2)'; e.currentTarget.style.color = '#fff'; }}
-                        onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; e.currentTarget.style.color = 'rgba(255,255,255,0.8)'; }}
+                        onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.25)'; e.currentTarget.style.color = '#fff'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+                        onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; e.currentTarget.style.color = 'rgba(255,255,255,0.9)'; e.currentTarget.style.transform = 'translateY(0)'; }}
                     >
                         <ArrowLeft size={16} /> Back
                     </button>
@@ -148,28 +154,37 @@ export default function ProductDetails() {
 
                 {/* Hero Image */}
                 <div style={{
-                    marginTop: '4rem',
+                    marginTop: '3.5rem',
                     width: '100%',
-                    maxWidth: '400px',
-                    height: '240px',
+                    maxWidth: '260px',
+                    aspectRatio: '1/1',
+                    background: '#fff',
+                    borderRadius: '40px',
+                    padding: '1.5rem',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    animation: 'fadeInUp 0.6s ease-out'
+                    boxShadow: '0 24px 48px rgba(0,0,0,0.3)',
+                    animation: 'fadeInUp 0.6s ease-out backwards',
+                    position: 'relative',
+                    zIndex: 2
                 }}>
                     {item.image ? (
                         <img
                             src={item.image}
                             alt={item.name}
                             style={{
-                                maxWidth: '100%',
-                                maxHeight: '100%',
+                                width: '100%',
+                                height: '100%',
                                 objectFit: 'contain',
-                                filter: 'drop-shadow(0 20px 40px rgba(0,0,0,0.3))'
+                                filter: 'drop-shadow(0 12px 24px rgba(0,0,0,0.1))',
+                                transition: 'transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)'
                             }}
+                            onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.1)'}
+                            onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
                         />
                     ) : (
-                        <div style={{ fontSize: '6rem', opacity: 0.3 }}>🛍️</div>
+                        <div style={{ fontSize: '5rem', opacity: 0.2 }}>🛍️</div>
                     )}
                 </div>
             </div>
@@ -178,20 +193,19 @@ export default function ProductDetails() {
             <div style={{
                 background: BG,
                 borderRadius: '32px 32px 0 0',
-                marginTop: '-2.5rem',
+                marginTop: '-3rem',
                 padding: '2.5rem 1.5rem',
                 position: 'relative',
-                zIndex: 2,
+                zIndex: 3,
                 minHeight: '60vh'
             }}>
-                <div style={{ maxWidth: '600px', margin: '0 auto' }}>
+                <div style={{ maxWidth: '640px', margin: '0 auto' }}>
 
                     <div style={{
                         background: SURFACE,
                         borderRadius: '32px',
-                        border: `1px solid ${BORDER}`,
-                        padding: '2rem',
-                        boxShadow: '0 4px 20px rgba(0,0,0,0.03)',
+                        padding: '2.5rem 2rem',
+                        boxShadow: '0 -4px 30px rgba(0,0,0,0.03), 0 16px 40px rgba(0,0,0,0.05)',
                         animation: 'fadeInUp 0.4s ease-out 0.1s backwards'
                     }}>
                         {isEditing ? (
@@ -291,14 +305,14 @@ export default function ProductDetails() {
                                         onClick={e => { if (!item.link) e.preventDefault(); }}
                                         style={{
                                             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.6rem',
-                                            padding: '1.25rem', background: item.link ? ORANGE : '#F3F4F6',
-                                            color: item.link ? '#fff' : '#9CA3AF', borderRadius: '24px',
-                                            fontWeight: 900, fontSize: '1.1rem', textDecoration: 'none',
-                                            cursor: item.link ? 'pointer' : 'default', transition: 'all 0.2s',
-                                            boxShadow: item.link ? '0 10px 24px rgba(16,54,125,0.3)' : 'none'
+                                            padding: '1.15rem', background: item.link ? 'linear-gradient(135deg, #10367D, #1a4fba)' : '#F3F4F6',
+                                            color: item.link ? '#fff' : '#9CA3AF', borderRadius: '20px',
+                                            fontWeight: 800, fontSize: '1.05rem', textDecoration: 'none',
+                                            cursor: item.link ? 'pointer' : 'default', transition: 'all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                                            boxShadow: item.link ? '0 10px 24px rgba(16,54,125,0.25)' : 'none'
                                         }}
-                                        onMouseEnter={e => { if (item.link) { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.filter = 'brightness(1.1)'; } }}
-                                        onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.filter = 'none'; }}
+                                        onMouseEnter={e => { if (item.link) { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = '0 14px 30px rgba(16,54,125,0.35)'; } }}
+                                        onMouseLeave={e => { if (item.link) { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 10px 24px rgba(16,54,125,0.25)'; } }}
                                     >
                                         <ExternalLink size={20} />
                                         {item.link ? 'Visit Product Page' : 'No link available'}
@@ -309,14 +323,14 @@ export default function ProductDetails() {
                                         <button
                                             onClick={handlePurchase}
                                             style={{
-                                                padding: '1.1rem', background: 'rgba(34, 197, 94, 0.08)',
+                                                padding: '1.15rem', background: 'rgba(34, 197, 94, 0.08)',
                                                 color: '#16a34a', border: '2px solid rgba(34, 197, 94, 0.15)',
-                                                borderRadius: '24px', fontWeight: 800, fontSize: '1.05rem',
+                                                borderRadius: '20px', fontWeight: 800, fontSize: '1.05rem',
                                                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                                gap: '0.6rem', cursor: 'pointer', transition: 'all 0.2s'
+                                                gap: '0.6rem', cursor: 'pointer', transition: 'all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)'
                                             }}
-                                            onMouseEnter={e => { e.currentTarget.style.background = '#16a34a'; e.currentTarget.style.color = '#fff'; }}
-                                            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(34, 197, 94, 0.08)'; e.currentTarget.style.color = '#16a34a'; }}
+                                            onMouseEnter={e => { e.currentTarget.style.background = '#16a34a'; e.currentTarget.style.color = '#fff'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
+                                            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(34, 197, 94, 0.08)'; e.currentTarget.style.color = '#16a34a'; e.currentTarget.style.transform = 'translateY(0)'; }}
                                         >
                                             <PackageCheck size={22} /> Mark as Purchased
                                         </button>

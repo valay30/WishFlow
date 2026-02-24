@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import { LogOut, User, ArrowLeft, Settings, Shield, Bell, LayoutGrid, List as ListIcon, ChevronDown, ChevronUp } from 'lucide-react';
+import { useAuth } from '../context/useAuth';
+import { LogOut, User, ArrowLeft, Settings, Shield, Bell, LayoutGrid, List as ListIcon, ChevronDown, ChevronUp, Share2, FileDown, Copy, Check, Crown } from 'lucide-react';
 import { useSettings } from '../context/SettingsContext';
+import { db } from '../db';
+import TierBadgeCard from '../components/TierBadgeCard';
 
 const ORANGE = '#10367D';
 const SURFACE = '#FFFFFF';
@@ -15,10 +17,128 @@ export default function Profile() {
     const { viewMode, setViewMode } = useSettings();
     const navigate = useNavigate();
     const [showGeneral, setShowGeneral] = useState(false);
+    const [sharing, setSharing] = useState(false);
+    const [exporting, setExporting] = useState(false);
+    const [shareKey, setShareKey] = useState('');
+    const [copied, setCopied] = useState(false);
 
     const handleLogout = () => {
         logout();
         navigate('/auth');
+    };
+
+    const handleGenerateShare = async () => {
+        if (!user?.id) return;
+        setSharing(true);
+        try {
+            const response = await fetch('http://localhost:5000/api/share/generate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId: user.id })
+            });
+            const data = await response.json();
+            if (data.shareKey) {
+                setShareKey(data.shareKey);
+            }
+        } catch (error) {
+            console.error('Share error:', error);
+            alert('Make sure your backend is running at http://localhost:5000');
+        } finally {
+            setSharing(false);
+        }
+    };
+
+    const handleExportPDF = async () => {
+        setExporting(true);
+        try {
+            const items = await db.items.getAll();
+            const categories = await db.categories.getAll();
+
+            // The backend expects item.categories.name for the PDF rendering
+            const itemsWithCategories = items.map(item => {
+                const matchingCategory = categories.find(c => c.id === item.category_id);
+                return {
+                    ...item,
+                    categories: { name: matchingCategory?.name }
+                };
+            });
+
+            const response = await fetch('http://localhost:5000/api/export/pdf', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ items: itemsWithCategories, userName: user?.name })
+            });
+
+            if (!response.ok) throw new Error('PDF generation failed');
+
+            const arrayBuffer = await response.arrayBuffer();
+            const blob = new Blob([arrayBuffer], { type: 'application/pdf' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${user?.name || 'My'}_Wishlist.pdf`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+        } catch (error) {
+            console.error('PDF error:', error);
+            alert('Failed to generate PDF. Is the backend running?');
+        } finally {
+            setExporting(false);
+        }
+    };
+
+    const copyToClipboard = () => {
+        const link = `${window.location.origin}/share/${shareKey}`;
+        navigator.clipboard.writeText(link);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+    };
+
+    const handleUpgradeToPremium = async () => {
+        try {
+            const orderRes = await fetch('http://localhost:5000/api/payment/create-order', { method: 'POST' });
+            const orderData = await orderRes.json();
+
+            const options = {
+                key: orderData.key_id,
+                amount: orderData.amount,
+                currency: orderData.currency,
+                name: "WishFlow",
+                description: "Lifetime Premium Subscription",
+                order_id: orderData.id,
+                config: { display: { hide: [{ method: 'paylater' }] } },
+                handler: async function (response) {
+                    const verificationRes = await fetch('http://localhost:5000/api/payment/verify', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            razorpay_order_id: response.razorpay_order_id,
+                            razorpay_payment_id: response.razorpay_payment_id,
+                            razorpay_signature: response.razorpay_signature,
+                            userId: user?.id
+                        })
+                    });
+                    const verificationData = await verificationRes.json();
+                    if (verificationData.success) {
+                        alert('Payment Successful! Please re-login to activate your Premium features.');
+                        window.location.reload();
+                    } else {
+                        alert('Payment verification failed.');
+                    }
+                },
+                theme: { color: "#10367D" }
+            };
+
+            const rzp = new window.Razorpay(options);
+            rzp.on('payment.failed', function (response) {
+                alert('Payment Failed. Please try again.');
+            });
+            rzp.open();
+        } catch (error) {
+            console.error(error);
+            alert("Payment initiation failed. Please check your backend.");
+        }
     };
 
     const initials = user?.name
@@ -88,10 +208,15 @@ export default function Profile() {
             }}>
                 <div style={{ maxWidth: '600px', margin: '0 auto' }}>
 
+                    {/* ── Tier Badge Card ── */}
+                    <TierBadgeCard user={user} onUpgrade={handleUpgradeToPremium} />
+
                     {/* Options List */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem', marginBottom: '2rem' }}>
                         {[
                             { icon: User, label: 'Account Details', id: 'account' },
+                            { icon: Share2, label: 'Share Wishlist', id: 'share' },
+                            { icon: FileDown, label: 'Export as PDF', id: 'pdf' },
                             { icon: Bell, label: 'Notifications', id: 'notif' },
                             { icon: Shield, label: 'Privacy & Security', id: 'privacy' },
                             { icon: Settings, label: 'General Settings', id: 'general' },
@@ -100,15 +225,19 @@ export default function Profile() {
                                 <button
                                     onClick={() => {
                                         if (item.id === 'general') setShowGeneral(!showGeneral);
+                                        if (item.id === 'pdf') handleExportPDF();
+                                        if (item.id === 'share') handleGenerateShare();
                                     }}
+                                    disabled={(item.id === 'pdf' && exporting) || (item.id === 'share' && sharing)}
                                     style={{
                                         display: 'flex', alignItems: 'center', gap: '1.25rem',
                                         padding: '1.15rem 1.5rem', background: SURFACE,
-                                        border: `1px solid ${BORDER}`, borderRadius: '24px',
+                                        border: `1px solid ${item.id === 'share' && shareKey ? ORANGE : BORDER}`, borderRadius: '24px',
                                         color: '#111', fontSize: '1.05rem', fontWeight: 700,
                                         cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.25s',
                                         textAlign: 'left', width: '100%',
-                                        boxShadow: '0 2px 8px rgba(0,0,0,0.03)'
+                                        boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
+                                        opacity: (item.id === 'pdf' && exporting) || (item.id === 'share' && sharing) ? 0.7 : 1
                                     }}
                                     onMouseEnter={e => {
                                         e.currentTarget.style.borderColor = ORANGE;
@@ -128,9 +257,16 @@ export default function Profile() {
                                     }}>
                                         <item.icon size={22} />
                                     </div>
-                                    <span style={{ flex: 1 }}>{item.label}</span>
+                                    <span style={{ flex: 1 }}>
+                                        {item.id === 'pdf' && exporting ? 'Generating PDF...' :
+                                            item.id === 'share' && sharing ? 'Generating Link...' : item.label}
+                                    </span>
                                     {item.id === 'general' ? (
                                         showGeneral ? <ChevronUp size={20} color="#9CA3AF" /> : <ChevronDown size={20} color="#9CA3AF" />
+                                    ) : item.id === 'share' && shareKey ? (
+                                        <div onClick={(e) => { e.stopPropagation(); copyToClipboard(); }} style={{ color: ORANGE, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                            {copied ? <Check size={18} /> : <Copy size={18} />}
+                                        </div>
                                     ) : (
                                         <ChevronDown size={20} color="#9CA3AF" style={{ transform: 'rotate(-90deg)' }} />
                                     )}

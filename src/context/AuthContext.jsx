@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { auth, supabase } from '../db';
 
-const AuthContext = createContext(null);
+export const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
     const [user, setUser] = useState(null);
@@ -19,7 +19,13 @@ export function AuthProvider({ children }) {
         // Listen for Supabase session changes (e.g., login in another tab or token refresh)
         const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
             if (session) {
-                setUser({ id: session.user.id, email: session.user.email, name: session.user.user_metadata?.name });
+                setUser({
+                    id: session.user.id,
+                    email: session.user.email,
+                    name: session.user.user_metadata?.name,
+                    isPremium: session.user.user_metadata?.is_premium || false,
+                    isAdmin: session.user.user_metadata?.is_admin || false,
+                });
             } else {
                 setUser(null);
             }
@@ -60,5 +66,3 @@ export function AuthProvider({ children }) {
         </AuthContext.Provider>
     );
 }
-
-export const useAuth = () => useContext(AuthContext);

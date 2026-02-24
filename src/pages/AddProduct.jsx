@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { db } from '../db';
+import { db, supabase } from '../db';
+import { Upload, X, ArrowLeft, Sparkles, Crown } from 'lucide-react';
+import { useAuth } from '../context/useAuth';
 import { useNavigate } from 'react-router-dom';
-import { Upload, X, ArrowLeft, Sparkles } from 'lucide-react';
 
 export default function AddProduct() {
     const navigate = useNavigate();
@@ -9,16 +10,82 @@ export default function AddProduct() {
     const [price, setPrice] = useState('');
     const [link, setLink] = useState('');
     const [image, setImage] = useState('');
+    const { user } = useAuth();
     const [categoryId, setCategoryId] = useState('');
     const [categories, setCategories] = useState([]);
+    const [itemCount, setItemCount] = useState(0);
+    const [showPremiumModal, setShowPremiumModal] = useState(false);
 
     useEffect(() => {
-        const loadCategories = async () => setCategories(await db.categories.getAll());
-        loadCategories();
+        const loadInitialData = async () => {
+            setCategories(await db.categories.getAll());
+            const items = await db.items.getAll();
+            setItemCount(items.length);
+        };
+        loadInitialData();
     }, []);
+
+    const handleUpgradeToPremium = async () => {
+        try {
+            const orderRes = await fetch('http://localhost:5000/api/payment/create-order', { method: 'POST' });
+            const orderData = await orderRes.json();
+
+            const options = {
+                key: orderData.key_id,
+                amount: orderData.amount,
+                currency: orderData.currency,
+                name: "WishFlow",
+                description: "Lifetime Premium Subscription",
+                order_id: orderData.id,
+                config: { display: { hide: [{ method: 'paylater' }] } },
+                handler: async function (response) {
+                    const verificationRes = await fetch('http://localhost:5000/api/payment/verify', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            razorpay_order_id: response.razorpay_order_id,
+                            razorpay_payment_id: response.razorpay_payment_id,
+                            razorpay_signature: response.razorpay_signature,
+                            userId: user?.id
+                        })
+                    });
+                    const verificationData = await verificationRes.json();
+                    if (verificationData.success) {
+                        alert('Payment Successful! Please re-login to activate your Premium features.');
+                        setShowPremiumModal(false);
+                        navigate('/profile');
+                    } else {
+                        alert('Payment verification failed.');
+                    }
+                },
+                theme: { color: "#10367D" }
+            };
+
+            const rzp = new window.Razorpay(options);
+            rzp.on('payment.failed', function (response) {
+                alert('Payment Failed. Please try again.');
+            });
+            rzp.open();
+        } catch (error) {
+            console.error(error);
+            alert("Payment initiation failed. Please check your backend.");
+        }
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        // Bypass cache — directly query Supabase for the real count
+        const { count, error: countError } = await supabase
+            .from('items')
+            .select('*', { count: 'exact', head: true })
+            .eq('user_id', user?.id);
+
+        if (!countError && count >= 5 && user?.isPremium !== true) {
+            setShowPremiumModal(true);
+            return;
+        }
+
         if (!name || !price || !categoryId) return;
         await db.items.add({ name, price: parseFloat(price), link, image, category_id: parseInt(categoryId) });
         navigate('/');
@@ -148,6 +215,56 @@ export default function AddProduct() {
                     </button>
                 </form>
             </div>
+
+            {/* Premium Upgrade Modal */}
+            {showPremiumModal && (
+                <div style={{
+                    position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
+                    background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(5px)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999
+                }}>
+                    <div style={{
+                        background: '#fff', borderRadius: '24px', padding: '2.5rem',
+                        maxWidth: '400px', width: '90%', textAlign: 'center',
+                        boxShadow: '0 24px 48px rgba(0,0,0,0.2)', position: 'relative'
+                    }}>
+                        <button
+                            onClick={() => setShowPremiumModal(false)}
+                            style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'none', border: 'none', cursor: 'pointer' }}
+                        >
+                            <X size={24} color="#666" />
+                        </button>
+
+                        <div style={{
+                            width: '64px', height: '64px', background: 'linear-gradient(135deg, #10367D, #4963E8)',
+                            borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            margin: '0 auto 1.5rem', color: '#fff'
+                        }}>
+                            <Crown size={32} />
+                        </div>
+
+                        <h2 style={{ fontSize: '1.8rem', fontWeight: 900, marginBottom: '0.5rem', color: '#111' }}>Unlock Limitless</h2>
+                        <p style={{ color: '#666', marginBottom: '2rem', lineHeight: '1.5' }}>
+                            You have reached the free tier limit of 5 items. Upgrade to WishFlow Premium for ₹100 and add unlimited wishes forever!
+                        </p>
+
+                        <button
+                            onClick={handleUpgradeToPremium}
+                            style={{
+                                width: '100%', padding: '1rem', background: 'linear-gradient(135deg, #10367D, #4963E8)',
+                                color: '#fff', border: 'none', borderRadius: '14px', fontWeight: 800, fontSize: '1.1rem',
+                                cursor: 'pointer', boxShadow: '0 8px 24px rgba(73,99,232,0.3)', transition: 'all 0.2s'
+                            }}
+                            onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
+                            onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
+                        >
+                            Upgrade for ₹100
+                        </button>
+
+                        <p style={{ marginTop: '1rem', fontSize: '0.8rem', color: '#999' }}>One-time payment. Lifetime access.</p>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

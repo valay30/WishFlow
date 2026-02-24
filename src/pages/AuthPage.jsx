@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/useAuth';
 import { Eye, EyeOff, ChevronLeft, ShoppingBag } from 'lucide-react';
 import { useResponsive } from '../hooks/useResponsive';
 

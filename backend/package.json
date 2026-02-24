@@ -1,0 +1,23 @@
+{
+    "name": "wishflow-backend",
+    "version": "1.0.0",
+    "description": "Backend server for WishFlow",
+    "main": "server.js",
+    "type": "module",
+    "scripts": {
+        "start": "node server.js",
+        "dev": "nodemon server.js"
+    },
+    "dependencies": {
+        "@supabase/supabase-js": "^2.97.0",
+        "cors": "^2.8.5",
+        "dotenv": "^16.4.5",
+        "express": "^4.19.2",
+        "puppeteer": "^24.37.5",
+        "razorpay": "^2.9.4",
+        "uuid": "^13.0.0"
+    },
+    "devDependencies": {
+        "nodemon": "^3.1.3"
+    }
+}

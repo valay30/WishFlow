@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider, useAuth } from './context/AuthContext';
+import { AuthProvider } from './context/AuthContext';
+import { useAuth } from './context/useAuth';
 import { SettingsProvider } from './context/SettingsContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout';
@@ -10,6 +11,8 @@ import Categories from './pages/Categories';
 import ProductDetails from './pages/ProductDetails';
 import Profile from './pages/Profile';
 import Archive from './pages/Archive';
+import SharedWishlist from './pages/SharedWishlist';
+import AdminPanel from './pages/AdminPanel';
 
 function AppRoutes() {
   const { user } = useAuth();
@@ -20,6 +23,10 @@ function AppRoutes() {
       <Route
         path="/auth"
         element={user ? <Navigate to="/" replace /> : <AuthPage />}
+      />
+      <Route
+        path="/share/:key"
+        element={<SharedWishlist />}
       />
 
       {/* Protected routes — wrapped in Layout */}
@@ -40,6 +47,8 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
+      {/* Admin panel — own full-page layout, protected inside component */}
+      <Route path="/admin" element={<ProtectedRoute><AdminPanel /></ProtectedRoute>} />
     </Routes>
   );
 }

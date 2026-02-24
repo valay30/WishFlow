@@ -1,23 +1,36 @@
 import { createClient } from '@supabase/supabase-js';
 
-// Get these from your Supabase Dashboard -> Project Settings -> API
-// And put them inside your .env file at the root of the project:
-// VITE_SUPABASE_URL=your-supabase-url
-// VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'YOUR_SUPABASE_URL_HERE';
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'YOUR_SUPABASE_ANON_KEY_HERE';
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
+// ─── In-memory cache (must be declared before auth uses clearDbCache) ───────
+let __categoryCache = null;
+let __itemCache = null;
+let __fetchingCategories = null;
+let __fetchingItems = null;
+
+// Clears cache so the next getAll() does a fresh Supabase fetch.
+// Must be called on logout / user-switch so the new user doesn't see stale data.
+export const clearDbCache = () => {
+  __categoryCache = null;
+  __itemCache = null;
+  __fetchingCategories = null;
+  __fetchingItems = null;
+};
+
+// ─── Auth helpers ─────────────────────────────────────────────────────────────
 export const auth = {
-  // Returns user if active session
   getCurrentUser: async () => {
     const { data: { session } } = await supabase.auth.getSession();
     if (session) {
       return {
         id: session.user.id,
         email: session.user.email,
-        name: session.user.user_metadata?.name
+        name: session.user.user_metadata?.name,
+        isPremium: session.user.user_metadata?.is_premium || false,
+        isAdmin: session.user.user_metadata?.is_admin || false,
       };
     }
     return null;
@@ -27,18 +40,12 @@ export const auth = {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: {
-        data: { name },
-      }
+      options: { data: { name } },
     });
 
-    if (error) {
-      return { success: false, error: error.message };
-    }
+    if (error) return { success: false, error: error.message };
 
     if (data.user) {
-      // Seed default categories for this user 
-      // (This requires the 'categories' table to be set up)
       const defaultCategories = [
         { user_id: data.user.id, name: 'Electronics' },
         { user_id: data.user.id, name: 'Clothes' },
@@ -50,7 +57,9 @@ export const auth = {
       const user = {
         id: data.user.id,
         email: data.user.email,
-        name: data.user.user_metadata?.name
+        name: data.user.user_metadata?.name,
+        isPremium: data.user.user_metadata?.is_premium || false,
+        isAdmin: data.user.user_metadata?.is_admin || false,
       };
       return { success: true, user };
     }
@@ -58,39 +67,34 @@ export const auth = {
   },
 
   login: async ({ email, password }) => {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    clearDbCache(); // ensure previous user's cache is wiped
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
-    if (error) {
-      return { success: false, error: error.message };
-    }
+    if (error) return { success: false, error: error.message };
 
     const user = {
       id: data.user.id,
       email: data.user.email,
-      name: data.user.user_metadata?.name
+      name: data.user.user_metadata?.name,
+      isPremium: data.user.user_metadata?.is_premium || false,
+      isAdmin: data.user.user_metadata?.is_admin || false,
     };
     return { success: true, user };
   },
 
   logout: async () => {
+    clearDbCache(); // ✅ now safe — clearDbCache is declared above
     await supabase.auth.signOut();
   },
 };
 
+// ─── Internal helper ──────────────────────────────────────────────────────────
 const getUserId = async () => {
   const { data: { session } } = await supabase.auth.getSession();
   return session?.user?.id;
 };
 
-// Global in-memory cache to make page transitions instant
-let __categoryCache = null;
-let __itemCache = null;
-let __fetchingCategories = null;
-let __fetchingItems = null;
-
+// ─── Database helpers ─────────────────────────────────────────────────────────
 export const db = {
   categories: {
     getAll: async () => {
@@ -112,6 +116,7 @@ export const db = {
 
       return __categoryCache !== null ? __categoryCache : __fetchingCategories;
     },
+
     add: async (name) => {
       const id = await getUserId();
       if (!id) return;
@@ -127,6 +132,7 @@ export const db = {
       }
       return data?.[0];
     },
+
     delete: async (catId) => {
       const id = await getUserId();
       if (!id) return;
@@ -136,6 +142,7 @@ export const db = {
         __categoryCache = __categoryCache.filter(c => c.id !== catId);
       }
     },
+
     update: async (catId, name) => {
       const id = await getUserId();
       if (!id) return;
@@ -167,6 +174,7 @@ export const db = {
 
       return __itemCache !== null ? __itemCache : __fetchingItems;
     },
+
     add: async (item) => {
       const id = await getUserId();
       if (!id) return;
@@ -187,6 +195,7 @@ export const db = {
       }
       return data?.[0];
     },
+
     update: async (itemId, updates) => {
       const id = await getUserId();
       if (!id) return null;
@@ -204,6 +213,7 @@ export const db = {
       }
       return data?.[0];
     },
+
     delete: async (itemId) => {
       const id = await getUserId();
       if (!id) return;
@@ -213,6 +223,7 @@ export const db = {
         __itemCache = __itemCache.filter(i => i.id !== itemId);
       }
     },
+
     getById: async (itemId) => {
       const id = await getUserId();
       if (!id || !itemId) return null;
@@ -226,6 +237,6 @@ export const db = {
 
       if (error) throw error;
       return data;
-    }
+    },
   },
 };
