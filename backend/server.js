@@ -1,15 +1,12 @@
+import './env.js';
 import express from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
 
 // Import Routes
 import paymentRoutes from './routes/payment.routes.js';
 import shareRoutes from './routes/share.routes.js';
 import exportRoutes from './routes/export.routes.js';
 import adminRoutes from './routes/admin.routes.js';
-
-// Load environment variables
-dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;

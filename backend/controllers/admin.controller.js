@@ -1,7 +1,4 @@
-import dotenv from 'dotenv';
 import { supabase } from '../config/supabase.js';
-
-dotenv.config();
 
 export const getAllUsers = async (req, res) => {
     try {

@@ -1,9 +1,6 @@
 import crypto from 'crypto';
-import dotenv from 'dotenv';
 import { razorpay } from '../config/razorpay.js';
 import { supabase } from '../config/supabase.js';
-
-dotenv.config();
 
 export const createOrder = async (req, res) => {
     try {
