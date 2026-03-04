@@ -4,7 +4,6 @@ import cors from 'cors';
 
 // Import Routes
 import paymentRoutes from './routes/payment.routes.js';
-import shareRoutes from './routes/share.routes.js';
 import exportRoutes from './routes/export.routes.js';
 import adminRoutes from './routes/admin.routes.js';
 
@@ -26,7 +25,6 @@ app.get('/api/health', (req, res) => {
 
 // API Routes
 app.use('/api/payment', paymentRoutes);
-app.use('/api/share', shareRoutes);
 app.use('/api/export', exportRoutes);
 app.use('/api/admin', adminRoutes);
 

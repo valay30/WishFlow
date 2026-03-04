@@ -11,7 +11,6 @@ import Categories from './pages/Categories';
 import ProductDetails from './pages/ProductDetails';
 import Profile from './pages/Profile';
 import Archive from './pages/Archive';
-import SharedWishlist from './pages/SharedWishlist';
 import AdminPanel from './pages/AdminPanel';
 
 function AppRoutes() {
@@ -24,10 +23,7 @@ function AppRoutes() {
         path="/auth"
         element={user ? <Navigate to="/" replace /> : <AuthPage />}
       />
-      <Route
-        path="/share/:key"
-        element={<SharedWishlist />}
-      />
+
 
       {/* Protected routes — wrapped in Layout */}
       <Route

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
-import { LogOut, User, ArrowLeft, Settings, Shield, Bell, LayoutGrid, List as ListIcon, ChevronDown, ChevronUp, Share2, FileDown, Copy, Check, Crown } from 'lucide-react';
+import { LogOut, User, ArrowLeft, Settings, Shield, Bell, LayoutGrid, List as ListIcon, ChevronDown, ChevronUp, FileDown, Crown } from 'lucide-react';
 import { useSettings } from '../context/SettingsContext';
 import { db } from '../db';
 import TierBadgeCard from '../components/TierBadgeCard';
@@ -17,36 +17,13 @@ export default function Profile() {
     const { viewMode, setViewMode } = useSettings();
     const navigate = useNavigate();
     const [showGeneral, setShowGeneral] = useState(false);
-    const [sharing, setSharing] = useState(false);
     const [exporting, setExporting] = useState(false);
-    const [shareKey, setShareKey] = useState('');
-    const [copied, setCopied] = useState(false);
 
     const handleLogout = () => {
         logout();
         navigate('/auth');
     };
 
-    const handleGenerateShare = async () => {
-        if (!user?.id) return;
-        setSharing(true);
-        try {
-            const response = await fetch('http://localhost:5000/api/share/generate', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ userId: user.id })
-            });
-            const data = await response.json();
-            if (data.shareKey) {
-                setShareKey(data.shareKey);
-            }
-        } catch (error) {
-            console.error('Share error:', error);
-            alert('Make sure your backend is running at http://localhost:5000');
-        } finally {
-            setSharing(false);
-        }
-    };
 
     const handleExportPDF = async () => {
         setExporting(true);
@@ -88,12 +65,6 @@ export default function Profile() {
         }
     };
 
-    const copyToClipboard = () => {
-        const link = `${window.location.origin}/share/${shareKey}`;
-        navigator.clipboard.writeText(link);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-    };
 
     const handleUpgradeToPremium = async () => {
         try {
@@ -215,7 +186,6 @@ export default function Profile() {
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem', marginBottom: '2rem' }}>
                         {[
                             { icon: User, label: 'Account Details', id: 'account' },
-                            { icon: Share2, label: 'Share Wishlist', id: 'share' },
                             { icon: FileDown, label: 'Export as PDF', id: 'pdf' },
                             { icon: Bell, label: 'Notifications', id: 'notif' },
                             { icon: Shield, label: 'Privacy & Security', id: 'privacy' },
@@ -226,18 +196,17 @@ export default function Profile() {
                                     onClick={() => {
                                         if (item.id === 'general') setShowGeneral(!showGeneral);
                                         if (item.id === 'pdf') handleExportPDF();
-                                        if (item.id === 'share') handleGenerateShare();
                                     }}
-                                    disabled={(item.id === 'pdf' && exporting) || (item.id === 'share' && sharing)}
+                                    disabled={(item.id === 'pdf' && exporting)}
                                     style={{
                                         display: 'flex', alignItems: 'center', gap: '1.25rem',
                                         padding: '1.15rem 1.5rem', background: SURFACE,
-                                        border: `1px solid ${item.id === 'share' && shareKey ? ORANGE : BORDER}`, borderRadius: '24px',
+                                        border: `1px solid ${BORDER}`, borderRadius: '24px',
                                         color: '#111', fontSize: '1.05rem', fontWeight: 700,
                                         cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.25s',
                                         textAlign: 'left', width: '100%',
                                         boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
-                                        opacity: (item.id === 'pdf' && exporting) || (item.id === 'share' && sharing) ? 0.7 : 1
+                                        opacity: (item.id === 'pdf' && exporting) ? 0.7 : 1
                                     }}
                                     onMouseEnter={e => {
                                         e.currentTarget.style.borderColor = ORANGE;
@@ -258,15 +227,10 @@ export default function Profile() {
                                         <item.icon size={22} />
                                     </div>
                                     <span style={{ flex: 1 }}>
-                                        {item.id === 'pdf' && exporting ? 'Generating PDF...' :
-                                            item.id === 'share' && sharing ? 'Generating Link...' : item.label}
+                                        {item.id === 'pdf' && exporting ? 'Generating PDF...' : item.label}
                                     </span>
                                     {item.id === 'general' ? (
                                         showGeneral ? <ChevronUp size={20} color="#9CA3AF" /> : <ChevronDown size={20} color="#9CA3AF" />
-                                    ) : item.id === 'share' && shareKey ? (
-                                        <div onClick={(e) => { e.stopPropagation(); copyToClipboard(); }} style={{ color: ORANGE, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                            {copied ? <Check size={18} /> : <Copy size={18} />}
-                                        </div>
                                     ) : (
                                         <ChevronDown size={20} color="#9CA3AF" style={{ transform: 'rotate(-90deg)' }} />
                                     )}

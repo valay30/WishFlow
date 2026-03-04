@@ -284,7 +284,7 @@ export default function AuthPage() {
                     <div style={{ maxWidth: '380px', width: '100%' }}>
                         <h2 style={{ fontSize: 'clamp(1.5rem, 2.5vw, 2rem)', fontWeight: 900, color: BLUE, marginBottom: '0.5rem' }}>Your Personal WishFlow</h2>
                         <p style={{ color: '#666', fontSize: '0.95rem', marginBottom: '2.5rem', lineHeight: 1.65 }}>
-                            Save products you love, track prices, and share with friends — all in one place.
+                            Save products you love and track prices — all in one place.
                         </p>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem' }}>
                             <button onClick={() => go('signup')} style={{ width: '100%', padding: '1rem', background: BLUE, color: '#fff', border: 'none', borderRadius: '12px', fontWeight: 800, fontSize: '1rem', fontFamily: 'inherit', cursor: 'pointer', boxShadow: '0 6px 20px rgba(16, 54, 125,0.35)' }}
