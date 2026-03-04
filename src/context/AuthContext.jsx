@@ -9,9 +9,14 @@ export function AuthProvider({ children }) {
 
     useEffect(() => {
         const initSession = async () => {
-            const currentUser = await auth.getCurrentUser();
-            setUser(currentUser);
-            setLoading(false);
+            try {
+                const currentUser = await auth.getCurrentUser();
+                setUser(currentUser);
+            } catch (error) {
+                console.error("Error initializing session:", error);
+            } finally {
+                setLoading(false);
+            }
         };
 
         initSession();

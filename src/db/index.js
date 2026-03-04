@@ -23,15 +23,24 @@ export const clearDbCache = () => {
 // ─── Auth helpers ─────────────────────────────────────────────────────────────
 export const auth = {
   getCurrentUser: async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (session) {
-      return {
-        id: session.user.id,
-        email: session.user.email,
-        name: session.user.user_metadata?.name,
-        isPremium: session.user.user_metadata?.is_premium || false,
-        isAdmin: session.user.user_metadata?.is_admin || false,
-      };
+    try {
+      const { data, error } = await supabase.auth.getSession();
+      if (error) {
+        console.error("Supabase getSession error:", error);
+        return null;
+      }
+      const session = data?.session;
+      if (session) {
+        return {
+          id: session.user.id,
+          email: session.user.email,
+          name: session.user.user_metadata?.name,
+          isPremium: session.user.user_metadata?.is_premium || false,
+          isAdmin: session.user.user_metadata?.is_admin || false,
+        };
+      }
+    } catch (error) {
+      console.error("Unexpected error getting session:", error);
     }
     return null;
   },
