@@ -65,3 +65,25 @@ export const revokePremium = async (req, res) => {
         res.status(500).json({ error: 'Failed to revoke premium' });
     }
 };
+
+export const deleteUser = async (req, res) => {
+    const { userId } = req.params;
+    if (!userId) return res.status(400).json({ error: 'userId required' });
+    try {
+        // Delete dependent data (items, categories) to bypass foreign key constraint errors
+        const { error: itemsErr } = await supabase.from('items').delete().eq('user_id', userId);
+        if (itemsErr) console.warn('Warning deleting items for user:', itemsErr);
+
+        const { error: catErr } = await supabase.from('categories').delete().eq('user_id', userId);
+        if (catErr) console.warn('Warning deleting categories for user:', catErr);
+
+        // Delete from Auth
+        const { error } = await supabase.auth.admin.deleteUser(userId);
+        if (error) throw error;
+
+        res.json({ success: true });
+    } catch (err) {
+        console.error('Delete user error:', err);
+        res.status(500).json({ error: 'Failed to delete user', details: err?.message || JSON.stringify(err) });
+    }
+};

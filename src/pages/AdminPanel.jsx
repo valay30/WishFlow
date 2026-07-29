@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
-import { Crown, Users, ShieldCheck, ArrowLeft, RefreshCw, CheckCircle, XCircle, Search } from 'lucide-react';
+import { Crown, Users, ShieldCheck, ArrowLeft, RefreshCw, CheckCircle, XCircle, Search, Trash2 } from 'lucide-react';
 
 const API = 'http://localhost:5000';
 const ADMIN_SECRET = 'wishflow-admin-2024';
@@ -83,6 +83,27 @@ export default function AdminPanel() {
             } else throw new Error();
         } catch {
             showToast('Failed to revoke premium', 'error');
+        } finally {
+            setActionLoading(null);
+        }
+    };
+
+    const deleteUser = async (userId) => {
+        if (!window.confirm('Are you sure you want to permanently delete this user?')) return;
+        setActionLoading(userId + '_delete');
+        try {
+            const res = await fetch(`${API}/api/admin/users/${userId}`, {
+                method: 'DELETE', headers,
+            });
+            if (res.ok) {
+                setUsers(prev => prev.filter(u => u.id !== userId));
+                showToast('User deleted');
+            } else {
+                const data = await res.json();
+                throw new Error(data.details || data.error || 'Failed');
+            }
+        } catch (err) {
+            showToast('Failed to delete user: ' + err.message, 'error');
         } finally {
             setActionLoading(null);
         }
@@ -218,7 +239,7 @@ export default function AdminPanel() {
                 <div style={{ background: '#161b22', border: '1px solid #30363d', borderRadius: '16px', overflow: 'hidden' }}>
                     {/* Table header */}
                     <div style={{
-                        display: 'grid', gridTemplateColumns: '1fr 1fr 140px 200px',
+                        display: 'grid', gridTemplateColumns: '1fr 1fr 140px 260px',
                         padding: '0.85rem 1.5rem', background: '#0d1117',
                         borderBottom: '1px solid #30363d',
                         fontSize: '0.72rem', fontWeight: 700, color: '#8b949e', textTransform: 'uppercase', letterSpacing: '0.08em',
@@ -236,7 +257,7 @@ export default function AdminPanel() {
                     ) : (
                         filtered.map((u, i) => (
                             <div key={u.id} style={{
-                                display: 'grid', gridTemplateColumns: '1fr 1fr 140px 200px',
+                                display: 'grid', gridTemplateColumns: '1fr 1fr 140px 260px',
                                 padding: '1rem 1.5rem', alignItems: 'center', gap: '0.5rem',
                                 borderBottom: i < filtered.length - 1 ? '1px solid #21262d' : 'none',
                                 transition: 'background 0.15s',
@@ -327,6 +348,24 @@ export default function AdminPanel() {
                                             {actionLoading === u.id + '_grant' ? 'Granting…' : 'Grant Premium'}
                                         </button>
                                     )}
+                                    <button
+                                        onClick={() => deleteUser(u.id)}
+                                        disabled={actionLoading === u.id + '_delete' || u.id === user?.id}
+                                        style={{
+                                            display: 'flex', alignItems: 'center', gap: '0.35rem',
+                                            background: 'rgba(220,38,38,0.1)', border: '1px solid rgba(220,38,38,0.25)',
+                                            color: '#ef4444', padding: '0.45rem 0.9rem', borderRadius: '8px',
+                                            cursor: u.id === user?.id ? 'not-allowed' : 'pointer',
+                                            fontFamily: 'inherit', fontSize: '0.8rem', fontWeight: 700,
+                                            opacity: actionLoading === u.id + '_delete' || u.id === user?.id ? 0.4 : 1,
+                                            transition: 'all 0.2s',
+                                        }}
+                                        onMouseEnter={e => { if (u.id !== user?.id) { e.currentTarget.style.background = 'rgba(220,38,38,0.2)'; } }}
+                                        onMouseLeave={e => { if (u.id !== user?.id) { e.currentTarget.style.background = 'rgba(220,38,38,0.1)'; } }}
+                                    >
+                                        <Trash2 size={13} />
+                                        Delete
+                                    </button>
                                 </div>
                             </div>
                         ))
