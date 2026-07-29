@@ -91,7 +91,7 @@ export default function ProductDetails() {
             const updated = await db.items.update(item.id, { is_purchased: true });
             if (updated) {
                 setItem(updated);
-                navigate('/');
+                navigate('/?celebrate=true');
             }
         } catch (err) {
             alert("Error marking as purchased: " + err.message + "\n\nDid you run the SQL snippet in Supabase to add the 'is_purchased' column?");

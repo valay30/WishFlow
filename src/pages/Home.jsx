@@ -8,6 +8,7 @@ import { useSettings } from '../context/SettingsContext';
 import ProductCard from '../components/ProductCard';
 import AddProductModal from '../components/AddProductModal';
 import ItemCard from '../components/ItemCard';
+import confetti from 'canvas-confetti';
 
 const ORANGE = '#10367D';
 const SURFACE = '#FFFFFF';
@@ -50,6 +51,41 @@ export default function Home() {
         };
         load();
     }, []);
+
+    useEffect(() => {
+        if (searchParams.get('celebrate') === 'true') {
+            // A nice screen-wide confetti explosion (side cannons burst)
+            const duration = 2 * 1000;
+            const end = Date.now() + duration;
+
+            const frame = () => {
+                confetti({
+                    particleCount: 4,
+                    angle: 60,
+                    spread: 55,
+                    origin: { x: 0, y: 0.8 }
+                });
+                confetti({
+                    particleCount: 4,
+                    angle: 120,
+                    spread: 55,
+                    origin: { x: 1, y: 0.8 }
+                });
+
+                if (Date.now() < end) {
+                    requestAnimationFrame(frame);
+                }
+            };
+            frame();
+
+            // Clear celebrate query param so it doesn't fire again on refresh/back
+            setSearchParams(p => {
+                const n = new URLSearchParams(p);
+                n.delete('celebrate');
+                return n;
+            }, { replace: true });
+        }
+    }, [searchParams, setSearchParams]);
 
     const openModal = () => setSearchParams(p => { const n = new URLSearchParams(p); n.set('add', 'true'); return n; });
     const closeModal = () => setSearchParams(p => { const n = new URLSearchParams(p); n.delete('add'); return n; });
