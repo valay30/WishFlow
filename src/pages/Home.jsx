@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { db, supabase } from '../db';
-import { Search, X, Upload, ArrowRight, Sparkles, ShoppingBag, Crown } from 'lucide-react';
+import { Search, X, Upload, ArrowRight, Sparkles, ShoppingBag, Crown, Monitor, Shirt, Watch, Tag, Footprints } from 'lucide-react';
 import { useAuth } from '../context/useAuth';
 import { useSettings } from '../context/SettingsContext';
 import ProductCard from '../components/ProductCard';
@@ -15,17 +15,15 @@ const SURFACE = '#FFFFFF';
 const SURFACE2 = '#F5F5F5';
 const BORDER = '#D1D5DB';
 
-/* ── Category emoji map ── */
-const CAT_EMOJI = {
-    electronics: '🖥️', tech: '💻', clothing: '👕', fashion: '👗',
-    shoes: '👟', food: '🍔', grocery: '🛒', travel: '✈️',
-    games: '🎮', gaming: '🎮', books: '📚', beauty: '💄',
-    home: '🏠', furniture: '🪑', sports: '⚽', fitness: '💪',
-    toys: '🧸', music: '🎵', health: '💊', default: '🏷️',
-};
-const getEmoji = (name = '') => {
+/* ── Category icon map ── */
+const GetCategoryIcon = ({ name, size = 16, color, className }) => {
     const key = name.toLowerCase();
-    return Object.entries(CAT_EMOJI).find(([k]) => key.includes(k))?.[1] ?? CAT_EMOJI.default;
+    if (key.includes('electronic') || key.includes('tech') || key.includes('computer')) return <Monitor size={size} color={color} className={className} />;
+    if (key.includes('cloth') || key.includes('fashion') || key.includes('apparel')) return <Shirt size={size} color={color} className={className} />;
+    if (key.includes('gadget') || key.includes('watch')) return <Watch size={size} color={color} className={className} />;
+    if (key.includes('accessory') || key.includes('bag')) return <ShoppingBag size={size} color={color} className={className} />;
+    if (key.includes('shoe') || key.includes('footwear')) return <Footprints size={size} color={color} className={className} />;
+    return <Tag size={size} color={color} className={className} />;
 };
 
 /* ══════════════════════════════════════
@@ -229,8 +227,8 @@ export default function Home() {
                 <div className="home-sheet">
                     {/* ── Category chips (horizontal scroll) ── */}
                     <div style={{
-                        display: 'flex', gap: '0.5rem',
-                        overflowX: 'auto', paddingBottom: '0.25rem',
+                        display: 'flex', gap: '0.65rem',
+                        overflowX: 'auto', paddingBottom: '0.75rem',
                         marginBottom: '1.25rem',
                         scrollbarWidth: 'none', msOverflowStyle: 'none',
                     }}>
@@ -242,20 +240,22 @@ export default function Home() {
                                     onClick={() => selectCat(cat.id)}
                                     style={{
                                         flexShrink: 0,
-                                        padding: '0.45rem 1.1rem',
+                                        display: 'flex', alignItems: 'center', gap: '0.55rem',
+                                        padding: '0.65rem 1.25rem',
                                         borderRadius: '99px',
-                                        border: isActive ? 'none' : `1.5px solid ${BORDER}`,
-                                        background: isActive ? ORANGE : '#F5F5F5',
-                                        color: isActive ? '#fff' : '#6B7280',
-                                        fontWeight: isActive ? 800 : 600,
-                                        fontSize: '0.88rem',
+                                        border: isActive ? 'none' : `1px solid rgba(0,0,0,0.04)`,
+                                        background: isActive ? '#10367D' : '#FFFFFF',
+                                        color: isActive ? '#fff' : '#4B5563',
+                                        fontWeight: 800,
+                                        fontSize: '0.9rem',
                                         fontFamily: 'inherit',
                                         cursor: 'pointer',
                                         transition: 'all 0.18s ease',
                                         whiteSpace: 'nowrap',
-                                        boxShadow: isActive ? '0 2px 10px rgba(0,0,0,0.4)' : 'none',
+                                        boxShadow: isActive ? '0 4px 14px rgba(16,54,125,0.4)' : '0 1px 4px rgba(0,0,0,0.03)',
                                     }}
                                 >
+                                    {cat.id !== null && <GetCategoryIcon name={cat.name} size={16} color={isActive ? '#fff' : '#10367D'} />}
                                     {cat.name}
                                 </button>
                             );

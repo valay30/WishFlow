@@ -1,19 +1,19 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { db } from '../db';
-import { Trash2, Edit, ArrowLeft, ExternalLink, Upload, X, Check, ArrowRight, PackageCheck } from 'lucide-react';
+import { Trash2, Edit, ArrowLeft, ExternalLink, Upload, X, Check, PackageCheck } from 'lucide-react';
 import { uploadToImageKit } from '../utils/imagekit';
 
-const ORANGE = '#10367D';
+const BLUE = '#10367D';
 const SURFACE = '#FFFFFF';
 const SURFACE2 = '#F5F5F5';
 const BORDER = '#D1D5DB';
 const BG = '#EBEBEB';
 
 const INPUT_ST = {
-    width: '100%', padding: '0.85rem 1rem',
+    width: '100%', padding: '0.8rem 1rem',
     background: SURFACE2, border: `1.5px solid ${BORDER}`,
-    borderRadius: '14px', color: '#111',
+    borderRadius: '12px', color: '#111',
     fontFamily: 'inherit', fontSize: '0.95rem',
     outline: 'none', boxSizing: 'border-box',
     transition: 'border-color 0.2s',
@@ -21,7 +21,7 @@ const INPUT_ST = {
 const LABEL_ST = {
     display: 'block', marginBottom: '0.4rem',
     fontSize: '0.72rem', fontWeight: 700,
-    color: ORANGE, textTransform: 'uppercase', letterSpacing: '0.06em',
+    color: BLUE, textTransform: 'uppercase', letterSpacing: '0.06em',
 };
 
 export default function ProductDetails() {
@@ -38,7 +38,25 @@ export default function ProductDetails() {
     const [editCategoryId, setEditCategoryId] = useState('');
     const [isUploading, setIsUploading] = useState(false);
 
+    const [isMobile, setIsMobile] = useState(window.innerWidth <= 640);
     useEffect(() => {
+        const handleResize = () => setIsMobile(window.innerWidth <= 640);
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
+    useEffect(() => {
+        if (!isMobile) {
+            document.body.style.background = '#071d4e';
+            return () => { document.body.style.background = ''; };
+        } else {
+            document.body.style.background = BG;
+            return () => { document.body.style.background = ''; };
+        }
+    }, [isMobile]);
+
+    useEffect(() => {
+        window.scrollTo(0, 0);
         const load = async () => {
             const found = await db.items.getById(id);
             if (found) {
@@ -58,7 +76,6 @@ export default function ProductDetails() {
         const file = e.target.files[0];
         if (!file) return;
         if (file.size > 5000000) { alert('Please use an image < 5 MB or a URL.'); return; }
-
         setIsUploading(true);
         try {
             const url = await uploadToImageKit(file);
@@ -98,301 +115,509 @@ export default function ProductDetails() {
         }
     };
 
-    const focus = e => e.target.style.borderColor = ORANGE;
-    const blur = e => e.target.style.borderColor = BORDER;
+    const focus = e => { e.target.style.borderColor = BLUE; e.target.style.boxShadow = `0 0 0 3px rgba(16,54,125,0.1)`; };
+    const blur = e => { e.target.style.borderColor = BORDER; e.target.style.boxShadow = 'none'; };
 
     if (!item) return (
-        <div style={{ textAlign: 'center', padding: '4rem 1rem' }}>
-            <p style={{ fontWeight: 700, color: ORANGE, marginBottom: '1rem', fontSize: '1.1rem' }}>Item not found.</p>
-            <button onClick={() => navigate('/')} style={{
-                padding: '0.75rem 2rem', background: ORANGE, color: '#fff',
-                border: 'none', borderRadius: '99px', fontWeight: 800,
-                cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.95rem',
-            }}>← Go Home</button>
+        <div style={{ minHeight: '100vh', background: `linear-gradient(160deg, #051A44 0%, #0A2665 55%, #10367D 100%)`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ textAlign: 'center' }}>
+                <p style={{ fontWeight: 700, color: 'rgba(255,255,255,0.7)', marginBottom: '1rem', fontSize: '1.1rem' }}>Item not found.</p>
+                <button onClick={() => navigate('/')} style={{ padding: '0.75rem 2rem', background: '#fff', color: BLUE, border: 'none', borderRadius: '99px', fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.95rem' }}>← Go Home</button>
+            </div>
         </div>
     );
 
     const categoryName = availableCategories.find(c => c.id === item.category_id)?.name || 'Uncategorized';
     const price = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 2 }).format(item.price);
 
-    return (
-        <div style={{ minHeight: '100%', background: BG }}>
-            {/* ── Hero Section (Image Showcase) ── */}
-            <div style={{
-                background: `linear-gradient(160deg, #051A44 0%, #0A2665 55%, #10367D 100%)`,
-                padding: '1.5rem 1.5rem 6.5rem',
-                position: 'relative',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                color: '#fff',
-                overflow: 'hidden'
-            }}>
-                {/* Decorative Background Elements */}
-                <div style={{ position: 'absolute', top: '-10%', right: '-5%', width: '300px', height: '300px', background: 'radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%)', borderRadius: '50%' }} />
-                <div style={{ position: 'absolute', bottom: '10%', left: '-10%', width: '250px', height: '250px', background: 'radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 70%)', borderRadius: '50%' }} />
-
-                {/* Back Button */}
-                <div style={{ position: 'absolute', top: '2.5rem', left: '1.5rem', zIndex: 10 }}>
-                    <button
-                        onClick={() => navigate(-1)}
-                        style={{
+    if (isMobile) {
+        return (
+            <div style={{ minHeight: '100%', background: BG, display: 'flex', flexDirection: 'column' }}>
+                {/* ── Hero Section (Image Showcase) ── */}
+                <div style={{
+                    background: `linear-gradient(160deg, #051A44 0%, #071d4e 55%, #10367D 100%)`,
+                    padding: '2rem 1.5rem 4rem',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    position: 'relative',
+                    zIndex: 1
+                }}>
+                    <div style={{ width: '100%', maxWidth: '800px', display: 'flex', justifyContent: 'flex-start', marginBottom: '1.5rem' }}>
+                        <button onClick={() => navigate(-1)} style={{
                             display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
-                            background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)',
+                            background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.2)',
                             color: 'rgba(255,255,255,0.9)', fontWeight: 600, fontSize: '0.85rem',
                             cursor: 'pointer', fontFamily: 'inherit',
-                            padding: '0.6rem 1.1rem', borderRadius: '99px',
+                            padding: '0.55rem 1.1rem', borderRadius: '99px',
                             backdropFilter: 'blur(10px)',
-                            transition: 'all 0.2s cubic-bezier(0.4,0,0.2,1)'
-                        }}
-                        onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.25)'; e.currentTarget.style.color = '#fff'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
-                        onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; e.currentTarget.style.color = 'rgba(255,255,255,0.9)'; e.currentTarget.style.transform = 'translateY(0)'; }}
-                    >
-                        <ArrowLeft size={16} /> Back
-                    </button>
+                            transition: 'all 0.2s ease',
+                        }}>
+                            <ArrowLeft size={15} /> Back
+                        </button>
+                    </div>
+                    <div style={{
+                        width: '240px', height: '240px',
+                        background: '#fff', borderRadius: '32px',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        boxShadow: '0 12px 40px rgba(0,0,0,0.15)',
+                        overflow: 'hidden'
+                    }}>
+                        {item.image ? (
+                            <img src={item.image} alt={item.name} style={{ width: '85%', height: '85%', objectFit: 'contain' }} />
+                        ) : (
+                            <div style={{ fontSize: '4.5rem', opacity: 0.25 }}>🛍️</div>
+                        )}
+                    </div>
                 </div>
 
-                {/* Hero Image */}
+                {/* ── Content Sheet ── */}
                 <div style={{
-                    marginTop: '3.5rem',
-                    width: '100%',
-                    maxWidth: '260px',
-                    aspectRatio: '1/1',
-                    background: '#fff',
-                    borderRadius: '40px',
+                    flex: 1,
+                    background: BG,
+                    borderRadius: '32px 32px 0 0',
                     padding: '1.5rem',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    boxShadow: '0 24px 48px rgba(0,0,0,0.3)',
-                    animation: 'fadeInUp 0.6s ease-out backwards',
+                    paddingBottom: '3rem',
+                    marginTop: '-32px',
+                    zIndex: 10,
                     position: 'relative',
-                    zIndex: 2
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '1.5rem'
                 }}>
-                    {item.image ? (
-                        <img
-                            src={item.image}
-                            alt={item.name}
-                            style={{
-                                width: '100%',
-                                height: '100%',
-                                objectFit: 'contain',
-                                filter: 'drop-shadow(0 12px 24px rgba(0,0,0,0.1))',
-                                transition: 'transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)'
-                            }}
-                            onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.1)'}
-                            onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
-                        />
+                    {isEditing ? (
+                        <div style={{ background: '#fff', borderRadius: '24px', padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.25rem', boxShadow: '0 4px 20px rgba(0,0,0,0.03)' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.25rem' }}>
+                                <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: `rgba(16,54,125,0.07)`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: BLUE }}>
+                                    <Edit size={19} />
+                                </div>
+                                <h3 style={{ fontWeight: 900, fontSize: '1.2rem', color: '#111', margin: 0 }}>Edit Details</h3>
+                            </div>
+                            <div>
+                                <label style={LABEL_ST}>Product Name</label>
+                                <input style={INPUT_ST} value={editName} onChange={e => setEditName(e.target.value)} onFocus={focus} onBlur={blur} />
+                            </div>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                                <div>
+                                    <label style={LABEL_ST}>Price (₹)</label>
+                                    <input style={INPUT_ST} type="number" step="0.01" value={editPrice} onChange={e => setEditPrice(e.target.value)} onFocus={focus} onBlur={blur} />
+                                </div>
+                                <div>
+                                    <label style={LABEL_ST}>Category</label>
+                                    <select style={{ ...INPUT_ST, appearance: 'none' }} value={editCategoryId} onChange={e => setEditCategoryId(e.target.value)} onFocus={focus} onBlur={blur}>
+                                        <option value="">Select Category</option>
+                                        {availableCategories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                                    </select>
+                                </div>
+                            </div>
+                            <div>
+                                <label style={LABEL_ST}>Product Link</label>
+                                <input style={INPUT_ST} type="url" placeholder="https://..." value={editLink} onChange={e => setEditLink(e.target.value)} onFocus={focus} onBlur={blur} />
+                            </div>
+                            <div>
+                                <label style={LABEL_ST}>Change Image</label>
+                                <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                                    <label style={{
+                                        flex: 1, padding: '0.9rem', background: '#F9FAFB', border: `2px dashed ${BORDER}`,
+                                        borderRadius: '12px', textAlign: 'center', cursor: isUploading ? 'wait' : 'pointer',
+                                        transition: 'all 0.2s', color: '#6B7280', fontSize: '0.9rem', fontWeight: 600,
+                                    }}
+                                        onMouseEnter={e => e.currentTarget.style.borderColor = BLUE}
+                                        onMouseLeave={e => e.currentTarget.style.borderColor = BORDER}
+                                    >
+                                        {isUploading ? <span style={{ fontWeight: 700, color: BLUE }}>Uploading...</span> : <><Upload size={17} style={{ verticalAlign: 'middle', marginRight: '6px' }} />Upload New</>}
+                                        <input type="file" accept="image/*" hidden onChange={handleImageUpload} disabled={isUploading} />
+                                    </label>
+                                    {editImage && (
+                                        <div style={{ position: 'relative', width: '56px', height: '56px', borderRadius: '10px', overflow: 'hidden', border: `1px solid ${BORDER}`, flexShrink: 0 }}>
+                                            <img src={editImage} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                            <button onClick={() => setEditImage('')} style={{ position: 'absolute', top: 2, right: 2, background: 'rgba(239,68,68,0.9)', color: '#fff', border: 'none', borderRadius: '50%', width: '16px', height: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}><X size={9} /></button>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                            <div style={{ display: 'flex', gap: '0.75rem', paddingTop: '0.25rem' }}>
+                                <button onClick={handleSave} disabled={isUploading} style={{
+                                    flex: 2, padding: '0.95rem', background: BLUE, color: '#fff', border: 'none', borderRadius: '14px',
+                                    fontWeight: 800, fontSize: '0.95rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
+                                    cursor: 'pointer', boxShadow: '0 6px 20px rgba(16,54,125,0.3)',
+                                }}><Check size={17} strokeWidth={3} /> Save Details</button>
+                                <button onClick={() => setIsEditing(false)} style={{
+                                    flex: 1, padding: '0.95rem', background: '#F3F4F6', color: '#6B7280', border: 'none', borderRadius: '14px',
+                                    fontWeight: 700, cursor: 'pointer', fontSize: '0.95rem', fontFamily: 'inherit',
+                                }}>Cancel</button>
+                            </div>
+                        </div>
                     ) : (
-                        <div style={{ fontSize: '5rem', opacity: 0.2 }}>🛍️</div>
+                        <div style={{
+                            background: '#fff', borderRadius: '28px', padding: '1.5rem', boxShadow: '0 4px 20px rgba(0,0,0,0.03)'
+                        }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
+                                <span style={{ display: 'inline-block', background: '#E6F4EA', color: '#137333', padding: '0.35rem 0.8rem', borderRadius: '8px', fontSize: '0.65rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                                    {categoryName}
+                                </span>
+                                <div style={{ textAlign: 'right' }}>
+                                    <p style={{ fontSize: '1.5rem', fontWeight: 900, color: BLUE, margin: 0 }}>
+                                        {price}
+                                    </p>
+                                </div>
+                            </div>
+                            <h1 style={{ fontSize: '1.7rem', fontWeight: 900, color: '#111', margin: 0, lineHeight: 1.1 }}>
+                                {item.name}
+                            </h1>
+                        </div>
+                    )}
+
+                    {!isEditing && (
+                        <>
+                            <a href={item.link || '#'} target={item.link ? '_blank' : '_self'} rel="noopener noreferrer"
+                                onClick={e => { if (!item.link) e.preventDefault(); }}
+                                style={{
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
+                                    padding: '1rem', background: item.link ? BLUE : '#D1D5DB',
+                                    color: '#fff', borderRadius: '16px', fontWeight: 800, fontSize: '0.95rem',
+                                    textDecoration: 'none', cursor: item.link ? 'pointer' : 'default',
+                                    boxShadow: item.link ? '0 8px 25px rgba(16,54,125,0.25)' : 'none'
+                                }}>
+                                <ExternalLink size={18} /> {item.link ? 'Visit Product Page' : 'No link available'} {item.link && '→'}
+                            </a>
+
+                            {!item.is_purchased && (
+                                <button onClick={handlePurchase} style={{
+                                    padding: '1rem', background: '#f0fdf4', color: '#16a34a', border: '1px solid #bbf7d0',
+                                    borderRadius: '16px', fontWeight: 800, fontSize: '0.95rem',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', cursor: 'pointer',
+                                }}>
+                                    <PackageCheck size={18} /> Mark as Purchased
+                                </button>
+                            )}
+
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                                <button onClick={() => setIsEditing(true)} style={{
+                                    padding: '0.9rem', background: '#F3F4F6', color: '#4B5563', border: 'none',
+                                    borderRadius: '14px', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', cursor: 'pointer'
+                                }}>
+                                    <Edit size={16} /> Edit
+                                </button>
+                                <button onClick={handleDelete} style={{
+                                    padding: '0.9rem', background: '#fef2f2', color: '#ef4444', border: 'none',
+                                    borderRadius: '14px', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', cursor: 'pointer'
+                                }}>
+                                    <Trash2 size={16} /> Delete
+                                </button>
+                            </div>
+
+                            {item.link && (
+                                <div style={{ background: '#F9FAFB', borderRadius: '14px', padding: '1rem', display: 'flex', alignItems: 'center', gap: '0.75rem', border: '1px solid #E5E7EB' }}>
+                                    <ExternalLink size={16} color="#9CA3AF" style={{ flexShrink: 0 }} />
+                                    <span style={{ fontSize: '0.85rem', color: '#6B7280', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                        Source: {item.link.replace(/^https?:\/\//, '')}
+                                    </span>
+                                </div>
+                            )}
+                        </>
                     )}
                 </div>
             </div>
+        );
+    }
 
-            {/* ── Content Sheet ── */}
-            <div style={{
-                background: BG,
-                borderRadius: '32px 32px 0 0',
-                marginTop: '-3rem',
-                padding: '2.5rem 1.5rem',
-                position: 'relative',
-                zIndex: 3,
-                minHeight: '60vh'
-            }}>
-                <div style={{ maxWidth: '640px', margin: '0 auto' }}>
+    return (
+        <div style={{ minHeight: '100%', background: `linear-gradient(160deg, #051A44 0%, #0A2665 55%, #10367D 100%)`, display: 'flex', flexDirection: 'column' }}>
 
-                    <div style={{
-                        background: SURFACE,
-                        borderRadius: '32px',
-                        padding: '2.5rem 2rem',
-                        boxShadow: '0 -4px 30px rgba(0,0,0,0.03), 0 16px 40px rgba(0,0,0,0.05)',
-                        animation: 'fadeInUp 0.4s ease-out 0.1s backwards'
-                    }}>
-                        {isEditing ? (
-                            /* ── EDIT FORM ── */
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
-                                    <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: 'rgba(16,54,125,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: ORANGE }}>
-                                        <Edit size={20} />
-                                    </div>
-                                    <h3 style={{ fontWeight: 900, fontSize: '1.25rem', color: '#111', margin: 0 }}>Edit Details</h3>
+            {/* ── Back Button ── */}
+            <div style={{ padding: '1.5rem 2rem 0' }}>
+                <button
+                    onClick={() => navigate(-1)}
+                    style={{
+                        display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
+                        background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.2)',
+                        color: 'rgba(255,255,255,0.9)', fontWeight: 600, fontSize: '0.85rem',
+                        cursor: 'pointer', fontFamily: 'inherit',
+                        padding: '0.55rem 1.1rem', borderRadius: '99px',
+                        backdropFilter: 'blur(10px)',
+                        transition: 'all 0.2s ease',
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.22)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.12)'; e.currentTarget.style.transform = 'translateY(0)'; }}
+                >
+                    <ArrowLeft size={15} /> Back
+                </button>
+            </div>
+
+            {/* ── Main Content Area ── */}
+            <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem 2rem 3rem' }}>
+                <div style={{
+                    background: SURFACE,
+                    borderRadius: '28px',
+                    boxShadow: '0 32px 80px rgba(0,0,0,0.35)',
+                    width: '100%',
+                    maxWidth: '860px',
+                    overflow: 'hidden',
+                    animation: 'cardIn 0.4s cubic-bezier(0.2, 0.8, 0.4, 1)',
+                }}>
+                    {isEditing ? (
+                        /* ══ EDIT FORM ══ */
+                        <div style={{ padding: '2.5rem 2rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.25rem' }}>
+                                <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: `rgba(16,54,125,0.07)`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: BLUE }}>
+                                    <Edit size={19} />
                                 </div>
+                                <h3 style={{ fontWeight: 900, fontSize: '1.2rem', color: '#111', margin: 0 }}>Edit Details</h3>
+                            </div>
 
+                            <div>
+                                <label style={LABEL_ST}>Product Name</label>
+                                <input style={INPUT_ST} value={editName} onChange={e => setEditName(e.target.value)} onFocus={focus} onBlur={blur} />
+                            </div>
+
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                                 <div>
-                                    <label style={LABEL_ST}>Product Name</label>
-                                    <input style={INPUT_ST} value={editName} onChange={e => setEditName(e.target.value)} onFocus={focus} onBlur={blur} />
+                                    <label style={LABEL_ST}>Price (₹)</label>
+                                    <input style={INPUT_ST} type="number" step="0.01" value={editPrice} onChange={e => setEditPrice(e.target.value)} onFocus={focus} onBlur={blur} />
                                 </div>
-
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                                    <div>
-                                        <label style={LABEL_ST}>Price (₹)</label>
-                                        <input style={INPUT_ST} type="number" step="0.01" value={editPrice} onChange={e => setEditPrice(e.target.value)} onFocus={focus} onBlur={blur} />
-                                    </div>
-                                    <div>
-                                        <label style={LABEL_ST}>Category</label>
-                                        <select style={{ ...INPUT_ST, appearance: 'none' }} value={editCategoryId} onChange={e => setEditCategoryId(e.target.value)} onFocus={focus} onBlur={blur}>
-                                            <option value="">Select Category</option>
-                                            {availableCategories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                                        </select>
-                                    </div>
-                                </div>
-
                                 <div>
-                                    <label style={LABEL_ST}>Product Link</label>
-                                    <input style={INPUT_ST} type="url" placeholder="https://..." value={editLink} onChange={e => setEditLink(e.target.value)} onFocus={focus} onBlur={blur} />
-                                </div>
-
-                                <div>
-                                    <label style={LABEL_ST}>Change Image</label>
-                                    <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-                                        <label style={{
-                                            flex: 1, padding: '1rem', background: '#F9FAFB', border: `2px dashed ${BORDER}`,
-                                            borderRadius: '16px', textAlign: 'center', cursor: isUploading ? 'wait' : 'pointer',
-                                            transition: 'all 0.2s'
-                                        }} onMouseEnter={e => e.currentTarget.style.borderColor = ORANGE}>
-                                            {isUploading ? <span style={{ fontWeight: 700, color: ORANGE }}>Uploading...</span> : <><Upload size={20} style={{ verticalAlign: 'middle', marginRight: '8px' }} /> Upload New</>}
-                                            <input type="file" accept="image/*" hidden onChange={handleImageUpload} disabled={isUploading} />
-                                        </label>
-                                        {editImage && (
-                                            <div style={{ position: 'relative', width: '60px', height: '60px', borderRadius: '12px', overflow: 'hidden', border: `1px solid ${BORDER}` }}>
-                                                <img src={editImage} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                                <button onClick={() => setEditImage('')} style={{ position: 'absolute', top: 2, right: 2, background: 'rgba(239,68,68,0.9)', color: '#fff', border: 'none', borderRadius: '50%', width: '18px', height: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}><X size={10} /></button>
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-
-                                <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem' }}>
-                                    <button onClick={handleSave} disabled={isUploading} style={{
-                                        flex: 2, padding: '1rem', background: ORANGE, color: '#fff', border: 'none', borderRadius: '18px',
-                                        fontWeight: 900, fontSize: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
-                                        cursor: 'pointer', boxShadow: '0 8px 20px rgba(16,54,125,0.25)'
-                                    }}><Check size={18} strokeWidth={3} /> Save Details</button>
-                                    <button onClick={() => setIsEditing(false)} style={{
-                                        flex: 1, padding: '1rem', background: '#fff', color: '#6B7280', border: `1px solid ${BORDER}`, borderRadius: '18px',
-                                        fontWeight: 700, cursor: 'pointer'
-                                    }}>Cancel</button>
+                                    <label style={LABEL_ST}>Category</label>
+                                    <select style={{ ...INPUT_ST, appearance: 'none' }} value={editCategoryId} onChange={e => setEditCategoryId(e.target.value)} onFocus={focus} onBlur={blur}>
+                                        <option value="">Select Category</option>
+                                        {availableCategories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                                    </select>
                                 </div>
                             </div>
-                        ) : (
-                            /* ── VIEW MODE ── */
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                                {/* Info Group */}
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
+
+                            <div>
+                                <label style={LABEL_ST}>Product Link</label>
+                                <input style={INPUT_ST} type="url" placeholder="https://..." value={editLink} onChange={e => setEditLink(e.target.value)} onFocus={focus} onBlur={blur} />
+                            </div>
+
+                            <div>
+                                <label style={LABEL_ST}>Change Image</label>
+                                <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                                    <label style={{
+                                        flex: 1, padding: '0.9rem', background: '#F9FAFB', border: `2px dashed ${BORDER}`,
+                                        borderRadius: '12px', textAlign: 'center', cursor: isUploading ? 'wait' : 'pointer',
+                                        transition: 'all 0.2s', color: '#6B7280', fontSize: '0.9rem', fontWeight: 600,
+                                    }}
+                                        onMouseEnter={e => e.currentTarget.style.borderColor = BLUE}
+                                        onMouseLeave={e => e.currentTarget.style.borderColor = BORDER}
+                                    >
+                                        {isUploading ? <span style={{ fontWeight: 700, color: BLUE }}>Uploading...</span> : <><Upload size={17} style={{ verticalAlign: 'middle', marginRight: '6px' }} />Upload New</>}
+                                        <input type="file" accept="image/*" hidden onChange={handleImageUpload} disabled={isUploading} />
+                                    </label>
+                                    {editImage && (
+                                        <div style={{ position: 'relative', width: '56px', height: '56px', borderRadius: '10px', overflow: 'hidden', border: `1px solid ${BORDER}`, flexShrink: 0 }}>
+                                            <img src={editImage} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                            <button onClick={() => setEditImage('')} style={{ position: 'absolute', top: 2, right: 2, background: 'rgba(239,68,68,0.9)', color: '#fff', border: 'none', borderRadius: '50%', width: '16px', height: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}><X size={9} /></button>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            <div style={{ display: 'flex', gap: '0.75rem', paddingTop: '0.25rem' }}>
+                                <button onClick={handleSave} disabled={isUploading} style={{
+                                    flex: 2, padding: '0.95rem', background: BLUE, color: '#fff', border: 'none', borderRadius: '14px',
+                                    fontWeight: 800, fontSize: '0.95rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
+                                    cursor: 'pointer', boxShadow: '0 6px 20px rgba(16,54,125,0.3)',
+                                }}><Check size={17} strokeWidth={3} /> Save Details</button>
+                                <button onClick={() => setIsEditing(false)} style={{
+                                    flex: 1, padding: '0.95rem', background: '#F3F4F6', color: '#6B7280', border: 'none', borderRadius: '14px',
+                                    fontWeight: 700, cursor: 'pointer', fontSize: '0.95rem', fontFamily: 'inherit',
+                                }}>Cancel</button>
+                            </div>
+                        </div>
+                    ) : (
+                        /* ══ VIEW MODE — Image left, details right ══ */
+                        <div className="product-card-inner" style={{ display: 'flex', gap: 0, minHeight: '360px' }}>
+
+                            {/* ── Left: Image Panel ── */}
+                            <div className="product-image-panel" style={{
+                                width: '46%',
+                                flexShrink: 0,
+                                background: '#F0F2F8',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                padding: '2rem',
+                                borderRadius: '28px 0 0 28px',
+                            }}>
+                                <div className="product-image-inner" style={{
+                                    width: '100%',
+                                    maxWidth: '320px',
+                                    aspectRatio: '1/1',
+                                    background: '#fff',
+                                    borderRadius: '20px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    overflow: 'hidden',
+                                    boxShadow: '0 8px 32px rgba(16,54,125,0.1)',
+                                }}>
+                                    {item.image ? (
+                                        <img
+                                            src={item.image}
+                                            alt={item.name}
+                                            style={{
+                                                width: '90%',
+                                                height: '90%',
+                                                objectFit: 'contain',
+                                                transition: 'transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                                            }}
+                                            onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.08)'}
+                                            onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+                                        />
+                                    ) : (
+                                        <div style={{ fontSize: '4.5rem', opacity: 0.25 }}>🛍️</div>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* ── Right: Details Panel ── */}
+                            <div className="product-details-panel" style={{
+                                flex: 1,
+                                padding: '2.25rem 2rem',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: '1.1rem',
+                                justifyContent: 'center',
+                                minWidth: 0,
+                            }}>
+                                <div className="text-details-group" style={{ display: 'flex', flexDirection: 'column', gap: '1.1rem' }}>
+                                    {/* Category Badge */}
+                                    <div className="text-details-category">
                                         <span style={{
-                                            background: 'rgba(34, 197, 94, 0.1)', color: '#16a34a',
-                                            padding: '0.4rem 0.8rem', borderRadius: '8px', fontSize: '0.75rem',
-                                            fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em'
+                                            display: 'inline-block',
+                                            background: '#EAECF4',
+                                            color: '#4B5563',
+                                            padding: '0.3rem 0.8rem',
+                                            borderRadius: '8px',
+                                            fontSize: '0.7rem',
+                                            fontWeight: 800,
+                                            textTransform: 'uppercase',
+                                            letterSpacing: '0.08em',
                                         }}>
                                             {categoryName}
                                         </span>
-                                        <span style={{ fontSize: '1.6rem', fontWeight: 900, color: ORANGE, letterSpacing: '-0.02em' }}>
-                                            {price}
-                                        </span>
                                     </div>
-                                    <h1 style={{ fontSize: '2.2rem', fontWeight: 900, color: '#111', margin: '0.25rem 0 0', lineHeight: 1.1, letterSpacing: '-0.03em' }}>
+
+                                    {/* Product Name */}
+                                    <h1 className="text-details-name" style={{ fontSize: 'clamp(1.6rem, 3vw, 2.2rem)', fontWeight: 900, color: '#111', margin: 0, lineHeight: 1.0, letterSpacing: '-0.02em' }}>
                                         {item.name}
                                     </h1>
+
+                                    {/* Price */}
+                                    <p className="text-details-price" style={{ fontSize: '1.6rem', fontWeight: 900, color: BLUE, margin: 0, letterSpacing: '-0.02em' }}>
+                                        {price}
+                                    </p>
                                 </div>
 
-                                {/* Primary Actions */}
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
-                                    <a
-                                        href={item.link || '#'}
-                                        target={item.link ? '_blank' : '_self'}
-                                        rel="noopener noreferrer"
-                                        onClick={e => { if (!item.link) e.preventDefault(); }}
+                                {/* Visit Product Page Button */}
+                                <a
+                                    href={item.link || '#'}
+                                    target={item.link ? '_blank' : '_self'}
+                                    rel="noopener noreferrer"
+                                    onClick={e => { if (!item.link) e.preventDefault(); }}
+                                    style={{
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.55rem',
+                                        padding: '0.95rem 1.25rem',
+                                        background: item.link ? BLUE : '#F3F4F6',
+                                        color: item.link ? '#fff' : '#9CA3AF',
+                                        borderRadius: '14px',
+                                        fontWeight: 800, fontSize: '0.95rem', textDecoration: 'none',
+                                        cursor: item.link ? 'pointer' : 'default',
+                                        transition: 'all 0.2s ease',
+                                        boxShadow: item.link ? '0 6px 20px rgba(16,54,125,0.3)' : 'none',
+                                    }}
+                                    onMouseEnter={e => { if (item.link) { e.currentTarget.style.background = '#0A2665'; e.currentTarget.style.transform = 'translateY(-2px)'; } }}
+                                    onMouseLeave={e => { if (item.link) { e.currentTarget.style.background = BLUE; e.currentTarget.style.transform = 'translateY(0)'; } }}
+                                >
+                                    <ExternalLink size={17} />
+                                    {item.link ? 'Visit Product Page' : 'No link available'}
+                                    {item.link && <span style={{ fontSize: '1.1rem' }}>→</span>}
+                                </a>
+
+                                {/* Mark as Purchased Button */}
+                                {!item.is_purchased && (
+                                    <button
+                                        onClick={handlePurchase}
                                         style={{
-                                            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.6rem',
-                                            padding: '1.15rem', background: item.link ? 'linear-gradient(135deg, #10367D, #1a4fba)' : '#F3F4F6',
-                                            color: item.link ? '#fff' : '#9CA3AF', borderRadius: '20px',
-                                            fontWeight: 800, fontSize: '1.05rem', textDecoration: 'none',
-                                            cursor: item.link ? 'pointer' : 'default', transition: 'all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
-                                            boxShadow: item.link ? '0 10px 24px rgba(16,54,125,0.25)' : 'none'
+                                            padding: '0.95rem 1.25rem',
+                                            background: '#fff',
+                                            color: '#16a34a',
+                                            border: '2px solid #16a34a',
+                                            borderRadius: '14px',
+                                            fontWeight: 800, fontSize: '0.95rem',
+                                            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.55rem',
+                                            cursor: 'pointer', transition: 'all 0.2s ease',
+                                            fontFamily: 'inherit',
                                         }}
-                                        onMouseEnter={e => { if (item.link) { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = '0 14px 30px rgba(16,54,125,0.35)'; } }}
-                                        onMouseLeave={e => { if (item.link) { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 10px 24px rgba(16,54,125,0.25)'; } }}
+                                        onMouseEnter={e => { e.currentTarget.style.background = '#16a34a'; e.currentTarget.style.color = '#fff'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
+                                        onMouseLeave={e => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.color = '#16a34a'; e.currentTarget.style.transform = 'translateY(0)'; }}
                                     >
-                                        <ExternalLink size={20} />
-                                        {item.link ? 'Visit Product Page' : 'No link available'}
-                                        {item.link && <ArrowRight size={20} style={{ marginLeft: '4px' }} />}
-                                    </a>
+                                        <PackageCheck size={18} /> Mark as Purchased
+                                    </button>
+                                )}
 
-                                    {!item.is_purchased && (
-                                        <button
-                                            onClick={handlePurchase}
-                                            style={{
-                                                padding: '1.15rem', background: 'rgba(34, 197, 94, 0.08)',
-                                                color: '#16a34a', border: '2px solid rgba(34, 197, 94, 0.15)',
-                                                borderRadius: '20px', fontWeight: 800, fontSize: '1.05rem',
-                                                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                                gap: '0.6rem', cursor: 'pointer', transition: 'all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)'
-                                            }}
-                                            onMouseEnter={e => { e.currentTarget.style.background = '#16a34a'; e.currentTarget.style.color = '#fff'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
-                                            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(34, 197, 94, 0.08)'; e.currentTarget.style.color = '#16a34a'; e.currentTarget.style.transform = 'translateY(0)'; }}
-                                        >
-                                            <PackageCheck size={22} /> Mark as Purchased
-                                        </button>
-                                    )}
-                                </div>
-
-                                {/* Secondary Actions */}
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                                {/* Edit & Delete Buttons */}
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.6rem' }}>
                                     <button
                                         onClick={() => setIsEditing(true)}
                                         style={{
-                                            padding: '1rem', background: '#F3F4F6', color: '#4B5563',
-                                            border: 'none', borderRadius: '20px', fontWeight: 800, fontSize: '0.95rem',
-                                            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
-                                            cursor: 'pointer', transition: 'all 0.2s'
+                                            padding: '0.8rem', background: '#F3F4F6', color: '#4B5563',
+                                            border: 'none', borderRadius: '12px', fontWeight: 700, fontSize: '0.88rem',
+                                            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.45rem',
+                                            cursor: 'pointer', transition: 'all 0.2s', fontFamily: 'inherit',
                                         }}
-                                        onMouseEnter={e => { e.currentTarget.style.background = ORANGE; e.currentTarget.style.color = '#fff'; }}
+                                        onMouseEnter={e => { e.currentTarget.style.background = BLUE; e.currentTarget.style.color = '#fff'; }}
                                         onMouseLeave={e => { e.currentTarget.style.background = '#F3F4F6'; e.currentTarget.style.color = '#4B5563'; }}
                                     >
-                                        <Edit size={18} /> Edit
+                                        <Edit size={16} /> Edit
                                     </button>
                                     <button
                                         onClick={handleDelete}
                                         style={{
-                                            padding: '1rem', background: 'rgba(239, 68, 68, 0.06)', color: '#ef4444',
-                                            border: 'none', borderRadius: '20px', fontWeight: 800, fontSize: '0.95rem',
-                                            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
-                                            cursor: 'pointer', transition: 'all 0.2s'
+                                            padding: '0.8rem', background: 'rgba(239,68,68,0.07)', color: '#ef4444',
+                                            border: 'none', borderRadius: '12px', fontWeight: 700, fontSize: '0.88rem',
+                                            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.45rem',
+                                            cursor: 'pointer', transition: 'all 0.2s', fontFamily: 'inherit',
                                         }}
                                         onMouseEnter={e => { e.currentTarget.style.background = '#ef4444'; e.currentTarget.style.color = '#fff'; }}
-                                        onMouseLeave={e => { e.currentTarget.style.background = 'rgba(239, 68, 68, 0.06)'; e.currentTarget.style.color = '#ef4444'; }}
+                                        onMouseLeave={e => { e.currentTarget.style.background = 'rgba(239,68,68,0.07)'; e.currentTarget.style.color = '#ef4444'; }}
                                     >
-                                        <Trash2 size={18} /> Delete
+                                        <Trash2 size={16} /> Delete
                                     </button>
                                 </div>
 
-                                {/* Link Metadata */}
+                                {/* Source Link */}
                                 {item.link && (
                                     <div style={{
-                                        padding: '1rem', background: '#F9FAFB', borderRadius: '18px',
-                                        border: `1px solid ${BORDER}`, display: 'flex', alignItems: 'center', gap: '0.75rem'
+                                        padding: '0.75rem 1rem',
+                                        background: '#F9FAFB',
+                                        borderRadius: '12px',
+                                        border: `1px solid ${BORDER}`,
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '0.6rem',
+                                        minWidth: 0,
                                     }}>
-                                        <div style={{ color: '#9CA3AF' }}><ExternalLink size={16} /></div>
+                                        <ExternalLink size={14} style={{ color: '#9CA3AF', flexShrink: 0 }} />
                                         <p style={{
-                                            margin: 0, fontSize: '0.8rem', color: '#6B7280',
-                                            whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'
+                                            margin: 0, fontSize: '0.78rem', color: '#6B7280',
+                                            whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
                                         }}>
-                                            {item.link}
+                                            Source: {item.link.replace(/^https?:\/\//, '')}
                                         </p>
                                     </div>
                                 )}
                             </div>
-                        )}
-                    </div>
-
+                        </div>
+                    )}
                 </div>
             </div>
 
             <style>{`
-                @keyframes fadeInUp {
-                    from { opacity: 0; transform: translateY(30px); }
-                    to { opacity: 1; transform: translateY(0); }
+                @keyframes cardIn {
+                    from { opacity: 0; transform: translateY(24px) scale(0.98); }
+                    to { opacity: 1; transform: translateY(0) scale(1); }
                 }
                 @keyframes spin {
                     to { transform: rotate(360deg); }
