@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
-import { LogOut, User, ArrowLeft, Settings, Shield, Bell, LayoutGrid, List as ListIcon, ChevronDown, ChevronUp, FileDown, Crown } from 'lucide-react';
+import { LogOut, User, ArrowLeft, Settings, Shield, ShieldCheck, Bell, LayoutGrid, List as ListIcon, ChevronDown, ChevronUp, FileDown, Crown } from 'lucide-react';
 import { useSettings } from '../context/SettingsContext';
 import { db } from '../db';
 import TierBadgeCard from '../components/TierBadgeCard';
@@ -185,6 +185,7 @@ export default function Profile() {
                     {/* Options List */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem', marginBottom: '2rem' }}>
                         {[
+                            ...(user?.isAdmin ? [{ icon: ShieldCheck, label: 'Admin Panel', id: 'admin' }] : []),
                             { icon: User, label: 'Account Details', id: 'account' },
                             { icon: FileDown, label: 'Export as PDF', id: 'pdf' },
                             { icon: Bell, label: 'Notifications', id: 'notif' },
@@ -194,6 +195,7 @@ export default function Profile() {
                             <div key={item.id} style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem', animation: `fadeInUp 0.4s ease-out ${i * 0.05}s backwards` }}>
                                 <button
                                     onClick={() => {
+                                        if (item.id === 'admin') navigate('/admin');
                                         if (item.id === 'general') setShowGeneral(!showGeneral);
                                         if (item.id === 'pdf') handleExportPDF();
                                     }}
@@ -201,28 +203,28 @@ export default function Profile() {
                                     style={{
                                         display: 'flex', alignItems: 'center', gap: '1.25rem',
                                         padding: '1.15rem 1.5rem', background: SURFACE,
-                                        border: `1px solid ${BORDER}`, borderRadius: '24px',
-                                        color: '#111', fontSize: '1.05rem', fontWeight: 700,
+                                        border: item.id === 'admin' ? '1.5px solid #d97706' : `1px solid ${BORDER}`, borderRadius: '24px',
+                                        color: item.id === 'admin' ? '#d97706' : '#111', fontSize: '1.05rem', fontWeight: 700,
                                         cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.25s',
                                         textAlign: 'left', width: '100%',
-                                        boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
+                                        boxShadow: item.id === 'admin' ? '0 4px 14px rgba(217,119,6,0.15)' : '0 2px 8px rgba(0,0,0,0.03)',
                                         opacity: (item.id === 'pdf' && exporting) ? 0.7 : 1
                                     }}
                                     onMouseEnter={e => {
-                                        e.currentTarget.style.borderColor = ORANGE;
+                                        e.currentTarget.style.borderColor = item.id === 'admin' ? '#f59e0b' : ORANGE;
                                         e.currentTarget.style.transform = 'translateY(-2px)';
                                         e.currentTarget.style.boxShadow = '0 6px 16px rgba(0,0,0,0.06)';
                                     }}
                                     onMouseLeave={e => {
-                                        e.currentTarget.style.borderColor = BORDER;
+                                        e.currentTarget.style.borderColor = item.id === 'admin' ? '#d97706' : BORDER;
                                         e.currentTarget.style.transform = 'translateY(0)';
-                                        e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.03)';
+                                        e.currentTarget.style.boxShadow = item.id === 'admin' ? '0 4px 14px rgba(217,119,6,0.15)' : '0 2px 8px rgba(0,0,0,0.03)';
                                     }}
                                 >
                                     <div style={{
                                         width: '42px', height: '42px', borderRadius: '14px',
-                                        background: 'rgba(16,54,125,0.05)', display: 'flex',
-                                        alignItems: 'center', justifyContent: 'center', color: ORANGE
+                                        background: item.id === 'admin' ? 'rgba(217,119,6,0.12)' : 'rgba(16,54,125,0.05)', display: 'flex',
+                                        alignItems: 'center', justifyContent: 'center', color: item.id === 'admin' ? '#d97706' : ORANGE
                                     }}>
                                         <item.icon size={22} />
                                     </div>
@@ -232,7 +234,7 @@ export default function Profile() {
                                     {item.id === 'general' ? (
                                         showGeneral ? <ChevronUp size={20} color="#9CA3AF" /> : <ChevronDown size={20} color="#9CA3AF" />
                                     ) : (
-                                        <ChevronDown size={20} color="#9CA3AF" style={{ transform: 'rotate(-90deg)' }} />
+                                        <ChevronDown size={20} color={item.id === 'admin' ? '#d97706' : '#9CA3AF'} style={{ transform: 'rotate(-90deg)' }} />
                                     )}
                                 </button>
 
