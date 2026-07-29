@@ -381,9 +381,7 @@ export default function AdminPanel() {
                     )}
                 </div>
 
-                <p style={{ textAlign: 'center', color: '#3d444d', fontSize: '0.75rem', marginTop: '2rem' }}>
-                    WishFlow Admin Panel · Changes take effect after user re-login
-                </p>
+
             </div>
 
             <style>{`
