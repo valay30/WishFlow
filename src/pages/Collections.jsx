@@ -45,6 +45,13 @@ export default function Collections() {
     // Drill-down state
     const [activeCollection, setActiveCollection] = useState(null);
 
+    // Scroll to top when page mounts or active collection drill-down changes
+    useEffect(() => {
+        window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+        document.documentElement.scrollTop = 0;
+        document.body.scrollTop = 0;
+    }, [activeCollection]);
+
     useEffect(() => {
         const load = async () => {
             const [cols, its, cats, citems] = await Promise.all([
