@@ -5,6 +5,7 @@ import { LogOut, User, ArrowLeft, Settings, Shield, ShieldCheck, Bell, LayoutGri
 import { useSettings } from '../context/SettingsContext';
 import { db } from '../db';
 import TierBadgeCard from '../components/TierBadgeCard';
+import { API_URL } from '../config';
 
 const ORANGE = '#10367D';
 const SURFACE = '#FFFFFF';
@@ -40,7 +41,7 @@ export default function Profile() {
                 };
             });
 
-            const response = await fetch('http://localhost:5000/api/export/pdf', {
+            const response = await fetch(`${API_URL}/api/export/pdf`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ items: itemsWithCategories, userName: user?.name })
@@ -68,7 +69,7 @@ export default function Profile() {
 
     const handleUpgradeToPremium = async () => {
         try {
-            const orderRes = await fetch('http://localhost:5000/api/payment/create-order', { method: 'POST' });
+            const orderRes = await fetch(`${API_URL}/api/payment/create-order`, { method: 'POST' });
             const orderData = await orderRes.json();
 
             const options = {
@@ -80,7 +81,7 @@ export default function Profile() {
                 order_id: orderData.id,
                 config: { display: { hide: [{ method: 'paylater' }] } },
                 handler: async function (response) {
-                    const verificationRes = await fetch('http://localhost:5000/api/payment/verify', {
+                    const verificationRes = await fetch(`${API_URL}/api/payment/verify`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({

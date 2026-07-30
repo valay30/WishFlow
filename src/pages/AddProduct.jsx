@@ -3,6 +3,7 @@ import { db, supabase } from '../db';
 import { Upload, X, ArrowLeft, Sparkles, Crown } from 'lucide-react';
 import { useAuth } from '../context/useAuth';
 import { useNavigate } from 'react-router-dom';
+import { API_URL } from '../config';
 
 export default function AddProduct() {
     const navigate = useNavigate();
@@ -27,7 +28,7 @@ export default function AddProduct() {
 
     const handleUpgradeToPremium = async () => {
         try {
-            const orderRes = await fetch('http://localhost:5000/api/payment/create-order', { method: 'POST' });
+            const orderRes = await fetch(`${API_URL}/api/payment/create-order`, { method: 'POST' });
             const orderData = await orderRes.json();
 
             const options = {
@@ -39,7 +40,7 @@ export default function AddProduct() {
                 order_id: orderData.id,
                 config: { display: { hide: [{ method: 'paylater' }] } },
                 handler: async function (response) {
-                    const verificationRes = await fetch('http://localhost:5000/api/payment/verify', {
+                    const verificationRes = await fetch(`${API_URL}/api/payment/verify`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({

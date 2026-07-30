@@ -2,9 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
 import { Crown, Users, ShieldCheck, ArrowLeft, RefreshCw, CheckCircle, XCircle, Search, Trash2 } from 'lucide-react';
-
-const API = 'http://localhost:5000';
-const ADMIN_SECRET = 'wishflow-admin-2024';
+import { API_URL as API, ADMIN_SECRET } from '../config';
 
 const headers = {
     'Content-Type': 'application/json',

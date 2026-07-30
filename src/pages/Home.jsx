@@ -9,6 +9,7 @@ import ProductCard from '../components/ProductCard';
 import AddProductModal from '../components/AddProductModal';
 import ItemCard from '../components/ItemCard';
 import confetti from 'canvas-confetti';
+import { API_URL } from '../config';
 
 const ORANGE = '#10367D';
 const SURFACE = '#FFFFFF';
@@ -113,7 +114,7 @@ export default function Home() {
 
     const handleUpgradeToPremium = async () => {
         try {
-            const orderRes = await fetch('http://localhost:5000/api/payment/create-order', { method: 'POST' });
+            const orderRes = await fetch(`${API_URL}/api/payment/create-order`, { method: 'POST' });
             const orderData = await orderRes.json();
 
             const options = {
@@ -125,7 +126,7 @@ export default function Home() {
                 order_id: orderData.id,
                 config: { display: { hide: [{ method: 'paylater' }] } },
                 handler: async function (response) {
-                    const verificationRes = await fetch('http://localhost:5000/api/payment/verify', {
+                    const verificationRes = await fetch(`${API_URL}/api/payment/verify`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
