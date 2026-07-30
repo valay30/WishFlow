@@ -12,10 +12,12 @@ export default defineConfig({
       manifest: {
         name: 'WishFlow',
         short_name: 'WishFlow',
-        description: 'Track and manage your WishFlow easily.',
-        theme_color: '#F5A623',
-        background_color: '#111111',
+        description: 'Track and manage your wishlists easily.',
+        theme_color: '#10367D',
+        background_color: '#EBEBEB',
         display: 'standalone',
+        start_url: '/',
+        scope: '/',
         icons: [
           {
             src: 'vite.svg',
@@ -27,7 +29,18 @@ export default defineConfig({
             sizes: '512x512',
             type: 'image/svg+xml'
           }
-        ]
+        ],
+        // ── Web Share Target API ──
+        // This makes WishFlow appear in Android's native Share menu
+        share_target: {
+          action: '/share-target',
+          method: 'GET',
+          params: {
+            title: 'title',
+            text: 'text',
+            url: 'url'
+          }
+        }
       },
       devOptions: {
         enabled: true
