@@ -187,16 +187,18 @@ export default function Profile() {
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem', marginBottom: '2rem' }}>
                         {[
                             ...(user?.isAdmin ? [{ icon: ShieldCheck, label: 'Admin Panel', id: 'admin' }] : []),
-                            { icon: User, label: 'Account Details', id: 'account' },
-                            { icon: FileDown, label: 'Export as PDF', id: 'pdf' },
-                            { icon: Bell, label: 'Notifications', id: 'notif' },
-                            { icon: Shield, label: 'Privacy & Security', id: 'privacy' },
+                            { icon: ListIcon, label: 'Categories Lists', id: 'lists' },
+                            //{ icon: User, label: 'Account Details', id: 'account' },
+                            //{ icon: FileDown, label: 'Export as PDF', id: 'pdf' },
+                            //{ icon: Bell, label: 'Notifications', id: 'notif' },
+                            //{ icon: Shield, label: 'Privacy & Security', id: 'privacy' },
                             { icon: Settings, label: 'General Settings', id: 'general' },
                         ].map((item, i) => (
                             <div key={item.id} style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem', animation: `fadeInUp 0.4s ease-out ${i * 0.05}s backwards` }}>
                                 <button
                                     onClick={() => {
                                         if (item.id === 'admin') navigate('/admin');
+                                        if (item.id === 'lists') navigate('/categories');
                                         if (item.id === 'general') setShowGeneral(!showGeneral);
                                         if (item.id === 'pdf') handleExportPDF();
                                     }}
