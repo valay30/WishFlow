@@ -1,11 +1,11 @@
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Check } from 'lucide-react';
 
 const ORANGE = '#10367D';
 const SURFACE = '#FFFFFF';
 const BORDER = '#D1D5DB';
 
-export default function ItemCard({ item, categoryName }) {
+export default function ItemCard({ item, categoryName, onRemove, onTogglePurchased }) {
     const navigate = useNavigate();
     const price = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 2 }).format(item.price);
 
@@ -21,6 +21,9 @@ export default function ItemCard({ item, categoryName }) {
                 flexDirection: 'column',
                 transition: 'all 0.22s cubic-bezier(0.4,0,0.2,1)',
                 overflow: 'hidden',
+                position: 'relative',
+                opacity: item.is_purchased ? 0.65 : 1,
+                filter: item.is_purchased ? 'grayscale(0.6)' : 'none',
             }}
             onMouseEnter={e => {
                 e.currentTarget.style.borderColor = ORANGE;
@@ -33,8 +36,22 @@ export default function ItemCard({ item, categoryName }) {
                 e.currentTarget.style.transform = 'translateY(0)';
             }}
         >
+            {onRemove && (
+                <button
+                    onClick={(e) => { e.stopPropagation(); onRemove(); }}
+                    style={{
+                        position: 'absolute', top: '0.5rem', right: '0.5rem',
+                        width: '26px', height: '26px', borderRadius: '50%',
+                        background: 'rgba(239,68,68,0.1)', color: '#ef4444',
+                        border: 'none', cursor: 'pointer', zIndex: 10,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center'
+                    }}
+                >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                </button>
+            )}
             {/* ── Inset image box (padded, rounded inner corners) ── */}
-            <div style={{ padding: '0.8rem 0.8rem 0.4rem' }}>
+            <div style={{ padding: '0.8rem 0.8rem 0.4rem', position: 'relative' }}>
                 <div style={{
                     background: '#fff',
                     borderRadius: '16px',
@@ -47,14 +64,29 @@ export default function ItemCard({ item, categoryName }) {
                     boxShadow: '0 6px 16px rgba(0, 0, 0, 0.08)',
                     border: '1px solid #E5E7EB'
                 }}>
-                    {item.image
-                        ? <img
-                            src={item.image}
-                            alt={item.name}
-                            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-                        />
-                        : <span style={{ fontSize: '3rem', lineHeight: 1 }}>🛍️</span>
-                    }
+                    {item.image ? (
+                        <img src={item.image} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ) : (
+                        <span style={{ fontSize: '2.5rem', color: '#ccc' }}>📦</span>
+                    )}
+                    {onTogglePurchased && (
+                        <div
+                            onClick={(e) => { e.stopPropagation(); onTogglePurchased(item.id, !item.is_purchased); }}
+                            style={{
+                                position: 'absolute', bottom: '0.5rem', right: '0.5rem',
+                                width: '28px', height: '28px', borderRadius: '50%',
+                                background: item.is_purchased ? '#059669' : 'rgba(255,255,255,0.95)',
+                                color: item.is_purchased ? '#fff' : '#aaa',
+                                border: `2px solid ${item.is_purchased ? '#059669' : '#D1D5DB'}`,
+                                cursor: 'pointer', zIndex: 10,
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                                transition: 'all 0.2s'
+                            }}
+                        >
+                            <Check size={16} strokeWidth={item.is_purchased ? 3 : 2} style={{ opacity: item.is_purchased ? 1 : 0.3 }} />
+                        </div>
+                    )}
                 </div>
             </div>
 

@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Upload, Sparkles } from 'lucide-react';
 import { uploadToImageKit } from '../utils/imagekit';
+import { db } from '../db';
 
 const ORANGE = '#10367D';
 const SURFACE2 = '#F5F5F5';
@@ -27,7 +28,13 @@ export default function AddProductModal({ categories, onAdd, onClose }) {
     const [link, setLink] = useState('');
     const [image, setImage] = useState('');
     const [catId, setCatId] = useState('');
+    const [colId, setColId] = useState('');
+    const [collections, setCollections] = useState([]);
     const [isUploading, setIsUploading] = useState(false);
+
+    useEffect(() => {
+        db.collections.getAll().then(res => setCollections(res || []));
+    }, []);
 
     const focus = e => { e.target.style.borderColor = ORANGE; e.target.style.boxShadow = `0 0 0 4px rgba(16, 54, 125,0.12)`; };
     const blur = e => { e.target.style.borderColor = BORDER; e.target.style.boxShadow = 'none'; };
@@ -50,7 +57,7 @@ export default function AddProductModal({ categories, onAdd, onClose }) {
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!name || !price || !catId) return;
-        const allowed = await onAdd({ name, price: parseFloat(price), link, image, category_id: parseInt(catId) });
+        const allowed = await onAdd({ name, price: parseFloat(price), link, image, category_id: parseInt(catId), collection_id: colId || null });
         if (allowed !== false) onClose();
     };
 
@@ -113,6 +120,16 @@ export default function AddProductModal({ categories, onAdd, onClose }) {
                                 </div>
                             )}
                         </div>
+                        {/* Collection picker — only shown if user has collections */}
+                        {collections.length > 0 && (
+                            <div>
+                                <label style={LABEL_ST}>🎁 Add to Collection (optional)</label>
+                                <select style={{ ...INPUT_ST, appearance: 'none' }} value={colId} onChange={e => setColId(e.target.value)} onFocus={focus} onBlur={blur}>
+                                    <option value="">None</option>
+                                    {collections.map(c => <option key={c.id} value={c.id}>{c.emoji} {c.name}</option>)}
+                                </select>
+                            </div>
+                        )}
                         <div style={{ display: 'flex', gap: '0.75rem', paddingTop: '0.25rem' }}>
                             <button type="button" onClick={onClose} style={{ flex: 1, padding: '0.9rem', background: '#F5F5F5', color: '#555', border: `1px solid ${BORDER}`, borderRadius: '14px', fontWeight: 600, fontSize: '0.95rem', cursor: 'pointer', fontFamily: 'inherit' }}>Cancel</button>
                             <button type="submit" disabled={isUploading} style={{ flex: 2, padding: '0.9rem', background: isUploading ? '#8fa0f5' : ORANGE, color: '#fff', border: 'none', borderRadius: '14px', fontWeight: 800, fontSize: '0.95rem', cursor: isUploading ? 'wait' : 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', boxShadow: '0 4px 16px rgba(16,54,125,0.4)' }}>

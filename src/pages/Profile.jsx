@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
-import { LogOut, User, ArrowLeft, Settings, Shield, ShieldCheck, Bell, LayoutGrid, List as ListIcon, ChevronDown, ChevronUp, FileDown, Crown } from 'lucide-react';
+import { LogOut, User, ArrowLeft, Settings, Shield, ShieldCheck, Bell, LayoutGrid, List as ListIcon, FolderHeart, ChevronDown, ChevronUp, FileDown, Crown } from 'lucide-react';
 import { useSettings } from '../context/SettingsContext';
 import { db } from '../db';
 import TierBadgeCard from '../components/TierBadgeCard';
@@ -188,6 +188,7 @@ export default function Profile() {
                         {[
                             ...(user?.isAdmin ? [{ icon: ShieldCheck, label: 'Admin Panel', id: 'admin' }] : []),
                             { icon: ListIcon, label: 'Categories Lists', id: 'lists' },
+                            { icon: FolderHeart, label: 'My Collections', id: 'collections' },
                             //{ icon: User, label: 'Account Details', id: 'account' },
                             //{ icon: FileDown, label: 'Export as PDF', id: 'pdf' },
                             //{ icon: Bell, label: 'Notifications', id: 'notif' },
@@ -199,6 +200,7 @@ export default function Profile() {
                                     onClick={() => {
                                         if (item.id === 'admin') navigate('/admin');
                                         if (item.id === 'lists') navigate('/categories');
+                                        if (item.id === 'collections') navigate('/collections');
                                         if (item.id === 'general') setShowGeneral(!showGeneral);
                                         if (item.id === 'pdf') handleExportPDF();
                                     }}

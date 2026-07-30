@@ -13,6 +13,7 @@ import ProductDetails from './pages/ProductDetails';
 import Profile from './pages/Profile';
 import Archive from './pages/Archive';
 import AdminPanel from './pages/AdminPanel';
+import Collections from './pages/Collections';
 
 function AppRoutes() {
   const { user } = useAuth();
@@ -36,6 +37,7 @@ function AppRoutes() {
                 <Route path="/" element={<Home />} />
                 <Route path="/add" element={<AddProduct />} />
                 <Route path="/categories" element={<Categories />} />
+                <Route path="/collections" element={<Collections />} />
                 <Route path="/product/:id" element={<ProductDetails />} />
                 <Route path="/archive" element={<Archive />} />
                 <Route path="/profile" element={<Profile />} />

@@ -1,11 +1,12 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Home, List, Plus, Package, Crown, ShieldCheck, LogOut, ShoppingBag } from 'lucide-react';
+import { Home, List, Plus, Package, Crown, ShieldCheck, LogOut, ShoppingBag, FolderHeart } from 'lucide-react';
 
 const ORANGE = '#10367D';
 
 const NAV_LINKS = [
     { to: '/', icon: Home, label: 'Home' },
     { to: '/categories', icon: List, label: 'Categories' },
+    { to: '/collections', icon: FolderHeart, label: 'Collections' },
     { to: '/archive', icon: Package, label: 'Purchased' },
 ];
 

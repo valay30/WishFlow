@@ -8,16 +8,24 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 // ─── In-memory cache (must be declared before auth uses clearDbCache) ───────
 let __categoryCache = null;
 let __itemCache = null;
+let __collectionCache = null;
+let __collectionItemsCache = null;
 let __fetchingCategories = null;
 let __fetchingItems = null;
+let __fetchingCollections = null;
+let __fetchingCollectionItems = null;
 
 // Clears cache so the next getAll() does a fresh Supabase fetch.
 // Must be called on logout / user-switch so the new user doesn't see stale data.
 export const clearDbCache = () => {
   __categoryCache = null;
   __itemCache = null;
+  __collectionCache = null;
+  __collectionItemsCache = null;
   __fetchingCategories = null;
   __fetchingItems = null;
+  __fetchingCollections = null;
+  __fetchingCollectionItems = null;
 };
 
 // ─── Auth helpers ─────────────────────────────────────────────────────────────
@@ -163,6 +171,128 @@ export const db = {
     },
   },
 
+  collections: {
+    getAll: async () => {
+      const id = await getUserId();
+      if (!id) return [];
+
+      if (!__fetchingCollections) {
+        __fetchingCollections = supabase
+          .from('collections')
+          .select('*')
+          .eq('user_id', id)
+          .order('created_at', { ascending: true })
+          .then(({ data, error }) => {
+            __fetchingCollections = null;
+            if (error) {
+              console.error("Collections error (SQL missing?):", error);
+              return [];
+            }
+            __collectionCache = data || [];
+            return __collectionCache;
+          });
+      }
+      return __collectionCache !== null ? __collectionCache : __fetchingCollections;
+    },
+
+    add: async ({ name, emoji = '🎁', target_date = null }) => {
+      const id = await getUserId();
+      if (!id) return;
+      const { data, error } = await supabase
+        .from('collections')
+        .insert([{ user_id: id, name, emoji, target_date }])
+        .select();
+      if (error) throw error;
+      if (data?.[0] && __collectionCache) {
+        __collectionCache = [...__collectionCache, data[0]];
+      }
+      return data?.[0];
+    },
+
+    update: async (colId, updates) => {
+      const id = await getUserId();
+      if (!id) return;
+      const { error } = await supabase
+        .from('collections')
+        .update(updates)
+        .eq('id', colId)
+        .eq('user_id', id);
+      if (error) throw error;
+      if (__collectionCache) {
+        __collectionCache = __collectionCache.map(c => c.id === colId ? { ...c, ...updates } : c);
+      }
+    },
+
+    delete: async (colId) => {
+      const id = await getUserId();
+      if (!id) return;
+      const { error } = await supabase
+        .from('collections')
+        .delete()
+        .eq('id', colId)
+        .eq('user_id', id);
+      if (error) throw error;
+      if (__collectionCache) {
+        __collectionCache = __collectionCache.filter(c => c.id !== colId);
+      }
+      if (__collectionItemsCache) {
+        __collectionItemsCache = __collectionItemsCache.filter(ci => ci.collection_id !== colId);
+      }
+    },
+  },
+
+  collectionItems: {
+    getAll: async () => {
+      const id = await getUserId();
+      if (!id) return [];
+
+      if (!__fetchingCollectionItems) {
+        __fetchingCollectionItems = supabase
+          .from('collection_items')
+          .select('*')
+          .eq('user_id', id)
+          .then(({ data, error }) => {
+            __fetchingCollectionItems = null;
+            if (error) {
+              console.error("Collection_items error (SQL missing?):", error);
+              return [];
+            }
+            __collectionItemsCache = data || [];
+            return __collectionItemsCache;
+          });
+      }
+      return __collectionItemsCache !== null ? __collectionItemsCache : __fetchingCollectionItems;
+    },
+
+    add: async (collection_id, item_id) => {
+      const id = await getUserId();
+      if (!id) return;
+      const { data, error } = await supabase
+        .from('collection_items')
+        .insert([{ user_id: id, collection_id, item_id }])
+        .select();
+      if (error) throw error;
+      if (data?.[0] && __collectionItemsCache) {
+        __collectionItemsCache = [...__collectionItemsCache, data[0]];
+      }
+    },
+
+    remove: async (collection_id, item_id) => {
+      const id = await getUserId();
+      if (!id) return;
+      const { error } = await supabase
+        .from('collection_items')
+        .delete()
+        .match({ user_id: id, collection_id, item_id });
+      if (error) throw error;
+      if (__collectionItemsCache) {
+        __collectionItemsCache = __collectionItemsCache.filter(
+          ci => !(ci.collection_id === collection_id && ci.item_id === item_id)
+        );
+      }
+    }
+  },
+
   items: {
     getAll: async () => {
       const id = await getUserId();
@@ -184,10 +314,10 @@ export const db = {
       return __itemCache !== null ? __itemCache : __fetchingItems;
     },
 
-    add: async (item) => {
+    add: async (item, targetCollectionId = null) => {
       const id = await getUserId();
       if (!id) return;
-
+      const finalCollectionId = targetCollectionId || item.collection_id;
       const newItem = {
         user_id: id,
         category_id: item.category_id,
@@ -196,13 +326,26 @@ export const db = {
         link: item.link,
         image: item.image,
       };
-
+      
       const { data, error } = await supabase.from('items').insert([newItem]).select();
       if (error) throw error;
-      if (data?.[0] && __itemCache) {
-        __itemCache = [data[0], ...__itemCache];
+      
+      if (data?.[0]) {
+        if (__itemCache) {
+            __itemCache = [...__itemCache, data[0]];
+        }
+        
+        // If a target collection is provided, insert into junction table
+        if (finalCollectionId) {
+            try {
+                await db.collectionItems.add(finalCollectionId, data[0].id);
+            } catch (e) {
+                console.error("Failed to assign item to collection", e);
+            }
+        }
+        
+        return data[0];
       }
-      return data?.[0];
     },
 
     update: async (itemId, updates) => {
