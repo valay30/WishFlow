@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
 import { Eye, EyeOff, ChevronLeft, ShoppingBag } from 'lucide-react';
@@ -7,6 +7,21 @@ import { useResponsive } from '../hooks/useResponsive';
 /* ─────────────────────────────────────────
    Design tokens (module-level constants)
 ───────────────────────────────────────── */
+// Suppress Google Auto Ads on content-less auth screen to comply with AdSense policy.
+// This avoids the "Google-served ads on screens without publisher-content" violation.
+function useDisableAutoAds() {
+  useEffect(() => {
+    try {
+      (window.adsbygoogle = window.adsbygoogle || []).pauseAdRequests = 1;
+    } catch (e) { /* AdSense not loaded yet */ }
+    return () => {
+      try {
+        (window.adsbygoogle = window.adsbygoogle || []).pauseAdRequests = 0;
+      } catch (e) { /* ignore */ }
+    };
+  }, []);
+}
+
 const BLUE = '#10367D';
 const BLUE_DARK = '#0A2665';
 const BG_GRAD = 'linear-gradient(160deg, #051A44 0%, #0A2665 55%, #10367D 100%)';
@@ -237,6 +252,7 @@ function FormContent({
    MAIN AUTH PAGE  — only holds state
 ══════════════════════════════════════════ */
 export default function AuthPage() {
+    useDisableAutoAds(); // Suppress Auto Ads — no publisher content on auth screens
     const [screen, setScreen] = useState('welcome');
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
