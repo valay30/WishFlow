@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
-import { LogOut, User, ArrowLeft, Settings, Shield, ShieldCheck, Bell, LayoutGrid, List as ListIcon, FolderHeart, ChevronDown, ChevronUp, FileDown, Crown, Lock } from 'lucide-react';
+import { LogOut, User, ArrowLeft, Settings, Shield, ShieldCheck, Bell, LayoutGrid, List as ListIcon, FolderHeart, ChevronDown, ChevronUp, Crown, Lock } from 'lucide-react';
 import { useSettings } from '../context/SettingsContext';
 import { db } from '../db';
 import TierBadgeCard from '../components/TierBadgeCard';
@@ -27,52 +27,10 @@ export default function Profile() {
     const { viewMode, setViewMode, colorTheme, setColorTheme } = useSettings();
     const navigate = useNavigate();
     const [showGeneral, setShowGeneral] = useState(false);
-    const [exporting, setExporting] = useState(false);
 
     const handleLogout = () => {
         logout();
         navigate('/auth');
-    };
-
-
-    const handleExportPDF = async () => {
-        setExporting(true);
-        try {
-            const items = await db.items.getAll();
-            const categories = await db.categories.getAll();
-
-            // The backend expects item.categories.name for the PDF rendering
-            const itemsWithCategories = items.map(item => {
-                const matchingCategory = categories.find(c => c.id === item.category_id);
-                return {
-                    ...item,
-                    categories: { name: matchingCategory?.name }
-                };
-            });
-
-            const response = await fetch(`${API_URL}/api/export/pdf`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ items: itemsWithCategories, userName: user?.name })
-            });
-
-            if (!response.ok) throw new Error('PDF generation failed');
-
-            const arrayBuffer = await response.arrayBuffer();
-            const blob = new Blob([arrayBuffer], { type: 'application/pdf' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `${user?.name || 'My'}_Wishlist.pdf`;
-            document.body.appendChild(a);
-            a.click();
-            window.URL.revokeObjectURL(url);
-        } catch (error) {
-            console.error('PDF error:', error);
-            alert('Failed to generate PDF. Is the backend running?');
-        } finally {
-            setExporting(false);
-        }
     };
 
 
@@ -199,9 +157,6 @@ export default function Profile() {
                             { icon: ListIcon, label: 'Categories Lists', id: 'lists' },
                             { icon: FolderHeart, label: 'My Collections', id: 'collections' },
                             //{ icon: User, label: 'Account Details', id: 'account' },
-                            //{ icon: FileDown, label: 'Export as PDF', id: 'pdf' },
-                            //{ icon: Bell, label: 'Notifications', id: 'notif' },
-                            //{ icon: Shield, label: 'Privacy & Security', id: 'privacy' },
                             { icon: Settings, label: 'General Settings', id: 'general' },
                         ].map((item, i) => (
                             <div key={item.id} style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem', animation: `fadeInUp 0.4s ease-out ${i * 0.05}s backwards` }}>
@@ -211,9 +166,7 @@ export default function Profile() {
                                         if (item.id === 'lists') navigate('/categories');
                                         if (item.id === 'collections') navigate('/collections');
                                         if (item.id === 'general') setShowGeneral(!showGeneral);
-                                        if (item.id === 'pdf') handleExportPDF();
                                     }}
-                                    disabled={(item.id === 'pdf' && exporting)}
                                     style={{
                                         display: 'flex', alignItems: 'center', gap: '1.25rem',
                                         padding: '1.15rem 1.5rem', background: SURFACE,
@@ -221,8 +174,7 @@ export default function Profile() {
                                         color: item.id === 'admin' ? '#d97706' : '#111', fontSize: '1.05rem', fontWeight: 700,
                                         cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.25s',
                                         textAlign: 'left', width: '100%',
-                                        boxShadow: item.id === 'admin' ? '0 4px 14px rgba(217,119,6,0.15)' : '0 2px 8px rgba(0,0,0,0.03)',
-                                        opacity: (item.id === 'pdf' && exporting) ? 0.7 : 1
+                                        boxShadow: item.id === 'admin' ? '0 4px 14px rgba(217,119,6,0.15)' : '0 2px 8px rgba(0,0,0,0.03)'
                                     }}
                                     onMouseEnter={e => {
                                         e.currentTarget.style.borderColor = item.id === 'admin' ? '#f59e0b' : ORANGE;
@@ -243,7 +195,7 @@ export default function Profile() {
                                         <item.icon size={22} />
                                     </div>
                                     <span style={{ flex: 1 }}>
-                                        {item.id === 'pdf' && exporting ? 'Generating PDF...' : item.label}
+                                        {item.label}
                                     </span>
                                     {item.id === 'general' ? (
                                         showGeneral ? <ChevronUp size={20} color="#9CA3AF" /> : <ChevronDown size={20} color="#9CA3AF" />
