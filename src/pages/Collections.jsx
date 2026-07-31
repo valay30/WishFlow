@@ -220,7 +220,7 @@ export default function Collections() {
                     </div>
                 </div>
 
-                <div 
+                <div
                     style={{ padding: '1.5rem', minHeight: '300px', transition: 'background 0.2s', borderRadius: '24px' }}
                     onDragOver={(e) => {
                         e.preventDefault();
@@ -400,10 +400,10 @@ export default function Collections() {
                         </button>
                     </div>
                 ) : (
-                    <div 
-                        className={viewMode === 'card' ? "category-grid" : ""} 
-                        style={viewMode === 'card' 
-                            ? { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(210px, 1fr))', gap: '1.25rem' } 
+                    <div
+                        className={viewMode === 'card' ? "category-grid" : ""}
+                        style={viewMode === 'card'
+                            ? { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(210px, 1fr))', gap: '1.25rem' }
                             : { display: 'flex', flexDirection: 'column', gap: '1rem' }
                         }
                     >
@@ -476,7 +476,7 @@ export default function Collections() {
                                                 <h3 style={{ fontWeight: 900, fontSize: '1.15rem', color: '#111', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                                                     {col.name}
                                                 </h3>
-                                                
+
                                                 {days !== null && (
                                                     <div style={{ marginTop: '0.35rem' }}>
                                                         <span style={{

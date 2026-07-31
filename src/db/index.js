@@ -64,10 +64,12 @@ export const auth = {
 
     if (data.user) {
       const defaultCategories = [
-        { user_id: data.user.id, name: 'Electronics' },
-        { user_id: data.user.id, name: 'Clothes' },
-        { user_id: data.user.id, name: 'Books' },
         { user_id: data.user.id, name: 'Gadgets' },
+        { user_id: data.user.id, name: 'Clothes' },
+        { user_id: data.user.id, name: 'Footwear' },
+        { user_id: data.user.id, name: 'Accessories' },
+        { user_id: data.user.id, name: 'Perfume' },
+        { user_id: data.user.id, name: 'Other' },
       ];
       await supabase.from('categories').insert(defaultCategories);
 
@@ -326,24 +328,24 @@ export const db = {
         link: item.link,
         image: item.image,
       };
-      
+
       const { data, error } = await supabase.from('items').insert([newItem]).select();
       if (error) throw error;
-      
+
       if (data?.[0]) {
         if (__itemCache) {
-            __itemCache = [...__itemCache, data[0]];
+          __itemCache = [...__itemCache, data[0]];
         }
-        
+
         // If a target collection is provided, insert into junction table
         if (finalCollectionId) {
-            try {
-                await db.collectionItems.add(finalCollectionId, data[0].id);
-            } catch (e) {
-                console.error("Failed to assign item to collection", e);
-            }
+          try {
+            await db.collectionItems.add(finalCollectionId, data[0].id);
+          } catch (e) {
+            console.error("Failed to assign item to collection", e);
+          }
         }
-        
+
         return data[0];
       }
     },
