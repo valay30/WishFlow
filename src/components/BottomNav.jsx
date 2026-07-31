@@ -1,7 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
 import { Home, List, Plus, Package } from 'lucide-react';
 
-const ORANGE = '#10367D';
+const ORANGE = 'var(--primary)';
 
 export default function BottomNav({ user }) {
     const location = useLocation();
@@ -20,7 +20,7 @@ export default function BottomNav({ user }) {
 
             <Link to="/archive" className={`bottom-nav-item${isActive('/archive') ? ' active' : ''}`}>
                 <Package size={22} />
-                <span>Archive</span>
+                <span>Purchased</span>
             </Link>
 
             {/* Add Button */}
@@ -32,7 +32,7 @@ export default function BottomNav({ user }) {
             <Link to="/profile" className={`bottom-nav-item${isActive('/profile') ? ' active' : ''}`}>
                 <div style={{
                     width: '24px', height: '24px', borderRadius: '50%',
-                    background: isActive('/profile') ? '#fff' : 'rgba(16, 54, 125, 0.1)',
+                    background: isActive('/profile') ? '#fff' : 'rgba(var(--primary-rgb), 0.1)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     color: ORANGE,
                     fontWeight: 700, fontSize: '0.75rem',

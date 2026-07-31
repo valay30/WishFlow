@@ -3,11 +3,11 @@ import { db } from '../db';
 import { Trash2, Edit2, Plus, X, Check, ArrowLeft, Tag, Layers } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-const ORANGE = '#10367D';
-const SURFACE = '#FFFFFF';
-const SURFACE2 = '#F5F5F5';
-const BORDER = '#D1D5DB';
-const BG = '#EBEBEB';
+const ORANGE = 'var(--primary)';
+const SURFACE = 'var(--surface)';
+const SURFACE2 = 'var(--surface-2)';
+const BORDER = 'var(--border)';
+const BG = 'var(--bg)';
 
 export default function Categories() {
     const [categories, setCategories] = useState([]);
@@ -58,7 +58,7 @@ export default function Categories() {
         <div style={{ minHeight: '100%', background: BG }}>
             {/* ── Hero Section ── */}
             <div style={{
-                background: `linear-gradient(160deg, #051A44 0%, #0A2665 55%, #10367D 100%)`,
+                background: `linear-gradient(160deg, color-mix(in srgb, var(--primary) 40%, #000) 0%, color-mix(in srgb, var(--primary) 70%, #000) 55%, var(--primary) 100%)`,
                 padding: '2.5rem 1.5rem 4rem',
                 position: 'relative',
                 color: '#fff'
@@ -147,7 +147,7 @@ export default function Categories() {
                                 display: 'flex', alignItems: 'center', gap: '0.5rem',
                                 cursor: newCatName.trim() ? 'pointer' : 'not-allowed',
                                 fontSize: '0.9rem', transition: 'all 0.2s',
-                                boxShadow: newCatName.trim() ? '0 4px 12px rgba(16,54,125,0.25)' : 'none',
+                                boxShadow: newCatName.trim() ? '0 4px 12px rgba(var(--primary-rgb),0.25)' : 'none',
                             }}
                         >
                             <Plus size={18} strokeWidth={3} /> Add
@@ -199,7 +199,7 @@ export default function Categories() {
                                         <button onClick={saveEdit} style={{
                                             background: ORANGE, color: '#fff', border: 'none', borderRadius: '14px',
                                             width: '42px', height: '42px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                            boxShadow: '0 4px 12px rgba(16,54,125,0.2)'
+                                            boxShadow: '0 4px 12px rgba(var(--primary-rgb),0.2)'
                                         }}>
                                             <Check size={20} strokeWidth={3} />
                                         </button>
@@ -218,7 +218,7 @@ export default function Categories() {
                                         >
                                             <div style={{
                                                 width: '44px', height: '44px', borderRadius: '14px',
-                                                background: 'rgba(16,54,125,0.05)', display: 'flex',
+                                                background: 'var(--primary-lt)', display: 'flex',
                                                 alignItems: 'center', justifyContent: 'center', color: ORANGE
                                             }}>
                                                 <Tag size={20} />

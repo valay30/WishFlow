@@ -1,7 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap');
 
 /* ══════════════════════════════════════
-   DESIGN TOKENS — Dark + Orange
+   DESIGN TOKENS
 ══════════════════════════════════════ */
 :root {
   --font-main: 'Outfit', sans-serif;
@@ -11,9 +11,16 @@
   --surface-2: #F5F5F5;
   --surface-3: #E2E2E2;
 
-  --orange: #10367D;
-  --orange-dk: #0A2251;
-  --orange-lt: rgba(16, 54, 125, 0.12);
+  /* Primary theme color — overridden by [data-theme] */
+  --primary: #10367D;
+  --primary-dk: #0A2251;
+  --primary-lt: rgba(16, 54, 125, 0.12);
+  --primary-rgb: 16, 54, 125;
+
+  /* Legacy aliases kept for compatibility */
+  --orange: var(--primary);
+  --orange-dk: var(--primary-dk);
+  --orange-lt: var(--primary-lt);
   --accent: #A5CEE0;
 
   --text: #111827;
@@ -28,6 +35,57 @@
   --radius-lg: 28px;
   --radius-xl: 36px;
   --transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ══════════════════════════════════════
+   COLOR THEMES (Premium feature)
+══════════════════════════════════════ */
+[data-theme="blue"] {
+  --primary: #10367D;
+  --primary-dk: #0A2251;
+  --primary-lt: rgba(16, 54, 125, 0.12);
+  --primary-rgb: 16, 54, 125;
+}
+
+[data-theme="purple"] {
+  --primary: #7C3AED;
+  --primary-dk: #6D28D9;
+  --primary-lt: rgba(124, 58, 237, 0.12);
+  --primary-rgb: 124, 58, 237;
+}
+
+[data-theme="emerald"] {
+  --primary: #059669;
+  --primary-dk: #047857;
+  --primary-lt: rgba(5, 150, 105, 0.12);
+  --primary-rgb: 5, 150, 105;
+}
+
+[data-theme="rose"] {
+  --primary: #E11D48;
+  --primary-dk: #BE123C;
+  --primary-lt: rgba(225, 29, 72, 0.12);
+  --primary-rgb: 225, 29, 72;
+}
+
+[data-theme="orange"] {
+  --primary: #EA580C;
+  --primary-dk: #C2410C;
+  --primary-lt: rgba(234, 88, 12, 0.12);
+  --primary-rgb: 234, 88, 12;
+}
+
+[data-theme="slate"] {
+  --primary: #475569;
+  --primary-dk: #334155;
+  --primary-lt: rgba(71, 85, 105, 0.12);
+  --primary-rgb: 71, 85, 105;
+}
+
+/* Product detail page — dynamic background that follows the theme */
+body.product-detail-bg {
+  background: color-mix(in srgb, var(--primary) 55%, #000) !important;
+  transition: background 0.4s ease;
 }
 
 /* ══════════════════════════════════════
@@ -152,10 +210,10 @@ a {
 }
 
 .sidebar-nav-link.active {
-  background: var(--orange);
+  background: var(--primary);
   color: #fff;
   font-weight: 700;
-  box-shadow: 0 4px 16px rgba(16, 54, 125, 0.35);
+  box-shadow: 0 4px 16px rgba(var(--primary-rgb), 0.35);
 }
 
 .sidebar-footer {
@@ -383,7 +441,7 @@ a {
    HOME — ORANGE HERO SECTION
 ══════════════════════════════════════ */
 .home-hero {
-  background: linear-gradient(160deg, #051A44 0%, #0A2665 55%, #10367D 100%);
+  background: linear-gradient(160deg, color-mix(in srgb, var(--primary) 40%, #000) 0%, color-mix(in srgb, var(--primary) 70%, #000) 55%, var(--primary) 100%);
   padding: 1.5rem 1.25rem 3.5rem;
   position: relative;
 }
@@ -745,4 +803,31 @@ a {
 ::-webkit-scrollbar-thumb {
   background: #333;
   border-radius: 99px;
+}
+[data-theme='glass'] {
+  --primary: #000000;
+  --primary-dk: #1C1C1E;
+  --primary-lt: rgba(0, 0, 0, 0.08);
+  --primary-rgb: 0, 0, 0;
+
+  --bg: radial-gradient(circle at 15% 50%, rgba(224, 195, 252, 0.4), transparent 40%),
+        radial-gradient(circle at 85% 30%, rgba(142, 197, 252, 0.4), transparent 40%),
+        radial-gradient(circle at 50% 80%, rgba(255, 209, 255, 0.4), transparent 40%),
+        #f0f2f5;
+  --surface: rgba(255, 255, 255, 0.4);
+  --surface-2: rgba(255, 255, 255, 0.2);
+  --border: rgba(255, 255, 255, 0.5);
+}
+
+[data-theme='glass'] .item-card,
+[data-theme='glass'] div[style*="border-radius: 24px"],
+[data-theme='glass'] .product-card,
+[data-theme='glass'] .bottom-nav-container,
+[data-theme='glass'] .sidebar,
+[data-theme='glass'] .home-sheet,
+[data-theme='glass'] .category-grid > div,
+[data-theme='glass'] .list-view-container > div,
+[data-theme='glass'] .modal-content {
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
 }

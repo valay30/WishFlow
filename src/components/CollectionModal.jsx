@@ -2,9 +2,9 @@ import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Trash2, Calendar, Sparkles } from 'lucide-react';
 
-const ORANGE = '#10367D';
-const BORDER = '#D1D5DB';
-const SURFACE2 = '#F5F5F5';
+const ORANGE = 'var(--primary)';
+const BORDER = 'var(--border)';
+const SURFACE2 = 'var(--surface-2)';
 
 const EMOJI_PRESETS = [
     '🎁', '🎂', '🎉', '🛍️', '✈️', '🏠', '💻', '📚',
@@ -34,7 +34,7 @@ export default function CollectionModal({ existing = null, onSave, onDelete, onC
     const [saving, setSaving] = useState(false);
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
-    const focus = e => { e.target.style.borderColor = ORANGE; e.target.style.boxShadow = `0 0 0 4px rgba(16,54,125,0.1)`; };
+    const focus = e => { e.target.style.borderColor = ORANGE; e.target.style.boxShadow = `0 0 0 4px rgba(var(--primary-rgb),0.1)`; };
     const blur = e => { e.target.style.borderColor = BORDER; e.target.style.boxShadow = 'none'; };
 
     const handleSubmit = async (e) => {
@@ -125,7 +125,7 @@ export default function CollectionModal({ existing = null, onSave, onDelete, onC
                                                     onClick={() => { setEmoji(e); setShowEmojiPicker(false); }}
                                                     style={{
                                                         width: '32px', height: '32px', borderRadius: '8px',
-                                                        border: 'none', background: emoji === e ? 'rgba(16,54,125,0.1)' : 'transparent',
+                                                        border: 'none', background: emoji === e ? 'rgba(var(--primary-rgb),0.1)' : 'transparent',
                                                         fontSize: '1.2rem', cursor: 'pointer',
                                                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                                                     }}
@@ -178,7 +178,7 @@ export default function CollectionModal({ existing = null, onSave, onDelete, onC
                             </button>
                             <button
                                 type="submit" disabled={saving || !name.trim()}
-                                style={{ flex: 2, padding: '0.9rem', background: saving ? '#8fa0f5' : ORANGE, color: '#fff', border: 'none', borderRadius: '14px', fontWeight: 800, fontSize: '0.95rem', cursor: saving ? 'wait' : 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', boxShadow: '0 4px 16px rgba(16,54,125,0.4)', opacity: !name.trim() ? 0.6 : 1 }}
+                                style={{ flex: 2, padding: '0.9rem', background: saving ? '#8fa0f5' : ORANGE, color: '#fff', border: 'none', borderRadius: '14px', fontWeight: 800, fontSize: '0.95rem', cursor: saving ? 'wait' : 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', boxShadow: '0 4px 16px rgba(var(--primary-rgb),0.4)', opacity: !name.trim() ? 0.6 : 1 }}
                             >
                                 <Sparkles size={17} /> {existing ? 'Save Changes' : 'Create Collection'}
                             </button>

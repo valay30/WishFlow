@@ -4,11 +4,11 @@ import { db } from '../db';
 import { Trash2, Edit, ArrowLeft, ExternalLink, Upload, X, Check, PackageCheck } from 'lucide-react';
 import { uploadToImageKit } from '../utils/imagekit';
 
-const BLUE = '#10367D';
-const SURFACE = '#FFFFFF';
-const SURFACE2 = '#F5F5F5';
-const BORDER = '#D1D5DB';
-const BG = '#EBEBEB';
+const BLUE = 'var(--primary)';
+const SURFACE = 'var(--surface)';
+const SURFACE2 = 'var(--surface-2)';
+const BORDER = 'var(--border)';
+const BG = 'var(--bg)';
 
 const INPUT_ST = {
     width: '100%', padding: '0.8rem 1rem',
@@ -21,7 +21,7 @@ const INPUT_ST = {
 const LABEL_ST = {
     display: 'block', marginBottom: '0.4rem',
     fontSize: '0.72rem', fontWeight: 700,
-    color: BLUE, textTransform: 'uppercase', letterSpacing: '0.06em',
+    color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '0.06em',
 };
 
 export default function ProductDetails() {
@@ -46,13 +46,35 @@ export default function ProductDetails() {
     }, []);
 
     useEffect(() => {
-        if (!isMobile) {
-            document.body.style.background = '#071d4e';
-            return () => { document.body.style.background = ''; };
-        } else {
-            document.body.style.background = BG;
-            return () => { document.body.style.background = ''; };
-        }
+        let styleEl = null;
+
+        const applyBg = () => {
+            if (!isMobile) {
+                if (!styleEl) {
+                    styleEl = document.createElement('style');
+                    styleEl.id = 'product-detail-bg-style';
+                    document.head.appendChild(styleEl);
+                }
+                styleEl.textContent = `body { background: color-mix(in srgb, var(--primary) 55%, #000) !important; transition: background 0.4s ease; }`;
+            } else {
+                if (styleEl) { styleEl.remove(); styleEl = null; }
+            }
+        };
+
+        applyBg();
+
+        const observer = new MutationObserver(applyBg);
+        observer.observe(document.documentElement, {
+            attributes: true,
+            attributeFilter: ['data-theme'],
+        });
+
+        return () => {
+            observer.disconnect();
+            if (styleEl) { styleEl.remove(); }
+            // Remove any leftover injected style
+            document.getElementById('product-detail-bg-style')?.remove();
+        };
     }, [isMobile]);
 
     useEffect(() => {
@@ -115,11 +137,11 @@ export default function ProductDetails() {
         }
     };
 
-    const focus = e => { e.target.style.borderColor = BLUE; e.target.style.boxShadow = `0 0 0 3px rgba(16,54,125,0.1)`; };
+    const focus = e => { e.target.style.borderColor = BLUE; e.target.style.boxShadow = `0 0 0 3px rgba(var(--primary-rgb),0.1)`; };
     const blur = e => { e.target.style.borderColor = BORDER; e.target.style.boxShadow = 'none'; };
 
     if (!item) return (
-        <div style={{ minHeight: '100vh', background: `linear-gradient(160deg, #051A44 0%, #0A2665 55%, #10367D 100%)`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ minHeight: '100vh', background: `linear-gradient(160deg, var(--primary-dk) 0%, var(--primary-dk) 45%, var(--primary) 100%)`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <div style={{ textAlign: 'center' }}>
                 <p style={{ fontWeight: 700, color: 'rgba(255,255,255,0.7)', marginBottom: '1rem', fontSize: '1.1rem' }}>Item not found.</p>
                 <button onClick={() => navigate('/')} style={{ padding: '0.75rem 2rem', background: '#fff', color: BLUE, border: 'none', borderRadius: '99px', fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.95rem' }}>← Go Home</button>
@@ -135,7 +157,7 @@ export default function ProductDetails() {
             <div style={{ minHeight: '100%', background: BG, display: 'flex', flexDirection: 'column' }}>
                 {/* ── Hero Section (Image Showcase) ── */}
                 <div style={{
-                    background: `linear-gradient(160deg, #051A44 0%, #071d4e 55%, #10367D 100%)`,
+                    background: `linear-gradient(160deg, var(--primary-dk) 0%, var(--primary-dk) 45%, var(--primary) 100%)`,
                     padding: '2rem 1.5rem 4rem',
                     display: 'flex',
                     flexDirection: 'column',
@@ -188,7 +210,7 @@ export default function ProductDetails() {
                     {isEditing ? (
                         <div style={{ background: '#fff', borderRadius: '24px', padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.25rem', boxShadow: '0 4px 20px rgba(0,0,0,0.03)' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.25rem' }}>
-                                <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: `rgba(16,54,125,0.07)`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: BLUE }}>
+                                <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: `rgba(var(--primary-rgb),0.07)`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: BLUE }}>
                                     <Edit size={19} />
                                 </div>
                                 <h3 style={{ fontWeight: 900, fontSize: '1.2rem', color: '#111', margin: 0 }}>Edit Details</h3>
@@ -240,7 +262,7 @@ export default function ProductDetails() {
                                 <button onClick={handleSave} disabled={isUploading} style={{
                                     flex: 2, padding: '0.95rem', background: BLUE, color: '#fff', border: 'none', borderRadius: '14px',
                                     fontWeight: 800, fontSize: '0.95rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
-                                    cursor: 'pointer', boxShadow: '0 6px 20px rgba(16,54,125,0.3)',
+                                    cursor: 'pointer', boxShadow: '0 6px 20px rgba(var(--primary-rgb),0.3)',
                                 }}><Check size={17} strokeWidth={3} /> Save Details</button>
                                 <button onClick={() => setIsEditing(false)} style={{
                                     flex: 1, padding: '0.95rem', background: '#F3F4F6', color: '#6B7280', border: 'none', borderRadius: '14px',
@@ -277,7 +299,7 @@ export default function ProductDetails() {
                                     padding: '1rem', background: item.link ? BLUE : '#D1D5DB',
                                     color: '#fff', borderRadius: '16px', fontWeight: 800, fontSize: '0.95rem',
                                     textDecoration: 'none', cursor: item.link ? 'pointer' : 'default',
-                                    boxShadow: item.link ? '0 8px 25px rgba(16,54,125,0.25)' : 'none'
+                                    boxShadow: item.link ? '0 8px 25px rgba(var(--primary-rgb),0.25)' : 'none'
                                 }}>
                                 <ExternalLink size={18} /> {item.link ? 'Visit Product Page' : 'No link available'} {item.link && '→'}
                             </a>
@@ -323,7 +345,7 @@ export default function ProductDetails() {
     }
 
     return (
-        <div style={{ minHeight: '100%', background: `linear-gradient(160deg, #051A44 0%, #0A2665 55%, #10367D 100%)`, display: 'flex', flexDirection: 'column' }}>
+        <div style={{ minHeight: '100%', background: `linear-gradient(160deg, var(--primary-dk) 0%, var(--primary-dk) 45%, var(--primary) 100%)`, display: 'flex', flexDirection: 'column' }}>
 
             {/* ── Back Button ── */}
             <div style={{ padding: '1.5rem 2rem 0' }}>
@@ -360,7 +382,7 @@ export default function ProductDetails() {
                         /* ══ EDIT FORM ══ */
                         <div style={{ padding: '2.5rem 2rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.25rem' }}>
-                                <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: `rgba(16,54,125,0.07)`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: BLUE }}>
+                                <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: `rgba(var(--primary-rgb),0.07)`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: BLUE }}>
                                     <Edit size={19} />
                                 </div>
                                 <h3 style={{ fontWeight: 900, fontSize: '1.2rem', color: '#111', margin: 0 }}>Edit Details</h3>
@@ -417,7 +439,7 @@ export default function ProductDetails() {
                                 <button onClick={handleSave} disabled={isUploading} style={{
                                     flex: 2, padding: '0.95rem', background: BLUE, color: '#fff', border: 'none', borderRadius: '14px',
                                     fontWeight: 800, fontSize: '0.95rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
-                                    cursor: 'pointer', boxShadow: '0 6px 20px rgba(16,54,125,0.3)',
+                                    cursor: 'pointer', boxShadow: '0 6px 20px rgba(var(--primary-rgb),0.3)',
                                 }}><Check size={17} strokeWidth={3} /> Save Details</button>
                                 <button onClick={() => setIsEditing(false)} style={{
                                     flex: 1, padding: '0.95rem', background: '#F3F4F6', color: '#6B7280', border: 'none', borderRadius: '14px',
@@ -450,7 +472,7 @@ export default function ProductDetails() {
                                     alignItems: 'center',
                                     justifyContent: 'center',
                                     overflow: 'hidden',
-                                    boxShadow: '0 8px 32px rgba(16,54,125,0.1)',
+                                    boxShadow: '0 8px 32px rgba(var(--primary-rgb),0.1)',
                                 }}>
                                     {item.image ? (
                                         <img
@@ -525,7 +547,7 @@ export default function ProductDetails() {
                                         fontWeight: 800, fontSize: '0.95rem', textDecoration: 'none',
                                         cursor: item.link ? 'pointer' : 'default',
                                         transition: 'all 0.2s ease',
-                                        boxShadow: item.link ? '0 6px 20px rgba(16,54,125,0.3)' : 'none',
+                                        boxShadow: item.link ? '0 6px 20px rgba(var(--primary-rgb),0.3)' : 'none',
                                     }}
                                     onMouseEnter={e => { if (item.link) { e.currentTarget.style.background = '#0A2665'; e.currentTarget.style.transform = 'translateY(-2px)'; } }}
                                     onMouseLeave={e => { if (item.link) { e.currentTarget.style.background = BLUE; e.currentTarget.style.transform = 'translateY(0)'; } }}

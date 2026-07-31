@@ -1,21 +1,30 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
-import { LogOut, User, ArrowLeft, Settings, Shield, ShieldCheck, Bell, LayoutGrid, List as ListIcon, FolderHeart, ChevronDown, ChevronUp, FileDown, Crown } from 'lucide-react';
+import { LogOut, User, ArrowLeft, Settings, Shield, ShieldCheck, Bell, LayoutGrid, List as ListIcon, FolderHeart, ChevronDown, ChevronUp, FileDown, Crown, Lock } from 'lucide-react';
 import { useSettings } from '../context/SettingsContext';
 import { db } from '../db';
 import TierBadgeCard from '../components/TierBadgeCard';
 import { API_URL } from '../config';
 
-const ORANGE = '#10367D';
-const SURFACE = '#FFFFFF';
-const SURFACE2 = '#F5F5F5';
-const BORDER = '#D1D5DB';
-const BG = '#EBEBEB';
+const ORANGE = 'var(--primary)';
+const SURFACE = 'var(--surface)';
+const SURFACE2 = 'var(--surface-2)';
+const BORDER = 'var(--border)';
+const BG = 'var(--bg)';
+
+const THEMES = [
+    { id: 'blue',    label: 'Ocean Blue',  color: '#10367D' },
+    { id: 'purple',  label: 'Royal Purple', color: '#7C3AED' },
+    { id: 'emerald', label: 'Emerald',      color: '#059669' },
+    { id: 'rose',    label: 'Rose',         color: '#E11D48' },
+    { id: 'orange',  label: 'Sunset',       color: '#EA580C' },
+    { id: 'slate',   label: 'Slate',        color: '#475569' },
+];
 
 export default function Profile() {
     const { user, logout } = useAuth();
-    const { viewMode, setViewMode } = useSettings();
+    const { viewMode, setViewMode, colorTheme, setColorTheme } = useSettings();
     const navigate = useNavigate();
     const [showGeneral, setShowGeneral] = useState(false);
     const [exporting, setExporting] = useState(false);
@@ -121,7 +130,7 @@ export default function Profile() {
         <div style={{ minHeight: '100%', background: BG }}>
             {/* ── Hero Section ── */}
             <div style={{
-                background: `linear-gradient(160deg, #051A44 0%, #0A2665 55%, #10367D 100%)`,
+                background: `linear-gradient(160deg, var(--primary-dk) 0%, var(--primary-dk) 45%, var(--primary) 100%)`,
                 padding: '2.5rem 1.5rem 4.5rem',
                 position: 'relative',
                 color: '#fff',
@@ -228,7 +237,7 @@ export default function Profile() {
                                 >
                                     <div style={{
                                         width: '42px', height: '42px', borderRadius: '14px',
-                                        background: item.id === 'admin' ? 'rgba(217,119,6,0.12)' : 'rgba(16,54,125,0.05)', display: 'flex',
+                                        background: item.id === 'admin' ? 'rgba(217,119,6,0.12)' : 'rgba(var(--primary-rgb),0.05)', display: 'flex',
                                         alignItems: 'center', justifyContent: 'center', color: item.id === 'admin' ? '#d97706' : ORANGE
                                     }}>
                                         <item.icon size={22} />
@@ -254,7 +263,7 @@ export default function Profile() {
                                         flexDirection: 'column',
                                         gap: '1rem',
                                         animation: 'slideDown 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
-                                        boxShadow: '0 8px 24px rgba(16,54,125,0.08)'
+                                        boxShadow: '0 8px 24px rgba(var(--primary-rgb),0.08)'
                                     }}>
                                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                                             <div>
@@ -303,6 +312,81 @@ export default function Profile() {
                                                 </button>
                                             </div>
                                         </div>
+
+                                        {/* App Theme — Premium Only */}
+                                        <div style={{ borderTop: `1px solid ${BORDER}`, paddingTop: '1rem' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.85rem' }}>
+                                                <div>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                        <p style={{ margin: 0, fontWeight: 800, fontSize: '0.95rem', color: '#111' }}>App Theme</p>
+                                                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.2rem', background: 'linear-gradient(135deg,#f59e0b,#d97706)', color: '#fff', fontSize: '0.58rem', fontWeight: 800, padding: '0.15rem 0.45rem', borderRadius: '99px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                                            <Crown size={8} /> Pro
+                                                        </span>
+                                                    </div>
+                                                    <p style={{ margin: '0.1rem 0 0', fontSize: '0.82rem', color: '#6B7280' }}>Choose your accent color</p>
+                                                </div>
+                                            </div>
+
+                                            {user?.isPremium ? (
+                                                <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
+                                                    {THEMES.map(theme => (
+                                                        <button
+                                                            key={theme.id}
+                                                            onClick={() => setColorTheme(theme.id)}
+                                                            title={theme.label}
+                                                            style={{
+                                                                width: '36px', height: '36px',
+                                                                borderRadius: '50%',
+                                                                background: theme.color,
+                                                                border: colorTheme === theme.id ? `3px solid #111` : '3px solid transparent',
+                                                                outline: colorTheme === theme.id ? `2px solid ${theme.color}` : 'none',
+                                                                outlineOffset: '2px',
+                                                                cursor: 'pointer',
+                                                                transition: 'all 0.2s',
+                                                                transform: colorTheme === theme.id ? 'scale(1.15)' : 'scale(1)',
+                                                                boxShadow: colorTheme === theme.id ? `0 4px 12px ${theme.color}55` : '0 2px 6px rgba(0,0,0,0.12)',
+                                                                flexShrink: 0,
+                                                            }}
+                                                        />
+                                                    ))}
+                                                </div>
+                                            ) : (
+                                                <div style={{
+                                                    display: 'flex', alignItems: 'center', gap: '1rem',
+                                                    padding: '1rem 1.25rem',
+                                                    background: 'rgba(245,158,11,0.06)',
+                                                    border: '1px dashed rgba(245,158,11,0.4)',
+                                                    borderRadius: '16px',
+                                                }}>
+                                                    <div style={{
+                                                        width: '40px', height: '40px', borderRadius: '12px',
+                                                        background: 'rgba(245,158,11,0.12)',
+                                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                        flexShrink: 0,
+                                                    }}>
+                                                        <Lock size={18} color="#d97706" />
+                                                    </div>
+                                                    <div style={{ flex: 1, minWidth: 0 }}>
+                                                        <p style={{ margin: 0, fontWeight: 700, fontSize: '0.88rem', color: '#111' }}>Premium Feature</p>
+                                                        <p style={{ margin: '0.1rem 0 0', fontSize: '0.78rem', color: '#6B7280' }}>Upgrade to Pro to unlock custom themes</p>
+                                                    </div>
+                                                    <button
+                                                        onClick={handleUpgradeToPremium}
+                                                        style={{
+                                                            padding: '0.5rem 1rem', borderRadius: '10px',
+                                                            background: 'linear-gradient(135deg,#f59e0b,#d97706)',
+                                                            color: '#fff', fontWeight: 800, fontSize: '0.8rem',
+                                                            border: 'none', cursor: 'pointer',
+                                                            fontFamily: 'inherit', flexShrink: 0,
+                                                            boxShadow: '0 4px 12px rgba(245,158,11,0.3)',
+                                                            transition: 'all 0.2s',
+                                                        }}
+                                                    >
+                                                        Upgrade
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
                                 )}
                             </div>
@@ -314,21 +398,21 @@ export default function Profile() {
                         onClick={handleLogout}
                         style={{
                             width: '100%', padding: '1.25rem',
-                            background: 'rgba(239,68,68,0.06)', color: '#ef4444',
-                            border: '1px solid rgba(239,68,68,0.1)', borderRadius: '24px',
+                            background: 'rgba(var(--primary-rgb),0.06)', color: 'var(--primary)',
+                            border: '1px solid rgba(var(--primary-rgb),0.1)', borderRadius: '24px',
                             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.6rem',
                             fontWeight: 900, fontSize: '1.1rem', cursor: 'pointer',
                             fontFamily: 'inherit', transition: 'all 0.2s',
                             boxShadow: '0 2px 8px rgba(0,0,0,0.02)'
                         }}
                         onMouseEnter={e => {
-                            e.currentTarget.style.background = '#ef4444';
+                            e.currentTarget.style.background = 'var(--primary)';
                             e.currentTarget.style.color = '#fff';
-                            e.currentTarget.style.boxShadow = '0 8px 20px rgba(239,68,68,0.2)';
+                            e.currentTarget.style.boxShadow = '0 8px 20px rgba(var(--primary-rgb),0.2)';
                         }}
                         onMouseLeave={e => {
-                            e.currentTarget.style.background = 'rgba(239,68,68,0.06)';
-                            e.currentTarget.style.color = '#ef4444';
+                            e.currentTarget.style.background = 'rgba(var(--primary-rgb),0.06)';
+                            e.currentTarget.style.color = 'var(--primary)';
                             e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.02)';
                         }}
                     >

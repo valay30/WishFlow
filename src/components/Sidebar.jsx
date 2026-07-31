@@ -1,7 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
 import { Home, List, Plus, Package, Crown, ShieldCheck, LogOut, ShoppingBag, FolderHeart } from 'lucide-react';
 
-const ORANGE = '#10367D';
+const ORANGE = 'var(--primary)';
 
 const NAV_LINKS = [
     { to: '/', icon: Home, label: 'Home' },
@@ -27,7 +27,7 @@ export default function Sidebar({ user, onLogout }) {
         <aside className="sidebar">
             {/* Brand */}
             <div className="sidebar-brand">
-                <div style={{ width: '2.4rem', height: '2.4rem', borderRadius: '12px', background: ORANGE, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: `0 4px 12px rgba(16,54,125,0.4)`, flexShrink: 0 }}>
+                <div style={{ width: '2.4rem', height: '2.4rem', borderRadius: '12px', background: ORANGE, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: `0 4px 12px rgba(var(--primary-rgb),0.4)`, flexShrink: 0 }}>
                     <ShoppingBag size={18} color="#fff" />
                 </div>
                 <h1 style={{ fontSize: '1.2rem', fontWeight: 900, color: '#111', letterSpacing: '-0.02em' }}>WishFlow</h1>

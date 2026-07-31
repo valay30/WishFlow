@@ -3,10 +3,10 @@ import { db } from '../db';
 import { Package, ArrowLeft, Trash2, RotateCcw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-const ORANGE = '#10367D';
-const SURFACE = '#FFFFFF';
-const BORDER = '#D1D5DB';
-const BG = '#EBEBEB';
+const ORANGE = 'var(--primary)';
+const SURFACE = 'var(--surface)';
+const BORDER = 'var(--border)';
+const BG = 'var(--bg)';
 
 export default function Archive() {
     const [purchasedItems, setPurchasedItems] = useState([]);
@@ -47,7 +47,7 @@ export default function Archive() {
         <div style={{ minHeight: '100%', background: BG }}>
             {/* ── Hero Section ── */}
             <div style={{
-                background: `linear-gradient(160deg, #051A44 0%, #0A2665 55%, #10367D 100%)`,
+                background: `linear-gradient(160deg, color-mix(in srgb, var(--primary) 40%, #000) 0%, color-mix(in srgb, var(--primary) 70%, #000) 55%, var(--primary) 100%)`,
                 padding: '2.5rem 1.5rem 4rem',
                 position: 'relative',
                 color: '#fff'
@@ -216,7 +216,7 @@ export default function Archive() {
                                     marginTop: '0.5rem', padding: '0.85rem 2rem', background: ORANGE,
                                     color: '#fff', border: 'none', borderRadius: '18px',
                                     fontWeight: 800, fontSize: '0.95rem', cursor: 'pointer',
-                                    boxShadow: '0 6px 20px rgba(16,54,125,0.3)', transition: 'all 0.2s'
+                                    boxShadow: '0 6px 20px rgba(var(--primary-rgb),0.3)', transition: 'all 0.2s'
                                 }}
                                 onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.05)'}
                                 onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}

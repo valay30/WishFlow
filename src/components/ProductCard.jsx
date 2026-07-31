@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { ChevronRight, ExternalLink, Check } from 'lucide-react';
 
-const ORANGE = '#10367D';
+const ORANGE = 'var(--primary)';
 
 /* Used on non-home pages (search results etc.) — horizontal list style */
 export default function ProductCard({ item, categoryName, onTogglePurchased }) {
@@ -59,7 +59,7 @@ export default function ProductCard({ item, categoryName, onTogglePurchased }) {
                     {item.name}
                 </p>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.2rem' }}>
-                    <span style={{ fontSize: '0.72rem', fontWeight: 600, color: ORANGE, background: 'rgba(16, 54, 125,0.12)', padding: '0.15rem 0.5rem', borderRadius: '99px', border: '1px solid rgba(16, 54, 125,0.25)' }}>
+                    <span style={{ fontSize: '0.72rem', fontWeight: 600, color: ORANGE, background: 'rgba(var(--primary-rgb),0.12)', padding: '0.15rem 0.5rem', borderRadius: '99px', border: '1px solid rgba(var(--primary-rgb),0.25)' }}>
                         {categoryName}
                     </span>
                     {item.link && (

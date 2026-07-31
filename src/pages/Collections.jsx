@@ -8,10 +8,10 @@ import AddExistingItemsModal from '../components/AddExistingItemsModal';
 import AddProductModal from '../components/AddProductModal';
 import { useSettings } from '../context/SettingsContext';
 
-const ORANGE = '#10367D';
-const SURFACE = '#FFFFFF';
-const BORDER = '#D1D5DB';
-const BG = '#EBEBEB';
+const ORANGE = 'var(--primary)';
+const SURFACE = 'var(--surface)';
+const BORDER = 'var(--border)';
+const BG = 'var(--bg)';
 
 /* ── Days remaining until a target date ── */
 function daysUntil(dateStr) {
@@ -133,7 +133,7 @@ export default function Collections() {
             <div style={{ minHeight: '100vh', background: BG, padding: '0 0 var(--bottom-nav)' }}>
                 {/* Header */}
                 <div style={{
-                    background: `linear-gradient(135deg, ${ORANGE} 0%, #1e5fcc 100%)`,
+                    background: `linear-gradient(135deg, var(--primary) 0%, color-mix(in srgb, var(--primary) 70%, #2563EB) 100%)`,
                     padding: '2rem 1.5rem 2.5rem',
                     position: 'relative',
                 }}>
@@ -163,7 +163,7 @@ export default function Collections() {
                     style={{ padding: '1.5rem', minHeight: '300px', transition: 'background 0.2s', borderRadius: '24px' }}
                     onDragOver={(e) => {
                         e.preventDefault();
-                        e.currentTarget.style.background = 'rgba(16, 54, 125, 0.05)';
+                        e.currentTarget.style.background = 'rgba(var(--primary-rgb), 0.05)';
                         e.dataTransfer.dropEffect = 'copy';
                     }}
                     onDragLeave={(e) => {
@@ -247,7 +247,7 @@ export default function Collections() {
 
             {/* Page Header */}
             <div style={{
-                background: `linear-gradient(135deg, ${ORANGE} 0%, #1e5fcc 100%)`,
+                background: `linear-gradient(135deg, var(--primary) 0%, color-mix(in srgb, var(--primary) 70%, #2563EB) 100%)`,
                 padding: '2.5rem 1.5rem 2.5rem',
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', maxWidth: '700px', margin: '0 auto', textAlign: 'center' }}>
@@ -284,7 +284,7 @@ export default function Collections() {
                                 background: ORANGE, color: '#fff', border: 'none',
                                 borderRadius: '14px', padding: '0.85rem 2rem',
                                 fontWeight: 800, fontSize: '1rem', cursor: 'pointer', fontFamily: 'inherit',
-                                boxShadow: '0 4px 16px rgba(16,54,125,0.35)',
+                                boxShadow: '0 4px 16px rgba(var(--primary-rgb),0.35)',
                                 display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
                             }}
                         >
@@ -327,7 +327,7 @@ export default function Collections() {
                                         onMouseEnter={e => {
                                             e.currentTarget.style.borderColor = ORANGE;
                                             e.currentTarget.style.transform = 'translateY(-4px)';
-                                            e.currentTarget.style.boxShadow = '0 12px 32px rgba(16,54,125,0.14)';
+                                            e.currentTarget.style.boxShadow = '0 12px 32px rgba(var(--primary-rgb),0.14)';
                                         }}
                                         onMouseLeave={e => {
                                             e.currentTarget.style.borderColor = BORDER;
@@ -341,12 +341,12 @@ export default function Collections() {
                                             style={{
                                                 position: 'absolute', top: '0.85rem', right: '0.85rem',
                                                 width: '32px', height: '32px', borderRadius: '10px',
-                                                background: 'rgba(16,54,125,0.06)', border: 'none',
+                                                background: 'var(--primary-lt)', border: 'none',
                                                 cursor: 'pointer', display: 'flex', alignItems: 'center',
                                                 justifyContent: 'center', color: ORANGE, transition: 'all 0.2s'
                                             }}
                                             onMouseEnter={e => { e.currentTarget.style.background = ORANGE; e.currentTarget.style.color = '#fff'; }}
-                                            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(16,54,125,0.06)'; e.currentTarget.style.color = ORANGE; }}
+                                            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(var(--primary-rgb),0.06)'; e.currentTarget.style.color = ORANGE; }}
                                         >
                                             <Pencil size={14} />
                                         </button>
@@ -355,11 +355,11 @@ export default function Collections() {
                                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.65rem', width: '100%', marginTop: '0.25rem' }}>
                                             <div style={{
                                                 width: '64px', height: '64px', borderRadius: '22px',
-                                                background: 'linear-gradient(135deg, rgba(16,54,125,0.08) 0%, rgba(16,54,125,0.02) 100%)',
-                                                border: '1px solid rgba(16,54,125,0.12)',
+                                                background: 'linear-gradient(135deg, var(--primary-lt) 0%, rgba(var(--primary-rgb),0.02) 100%)',
+                                                border: '1px solid var(--primary-lt)',
                                                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                                                 fontSize: '2.2rem', flexShrink: 0,
-                                                boxShadow: '0 4px 14px rgba(16,54,125,0.06)'
+                                                boxShadow: '0 4px 14px rgba(var(--primary-rgb),0.06)'
                                             }}>
                                                 {col.emoji}
                                             </div>
@@ -374,7 +374,7 @@ export default function Collections() {
                                                         <span style={{
                                                             fontSize: '0.7rem', fontWeight: 800, padding: '0.2rem 0.65rem',
                                                             borderRadius: '99px', display: 'inline-block',
-                                                            background: isExpired ? 'rgba(239,68,68,0.12)' : isSoon ? 'rgba(245,158,11,0.15)' : 'rgba(16,54,125,0.08)',
+                                                            background: isExpired ? 'rgba(239,68,68,0.12)' : isSoon ? 'rgba(245,158,11,0.15)' : 'var(--primary-lt)',
                                                             color: isExpired ? '#ef4444' : isSoon ? '#d97706' : ORANGE,
                                                         }}>
                                                             {isExpired ? 'Passed' : days === 0 ? 'Today!' : `${days} days left`}
@@ -405,8 +405,8 @@ export default function Collections() {
                                             )}
 
                                             <div style={{
-                                                background: 'rgba(16, 54, 125, 0.04)',
-                                                border: '1px solid rgba(16, 54, 125, 0.08)',
+                                                background: 'var(--primary-lt)',
+                                                border: '1px solid rgba(var(--primary-rgb),0.08)',
                                                 borderRadius: '16px',
                                                 padding: '0.65rem 0.85rem',
                                                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
@@ -440,7 +440,7 @@ export default function Collections() {
                                     onMouseEnter={e => {
                                         e.currentTarget.style.borderColor = ORANGE;
                                         e.currentTarget.style.transform = 'translateY(-2px)';
-                                        e.currentTarget.style.boxShadow = '0 8px 28px rgba(16,54,125,0.12)';
+                                        e.currentTarget.style.boxShadow = '0 8px 28px rgba(var(--primary-rgb),0.12)';
                                     }}
                                     onMouseLeave={e => {
                                         e.currentTarget.style.borderColor = BORDER;
@@ -451,7 +451,7 @@ export default function Collections() {
                                     {/* Emoji */}
                                     <div style={{
                                         width: '56px', height: '56px', borderRadius: '18px',
-                                        background: 'rgba(16,54,125,0.06)',
+                                        background: 'var(--primary-lt)',
                                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                                         fontSize: '1.8rem', flexShrink: 0,
                                     }}>
@@ -468,7 +468,7 @@ export default function Collections() {
                                                 <span style={{
                                                     fontSize: '0.65rem', fontWeight: 700, padding: '0.15rem 0.55rem',
                                                     borderRadius: '99px', flexShrink: 0,
-                                                    background: isExpired ? 'rgba(239,68,68,0.1)' : isSoon ? 'rgba(245,158,11,0.12)' : 'rgba(16,54,125,0.07)',
+                                                    background: isExpired ? 'rgba(239,68,68,0.1)' : isSoon ? 'rgba(245,158,11,0.12)' : 'var(--primary-lt)',
                                                     color: isExpired ? '#ef4444' : isSoon ? '#d97706' : ORANGE,
                                                 }}>
                                                     {isExpired ? 'Passed' : days === 0 ? 'Today!' : `${days}d left`}
@@ -497,9 +497,9 @@ export default function Collections() {
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexShrink: 0 }}>
                                         <button
                                             onClick={e => openEdit(col, e)}
-                                            style={{ width: '32px', height: '32px', borderRadius: '10px', background: 'rgba(16,54,125,0.06)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: ORANGE }}
-                                            onMouseEnter={e => e.currentTarget.style.background = 'rgba(16,54,125,0.12)'}
-                                            onMouseLeave={e => e.currentTarget.style.background = 'rgba(16,54,125,0.06)'}
+                                            style={{ width: '32px', height: '32px', borderRadius: '10px', background: 'rgba(var(--primary-rgb),0.06)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: ORANGE }}
+                                            onMouseEnter={e => e.currentTarget.style.background = 'var(--primary-lt)'}
+                                            onMouseLeave={e => e.currentTarget.style.background = 'var(--primary-lt)'}
                                         >
                                             <Pencil size={14} />
                                         </button>
@@ -532,7 +532,7 @@ export default function Collections() {
                             onMouseEnter={e => {
                                 e.currentTarget.style.borderColor = ORANGE;
                                 if (viewMode === 'card') {
-                                    e.currentTarget.style.background = 'rgba(16,54,125,0.04)';
+                                    e.currentTarget.style.background = 'rgba(var(--primary-rgb),0.04)';
                                     e.currentTarget.style.transform = 'translateY(-4px)';
                                 } else {
                                     e.currentTarget.style.color = ORANGE;
@@ -552,14 +552,14 @@ export default function Collections() {
                                 <>
                                     <div style={{
                                         width: '56px', height: '56px', borderRadius: '50%',
-                                        background: 'linear-gradient(135deg, #10367D 0%, #2563EB 100%)',
+                                        background: 'linear-gradient(135deg, var(--primary) 0%, color-mix(in srgb, var(--primary) 70%, #2563EB) 100%)',
                                         color: '#fff', display: 'flex', alignItems: 'center',
-                                        justifyContent: 'center', boxShadow: '0 6px 18px rgba(16,54,125,0.25)'
+                                        justifyContent: 'center', boxShadow: '0 6px 18px rgba(var(--primary-rgb),0.25)'
                                     }}>
                                         <Plus size={26} strokeWidth={2.5} />
                                     </div>
                                     <div style={{ textAlign: 'center' }}>
-                                        <span style={{ display: 'block', fontWeight: 800, color: '#10367D', fontSize: '1rem' }}>Add Collection</span>
+                                        <span style={{ display: 'block', fontWeight: 800, color: 'var(--primary)', fontSize: '1rem' }}>Add Collection</span>
                                         <span style={{ display: 'block', fontSize: '0.78rem', color: '#64748B', fontWeight: 600, marginTop: '0.2rem' }}>Create a new group</span>
                                     </div>
                                 </>

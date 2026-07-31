@@ -11,10 +11,10 @@ import ItemCard from '../components/ItemCard';
 import confetti from 'canvas-confetti';
 import { API_URL } from '../config';
 
-const ORANGE = '#10367D';
-const SURFACE = '#FFFFFF';
-const SURFACE2 = '#F5F5F5';
-const BORDER = '#D1D5DB';
+const ORANGE = 'var(--primary)';
+const SURFACE = 'var(--surface)';
+const SURFACE2 = 'var(--surface-2)';
+const BORDER = 'var(--border)';
 
 /* ── Category icon map ── */
 const GetCategoryIcon = ({ name, size = 16, color, className }) => {
@@ -145,7 +145,7 @@ export default function Home() {
                         alert('Payment verification failed.');
                     }
                 },
-                theme: { color: "#10367D" }
+                theme: { color: 'var(--primary)' }
             };
 
             const rzp = new window.Razorpay(options);
@@ -236,29 +236,29 @@ export default function Home() {
                         {catCards.map(cat => {
                             const isActive = cat.id === null ? selectedCategory === null : selectedCategory === cat.id;
                             return (
-                                <button
-                                    key={cat.id ?? 'all'}
-                                    onClick={() => selectCat(cat.id)}
-                                    style={{
-                                        flexShrink: 0,
-                                        display: 'flex', alignItems: 'center', gap: '0.55rem',
-                                        padding: '0.65rem 1.25rem',
-                                        borderRadius: '99px',
-                                        border: isActive ? 'none' : `1px solid rgba(0,0,0,0.04)`,
-                                        background: isActive ? '#10367D' : '#FFFFFF',
-                                        color: isActive ? '#fff' : '#4B5563',
-                                        fontWeight: 800,
-                                        fontSize: '0.9rem',
-                                        fontFamily: 'inherit',
-                                        cursor: 'pointer',
-                                        transition: 'all 0.18s ease',
-                                        whiteSpace: 'nowrap',
-                                        boxShadow: isActive ? '0 4px 14px rgba(16,54,125,0.4)' : '0 1px 4px rgba(0,0,0,0.03)',
-                                    }}
-                                >
-                                    {cat.id !== null && <GetCategoryIcon name={cat.name} size={16} color={isActive ? '#fff' : '#10367D'} />}
-                                    {cat.name}
-                                </button>
+                                    <button
+                                        key={cat.id ?? 'all'}
+                                        onClick={() => selectCat(cat.id)}
+                                        style={{
+                                            flexShrink: 0,
+                                            display: 'flex', alignItems: 'center', gap: '0.55rem',
+                                            padding: '0.65rem 1.25rem',
+                                            borderRadius: '99px',
+                                            border: isActive ? 'none' : `1px solid rgba(0,0,0,0.04)`,
+                                            background: isActive ? ORANGE : '#FFFFFF',
+                                            color: isActive ? '#fff' : '#4B5563',
+                                            fontWeight: 800,
+                                            fontSize: '0.9rem',
+                                            fontFamily: 'inherit',
+                                            cursor: 'pointer',
+                                            transition: 'all 0.18s ease',
+                                            whiteSpace: 'nowrap',
+                                            boxShadow: isActive ? '0 4px 14px rgba(var(--primary-rgb),0.4)' : '0 1px 4px rgba(0,0,0,0.03)',
+                                        }}
+                                    >
+                                        {cat.id !== null && <GetCategoryIcon name={cat.name} size={16} color={isActive ? '#fff' : ORANGE} />}
+                                        {cat.name}
+                                    </button>
                             );
                         })}
                     </div>
@@ -318,7 +318,7 @@ export default function Home() {
                                 {search ? 'No results found. Try a different search.' : 'Tap the + button to add your first item.'}
                             </p>
                             {!search && (
-                                <button onClick={openModal} style={{ marginTop: '0.5rem', padding: '0.7rem 1.5rem', background: ORANGE, color: '#fff', border: 'none', borderRadius: '99px', fontWeight: 800, fontSize: '0.9rem', cursor: 'pointer', fontFamily: 'inherit', boxShadow: '0 4px 14px rgba(16,54,125,0.35)' }}>
+                                <button onClick={openModal} style={{ marginTop: '0.5rem', padding: '0.7rem 1.5rem', background: ORANGE, color: '#fff', border: 'none', borderRadius: '99px', fontWeight: 800, fontSize: '0.9rem', cursor: 'pointer', fontFamily: 'inherit', boxShadow: '0 4px 14px rgba(var(--primary-rgb),0.35)' }}>
                                     + Add First Item
                                 </button>
                             )}
@@ -347,7 +347,7 @@ export default function Home() {
                         </button>
 
                         <div style={{
-                            width: '64px', height: '64px', background: 'linear-gradient(135deg, #10367D, #4963E8)',
+                            width: '64px', height: '64px', background: 'linear-gradient(135deg, var(--primary), var(--primary-lt))',
                             borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
                             margin: '0 auto 1.5rem', color: '#fff'
                         }}>
@@ -362,7 +362,7 @@ export default function Home() {
                         <button
                             onClick={handleUpgradeToPremium}
                             style={{
-                                width: '100%', padding: '1rem', background: 'linear-gradient(135deg, #10367D, #4963E8)',
+                                width: '100%', padding: '1rem', background: 'linear-gradient(135deg, var(--primary), var(--primary-lt))',
                                 color: '#fff', border: 'none', borderRadius: '14px', fontWeight: 800, fontSize: '1.1rem',
                                 cursor: 'pointer', boxShadow: '0 8px 24px rgba(73,99,232,0.3)', transition: 'all 0.2s'
                             }}

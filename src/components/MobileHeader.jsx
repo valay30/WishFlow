@@ -1,7 +1,7 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Home, List, Package, Crown, LogOut, ShoppingBag } from 'lucide-react';
 
-const ORANGE = '#10367D';
+const ORANGE = 'var(--primary)';
 
 export default function MobileHeader({ user, onLogout }) {
     const location = useLocation();
@@ -18,13 +18,13 @@ export default function MobileHeader({ user, onLogout }) {
                 <h1 style={{ fontSize: '1.1rem', fontWeight: 900, color: '#111' }}>WishFlow</h1>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                <Link to="/" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '2.2rem', height: '2.2rem', borderRadius: '10px', background: isActive('/') ? 'rgba(16,54,125,0.1)' : 'transparent', color: isActive('/') ? ORANGE : '#666', textDecoration: 'none', transition: 'all 0.2s' }}>
+                <Link to="/" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '2.2rem', height: '2.2rem', borderRadius: '10px', background: isActive('/') ? 'rgba(var(--primary-rgb),0.1)' : 'transparent', color: isActive('/') ? ORANGE : '#666', textDecoration: 'none', transition: 'all 0.2s' }}>
                     <Home size={20} />
                 </Link>
-                <Link to="/categories" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '2.2rem', height: '2.2rem', borderRadius: '10px', background: isActive('/categories') ? 'rgba(16,54,125,0.1)' : 'transparent', color: isActive('/categories') ? ORANGE : '#666', textDecoration: 'none', transition: 'all 0.2s' }}>
+                <Link to="/categories" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '2.2rem', height: '2.2rem', borderRadius: '10px', background: isActive('/categories') ? 'rgba(var(--primary-rgb),0.1)' : 'transparent', color: isActive('/categories') ? ORANGE : '#666', textDecoration: 'none', transition: 'all 0.2s' }}>
                     <List size={20} />
                 </Link>
-                <Link to="/archive" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '2.2rem', height: '2.2rem', borderRadius: '10px', background: isActive('/archive') ? 'rgba(16,54,125,0.1)' : 'transparent', color: isActive('/archive') ? ORANGE : '#666', textDecoration: 'none', transition: 'all 0.2s' }}>
+                <Link to="/archive" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '2.2rem', height: '2.2rem', borderRadius: '10px', background: isActive('/archive') ? 'rgba(var(--primary-rgb),0.1)' : 'transparent', color: isActive('/archive') ? ORANGE : '#666', textDecoration: 'none', transition: 'all 0.2s' }}>
                     <Package size={20} />
                 </Link>
                 <Link to="/profile" style={{ display: 'inline-flex', textDecoration: 'none', position: 'relative' }}>

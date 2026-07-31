@@ -59,7 +59,7 @@ export default function AddProduct() {
                         alert('Payment verification failed.');
                     }
                 },
-                theme: { color: "#10367D" }
+                theme: { color: 'var(--primary)' }
             };
 
             const rzp = new window.Razorpay(options);
@@ -237,7 +237,7 @@ export default function AddProduct() {
                         </button>
 
                         <div style={{
-                            width: '64px', height: '64px', background: 'linear-gradient(135deg, #10367D, #4963E8)',
+                            width: '64px', height: '64px', background: 'linear-gradient(135deg, var(--primary), var(--primary-lt))',
                             borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
                             margin: '0 auto 1.5rem', color: '#fff'
                         }}>
@@ -252,7 +252,7 @@ export default function AddProduct() {
                         <button
                             onClick={handleUpgradeToPremium}
                             style={{
-                                width: '100%', padding: '1rem', background: 'linear-gradient(135deg, #10367D, #4963E8)',
+                                width: '100%', padding: '1rem', background: 'linear-gradient(135deg, var(--primary), var(--primary-lt))',
                                 color: '#fff', border: 'none', borderRadius: '14px', fontWeight: 800, fontSize: '1.1rem',
                                 cursor: 'pointer', boxShadow: '0 8px 24px rgba(73,99,232,0.3)', transition: 'all 0.2s'
                             }}

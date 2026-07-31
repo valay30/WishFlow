@@ -1,9 +1,9 @@
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, Check } from 'lucide-react';
 
-const ORANGE = '#10367D';
-const SURFACE = '#FFFFFF';
-const BORDER = '#D1D5DB';
+const ORANGE = 'var(--primary)';
+const SURFACE = 'var(--surface)';
+const BORDER = 'var(--border)';
 
 export default function ItemCard({ item, categoryName, onRemove, onTogglePurchased }) {
     const navigate = useNavigate();
@@ -27,7 +27,7 @@ export default function ItemCard({ item, categoryName, onRemove, onTogglePurchas
             }}
             onMouseEnter={e => {
                 e.currentTarget.style.borderColor = ORANGE;
-                e.currentTarget.style.boxShadow = `0 8px 28px rgba(16,54,125,0.12)`;
+                e.currentTarget.style.boxShadow = `0 8px 28px rgba(var(--primary-rgb),0.15)`;
                 e.currentTarget.style.transform = 'translateY(-4px)';
             }}
             onMouseLeave={e => {
@@ -50,6 +50,7 @@ export default function ItemCard({ item, categoryName, onRemove, onTogglePurchas
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
                 </button>
             )}
+
             {/* ── Inset image box (padded, rounded inner corners) ── */}
             <div style={{ padding: '0.8rem 0.8rem 0.4rem', position: 'relative' }}>
                 <div style={{
@@ -92,7 +93,6 @@ export default function ItemCard({ item, categoryName, onRemove, onTogglePurchas
 
             {/* ── Content below image ── */}
             <div style={{ padding: '0.75rem 0.9rem 1rem', flex: 1, display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                {/* Top row: Product name + Category chip */}
                 {/* Top section: Product name + Category chip */}
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '0.4rem', flex: 1 }}>
                     <p style={{
@@ -112,11 +112,11 @@ export default function ItemCard({ item, categoryName, onRemove, onTogglePurchas
                         display: 'inline-block',
                         fontSize: '0.65rem', fontWeight: 800,
                         color: ORANGE,
-                        background: 'rgba(16, 54, 125, 0.06)',
+                        background: 'var(--primary-lt)',
                         padding: '0.2rem 0.55rem',
                         borderRadius: '6px',
                         textTransform: 'uppercase', letterSpacing: '0.05em',
-                        border: '1px solid rgba(16, 54, 125, 0.12)',
+                        border: '1px solid rgba(var(--primary-rgb), 0.15)',
                         whiteSpace: 'nowrap',
                     }}>
                         {categoryName}
@@ -145,7 +145,7 @@ export default function ItemCard({ item, categoryName, onRemove, onTogglePurchas
                         target={item.link ? '_blank' : '_self'}
                         rel="noopener noreferrer"
                         onClick={e => {
-                            e.stopPropagation(); // don't trigger card's navigate
+                            e.stopPropagation();
                             if (!item.link) e.preventDefault();
                         }}
                         style={{
@@ -157,7 +157,7 @@ export default function ItemCard({ item, categoryName, onRemove, onTogglePurchas
                             alignItems: 'center',
                             justifyContent: 'center',
                             flexShrink: 0,
-                            boxShadow: item.link ? '0 4px 12px rgba(16,54,125,0.25)' : 'none',
+                            boxShadow: item.link ? '0 4px 12px rgba(var(--primary-rgb),0.28)' : 'none',
                             transition: 'transform 0.18s ease, background 0.18s ease',
                             textDecoration: 'none',
                             cursor: item.link ? 'pointer' : 'default',

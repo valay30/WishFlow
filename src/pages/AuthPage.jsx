@@ -287,12 +287,12 @@ export default function AuthPage() {
                             Save products you love and track prices — all in one place.
                         </p>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem' }}>
-                            <button onClick={() => go('signup')} style={{ width: '100%', padding: '1rem', background: BLUE, color: '#fff', border: 'none', borderRadius: '12px', fontWeight: 800, fontSize: '1rem', fontFamily: 'inherit', cursor: 'pointer', boxShadow: '0 6px 20px rgba(16, 54, 125,0.35)' }}
+                            <button onClick={() => go('signup')} style={{ width: '100%', padding: '1rem', background: BLUE, color: '#fff', border: 'none', borderRadius: '12px', fontWeight: 800, fontSize: '1rem', fontFamily: 'inherit', cursor: 'pointer', boxShadow: '0 6px 20px rgba(16,54,125,0.35)' }}
                                 onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-1px)'}
                                 onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
                             >Create Account</button>
                             <button onClick={() => go('login')} style={{ width: '100%', padding: '1rem', background: 'transparent', color: BLUE, border: `2px solid ${BLUE}`, borderRadius: '12px', fontWeight: 700, fontSize: '1rem', fontFamily: 'inherit', cursor: 'pointer' }}
-                                onMouseEnter={e => e.currentTarget.style.background = 'rgba(16, 54, 125,0.1)'}
+                                onMouseEnter={e => e.currentTarget.style.background = 'rgba(16,54,125,0.1)'}
                                 onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                             >Sign In</button>
                         </div>

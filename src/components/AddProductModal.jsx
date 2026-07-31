@@ -4,9 +4,9 @@ import { X, Upload, Sparkles } from 'lucide-react';
 import { uploadToImageKit } from '../utils/imagekit';
 import { db } from '../db';
 
-const ORANGE = '#10367D';
-const SURFACE2 = '#F5F5F5';
-const BORDER = '#D1D5DB';
+const ORANGE = 'var(--primary)';
+const SURFACE2 = 'var(--surface-2)';
+const BORDER = 'var(--border)';
 
 const LABEL_ST = {
     display: 'block', marginBottom: '0.35rem',
@@ -36,7 +36,7 @@ export default function AddProductModal({ categories, onAdd, onClose }) {
         db.collections.getAll().then(res => setCollections(res || []));
     }, []);
 
-    const focus = e => { e.target.style.borderColor = ORANGE; e.target.style.boxShadow = `0 0 0 4px rgba(16, 54, 125,0.12)`; };
+    const focus = e => { e.target.style.borderColor = ORANGE; e.target.style.boxShadow = `0 0 0 4px rgba(var(--primary-rgb),0.12)`; };
     const blur = e => { e.target.style.borderColor = BORDER; e.target.style.boxShadow = 'none'; };
 
     const handleImageUpload = async (e) => {
@@ -107,7 +107,7 @@ export default function AddProductModal({ categories, onAdd, onClose }) {
                             <div style={{ display: 'flex', gap: '0.5rem' }}>
                                 <input style={{ ...INPUT_ST, flex: 1 }} placeholder="Paste image URL..." value={image.startsWith('data:') ? '' : image} onChange={e => setImage(e.target.value)} onFocus={focus} onBlur={blur} />
                                 <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: '2.8rem', background: '#F5F5F5', color: ORANGE, borderRadius: '14px', cursor: isUploading ? 'wait' : 'pointer', border: `1.5px dashed ${ORANGE}`, opacity: isUploading ? 0.7 : 1 }}>
-                                    {isUploading ? <span style={{ width: '16px', height: '16px', border: '2px solid rgba(16,54,125,0.4)', borderTopColor: ORANGE, borderRadius: '50%', animation: 'spin 0.7s linear infinite', display: 'inline-block' }} /> : <Upload size={17} />}
+                                    {isUploading ? <span style={{ width: '16px', height: '16px', border: '2px solid rgba(var(--primary-rgb),0.4)', borderTopColor: ORANGE, borderRadius: '50%', animation: 'spin 0.7s linear infinite', display: 'inline-block' }} /> : <Upload size={17} />}
                                     <input type="file" accept="image/*" hidden onChange={handleImageUpload} disabled={isUploading} />
                                 </label>
                             </div>
@@ -132,7 +132,7 @@ export default function AddProductModal({ categories, onAdd, onClose }) {
                         )}
                         <div style={{ display: 'flex', gap: '0.75rem', paddingTop: '0.25rem' }}>
                             <button type="button" onClick={onClose} style={{ flex: 1, padding: '0.9rem', background: '#F5F5F5', color: '#555', border: `1px solid ${BORDER}`, borderRadius: '14px', fontWeight: 600, fontSize: '0.95rem', cursor: 'pointer', fontFamily: 'inherit' }}>Cancel</button>
-                            <button type="submit" disabled={isUploading} style={{ flex: 2, padding: '0.9rem', background: isUploading ? '#8fa0f5' : ORANGE, color: '#fff', border: 'none', borderRadius: '14px', fontWeight: 800, fontSize: '0.95rem', cursor: isUploading ? 'wait' : 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', boxShadow: '0 4px 16px rgba(16,54,125,0.4)' }}>
+                            <button type="submit" disabled={isUploading} style={{ flex: 2, padding: '0.9rem', background: isUploading ? '#8fa0f5' : ORANGE, color: '#fff', border: 'none', borderRadius: '14px', fontWeight: 800, fontSize: '0.95rem', cursor: isUploading ? 'wait' : 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', boxShadow: '0 4px 16px rgba(var(--primary-rgb),0.4)' }}>
                                 <Sparkles size={17} /> Save Product
                             </button>
                         </div>

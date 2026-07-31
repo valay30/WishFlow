@@ -2,9 +2,9 @@ import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Search, Check, Sparkles } from 'lucide-react';
 
-const ORANGE = '#10367D';
-const BORDER = '#D1D5DB';
-const SURFACE2 = '#F5F5F5';
+const ORANGE = 'var(--primary)';
+const BORDER = 'var(--border)';
+const SURFACE2 = 'var(--surface-2)';
 
 export default function AddExistingItemsModal({ allItems, activeCollectionId, onAddItems, onClose }) {
     const [search, setSearch] = useState('');
@@ -109,7 +109,7 @@ export default function AddExistingItemsModal({ allItems, activeCollectionId, on
                                                 border: `2px solid ${selected ? ORANGE : 'transparent'}`,
                                                 background: SURFACE2, padding: '0.5rem',
                                                 transition: 'all 0.15s',
-                                                boxShadow: selected ? '0 4px 12px rgba(16,54,125,0.15)' : 'none'
+                                                boxShadow: selected ? '0 4px 12px rgba(var(--primary-rgb),0.15)' : 'none'
                                             }}
                                         >
                                             {selected && (

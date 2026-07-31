@@ -8,10 +8,10 @@ export default function TierBadgeCard({ user, onUpgrade }) {
             marginBottom: '1.5rem',
             background: user?.isPremium
                 ? 'linear-gradient(135deg, #92400e 0%, #d97706 50%, #f59e0b 100%)'
-                : 'linear-gradient(135deg, #1e3a5f 0%, #10367D 100%)',
+                : 'linear-gradient(160deg, var(--primary-dk) 0%, var(--primary-dk) 45%, var(--primary) 100%)',
             boxShadow: user?.isPremium
                 ? '0 8px 24px rgba(217,119,6,0.35)'
-                : '0 8px 24px rgba(16,54,125,0.25)',
+                : '0 8px 24px rgba(var(--primary-rgb),0.25)',
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
             gap: '1rem',
             animation: 'fadeInUp 0.4s ease-out',
@@ -51,7 +51,7 @@ export default function TierBadgeCard({ user, onUpgrade }) {
                     }}
                     onMouseEnter={e => {
                         e.currentTarget.style.background = '#fff';
-                        e.currentTarget.style.color = '#10367D';
+                        e.currentTarget.style.color = 'var(--primary)';
                         e.currentTarget.style.transform = 'translateY(-1px)';
                     }}
                     onMouseLeave={e => {
