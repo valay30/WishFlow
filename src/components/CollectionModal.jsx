@@ -59,16 +59,17 @@ export default function CollectionModal({ existing = null, onSave, onDelete, onC
 
     return createPortal(
         <>
-            <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)', zIndex: 9999 }} />
-            <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 10000, display: 'flex', justifyContent: 'center' }}>
+            <div onClick={onClose} className="modal-backdrop" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.82)', backdropFilter: 'blur(10px)', zIndex: 9999, animation: 'fadeIn 0.2s ease-out' }} />
+            <div className="modal-wrapper" style={{ zIndex: 10000 }}>
                 <div
                     onClick={e => e.stopPropagation()}
+                    className="modal-card"
                     style={{
-                        background: '#fff', borderRadius: '28px 28px 0 0',
-                        width: '100%', maxWidth: '560px', maxHeight: '90vh',
-                        overflowY: 'auto', boxShadow: '0 -8px 40px rgba(0,0,0,0.2)',
+                        background: '#FFFFFF', borderRadius: '28px 28px 0 0',
+                        width: '100%', maxWidth: '560px', maxHeight: '92vh',
+                        overflowY: 'auto', boxShadow: '0 -8px 40px rgba(0,0,0,0.7)',
                         animation: 'slideUp 0.28s cubic-bezier(0.2,0.8,0.4,1)',
-                        border: `1px solid ${BORDER}`, borderBottom: 'none',
+                        border: `1px solid ${BORDER}`, borderBottom: 'none', position: 'relative'
                     }}
                 >
                     {/* Handle */}
@@ -177,8 +178,8 @@ export default function CollectionModal({ existing = null, onSave, onDelete, onC
                                 Cancel
                             </button>
                             <button
-                                type="submit" disabled={saving || !name.trim()}
-                                style={{ flex: 2, padding: '0.9rem', background: saving ? '#8fa0f5' : ORANGE, color: '#fff', border: 'none', borderRadius: '14px', fontWeight: 800, fontSize: '0.95rem', cursor: saving ? 'wait' : 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', boxShadow: '0 4px 16px rgba(var(--primary-rgb),0.4)', opacity: !name.trim() ? 0.6 : 1 }}
+                                type="submit" disabled={saving}
+                                style={{ flex: 2, padding: '0.9rem', background: saving ? 'rgba(var(--primary-rgb),0.5)' : ORANGE, color: '#fff', border: 'none', borderRadius: '14px', fontWeight: 800, fontSize: '0.95rem', cursor: saving ? 'wait' : 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', boxShadow: '0 4px 16px rgba(var(--primary-rgb),0.4)' }}
                             >
                                 <Sparkles size={17} /> {existing ? 'Save Changes' : 'Create Collection'}
                             </button>

@@ -132,7 +132,7 @@ export default function AddProductModal({ categories, onAdd, onClose }) {
                         )}
                         <div style={{ display: 'flex', gap: '0.75rem', paddingTop: '0.25rem' }}>
                             <button type="button" onClick={onClose} style={{ flex: 1, padding: '0.9rem', background: '#F5F5F5', color: '#555', border: `1px solid ${BORDER}`, borderRadius: '14px', fontWeight: 600, fontSize: '0.95rem', cursor: 'pointer', fontFamily: 'inherit' }}>Cancel</button>
-                            <button type="submit" disabled={isUploading} style={{ flex: 2, padding: '0.9rem', background: isUploading ? '#8fa0f5' : ORANGE, color: '#fff', border: 'none', borderRadius: '14px', fontWeight: 800, fontSize: '0.95rem', cursor: isUploading ? 'wait' : 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', boxShadow: '0 4px 16px rgba(var(--primary-rgb),0.4)' }}>
+                            <button type="submit" disabled={isUploading} style={{ flex: 2, padding: '0.9rem', background: isUploading ? 'rgba(var(--primary-rgb),0.5)' : ORANGE, color: '#fff', border: 'none', borderRadius: '14px', fontWeight: 800, fontSize: '0.95rem', cursor: isUploading ? 'wait' : 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', boxShadow: '0 4px 16px rgba(var(--primary-rgb),0.4)' }}>
                                 <Sparkles size={17} /> Save Product
                             </button>
                         </div>

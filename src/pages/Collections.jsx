@@ -1,12 +1,15 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { db } from '../db';
-import { Plus, FolderHeart, Calendar, Package, ChevronRight, ArrowLeft, Pencil } from 'lucide-react';
+import { Plus, FolderHeart, Calendar, Package, ChevronRight, ArrowLeft, Pencil, Crown, X } from 'lucide-react';
 import CollectionModal from '../components/CollectionModal';
 import ItemCard from '../components/ItemCard';
 import AddExistingItemsModal from '../components/AddExistingItemsModal';
 import AddProductModal from '../components/AddProductModal';
 import { useSettings } from '../context/SettingsContext';
+import { useAuth } from '../context/useAuth';
+import { API_URL } from '../config';
 
 const ORANGE = 'var(--primary)';
 const SURFACE = 'var(--surface)';
@@ -25,9 +28,11 @@ const fmt = (n) => new Intl.NumberFormat('en-IN', { style: 'currency', currency:
 
 /* ══════════════════════════════════════
    COLLECTIONS PAGE
+   Supports grid overview & item drill-down
 ══════════════════════════════════════ */
 export default function Collections() {
     const navigate = useNavigate();
+    const { user } = useAuth();
     const { viewMode } = useSettings();
 
     const [collections, setCollections] = useState([]);
@@ -41,9 +46,56 @@ export default function Collections() {
     const [editingCollection, setEditingCollection] = useState(null);
     const [showAddExistingModal, setShowAddExistingModal] = useState(false);
     const [showAddProductModal, setShowAddProductModal] = useState(false);
+    const [showPremiumModal, setShowPremiumModal] = useState(false);
 
     // Drill-down state
     const [activeCollection, setActiveCollection] = useState(null);
+
+    const handleUpgradeToPremium = async () => {
+        try {
+            const orderRes = await fetch(`${API_URL}/api/payment/create-order`, { method: 'POST' });
+            const orderData = await orderRes.json();
+
+            const options = {
+                key: orderData.key_id,
+                amount: orderData.amount,
+                currency: orderData.currency,
+                name: "WishFlow",
+                description: "Lifetime Premium Subscription",
+                order_id: orderData.id,
+                config: { display: { hide: [{ method: 'paylater' }] } },
+                handler: async function (response) {
+                    const verificationRes = await fetch(`${API_URL}/api/payment/verify`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            razorpay_order_id: response.razorpay_order_id,
+                            razorpay_payment_id: response.razorpay_payment_id,
+                            razorpay_signature: response.razorpay_signature,
+                            userId: user?.id
+                        })
+                    });
+                    const verificationData = await verificationRes.json();
+                    if (verificationData.success) {
+                        alert('Payment Successful! Please re-login to activate your Premium features.');
+                        setShowPremiumModal(false);
+                    } else {
+                        alert('Payment verification failed.');
+                    }
+                },
+                theme: { color: 'var(--primary)' }
+            };
+
+            const rzp = new window.Razorpay(options);
+            rzp.on('payment.failed', function (response) {
+                alert('Payment Failed. Please try again.');
+            });
+            rzp.open();
+        } catch (error) {
+            console.error(error);
+            alert("Payment initiation failed. Please check your backend.");
+        }
+    };
 
     // Scroll to top when page mounts or active collection drill-down changes
     useEffect(() => {
@@ -133,7 +185,7 @@ export default function Collections() {
             <div style={{ minHeight: '100vh', background: BG, padding: '0 0 var(--bottom-nav)' }}>
                 {/* Header */}
                 <div style={{
-                    background: `linear-gradient(135deg, var(--primary) 0%, color-mix(in srgb, var(--primary) 70%, #2563EB) 100%)`,
+                    background: `linear-gradient(135deg, var(--primary) 0%, var(--primary-dk) 100%)`,
                     padding: '2rem 1.5rem 2.5rem',
                     position: 'relative',
                 }}>
@@ -152,7 +204,16 @@ export default function Collections() {
                             <button onClick={() => setShowAddExistingModal(true)} style={{ background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(8px)', color: '#fff', border: '1px solid rgba(255,255,255,0.3)', borderRadius: '14px', padding: '0.65rem 1rem', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                                 <Package size={16} /> Add Existing
                             </button>
-                            <button onClick={() => setShowAddProductModal(true)} style={{ background: '#fff', color: ORANGE, border: 'none', borderRadius: '14px', padding: '0.65rem 1rem', fontWeight: 800, fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
+                            <button onClick={async () => {
+                                if (user?.isPremium !== true) {
+                                    const currentItems = items.length > 0 ? items : await db.items.getAll();
+                                    if (currentItems.length >= 5) {
+                                        setShowPremiumModal(true);
+                                        return;
+                                    }
+                                }
+                                setShowAddProductModal(true);
+                            }} style={{ background: '#fff', color: ORANGE, border: 'none', borderRadius: '14px', padding: '0.65rem 1rem', fontWeight: 800, fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
                                 <Plus size={16} /> New Item
                             </button>
                         </div>
@@ -227,7 +288,7 @@ export default function Collections() {
                     />
                 )}
 
-                {showAddProductModal && (
+                {showAddProductModal && !(user?.isPremium !== true && items.length >= 5) && (
                     <AddProductModal
                         categories={categories}
                         onAdd={async (itemData) => {
@@ -236,6 +297,53 @@ export default function Collections() {
                         }}
                         onClose={() => setShowAddProductModal(false)}
                     />
+                )}
+
+                {showPremiumModal && createPortal(
+                    <div className="premium-modal-overlay" onClick={() => setShowPremiumModal(false)}>
+                        <div onClick={e => e.stopPropagation()} style={{
+                            background: '#fff', borderRadius: '24px', padding: '2.5rem',
+                            maxWidth: '400px', width: '90%', textAlign: 'center',
+                            boxShadow: '0 24px 48px rgba(0,0,0,0.2)', position: 'relative',
+                            animation: 'slideUp 0.25s cubic-bezier(0.2,0.8,0.4,1)'
+                        }}>
+                            <button
+                                onClick={() => setShowPremiumModal(false)}
+                                style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'none', border: 'none', cursor: 'pointer' }}
+                            >
+                                <X size={24} color="#666" />
+                            </button>
+
+                            <div style={{
+                                width: '64px', height: '64px', background: 'linear-gradient(135deg, var(--primary), var(--primary-dk))',
+                                borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                margin: '0 auto 1.5rem', color: '#fff', boxShadow: '0 6px 20px rgba(var(--primary-rgb),0.3)'
+                            }}>
+                                <Crown size={32} />
+                            </div>
+
+                            <h2 style={{ fontSize: '1.8rem', fontWeight: 900, marginBottom: '0.5rem', color: '#111' }}>Unlock Limitless</h2>
+                            <p style={{ color: '#666', marginBottom: '2rem', lineHeight: '1.5' }}>
+                                You have reached the free tier limit of 5 items. Upgrade to WishFlow Premium for ₹100 and add unlimited wishes forever!
+                            </p>
+
+                            <button
+                                onClick={handleUpgradeToPremium}
+                                style={{
+                                    width: '100%', padding: '1rem', background: 'linear-gradient(135deg, var(--primary), var(--primary-dk))',
+                                    color: '#fff', border: 'none', borderRadius: '14px', fontWeight: 800, fontSize: '1.1rem',
+                                    cursor: 'pointer', boxShadow: '0 8px 24px rgba(var(--primary-rgb),0.35)', transition: 'all 0.2s'
+                                }}
+                                onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
+                                onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
+                            >
+                                Upgrade for ₹100
+                            </button>
+
+                            <p style={{ marginTop: '1rem', fontSize: '0.8rem', color: '#999' }}>One-time payment. Lifetime access.</p>
+                        </div>
+                    </div>,
+                    document.body
                 )}
             </div>
         );
@@ -247,7 +355,7 @@ export default function Collections() {
 
             {/* Page Header */}
             <div style={{
-                background: `linear-gradient(135deg, var(--primary) 0%, color-mix(in srgb, var(--primary) 70%, #2563EB) 100%)`,
+                background: `linear-gradient(135deg, var(--primary) 0%, var(--primary-dk) 100%)`,
                 padding: '2.5rem 1.5rem 2.5rem',
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', maxWidth: '700px', margin: '0 auto', textAlign: 'center' }}>
@@ -552,9 +660,9 @@ export default function Collections() {
                                 <>
                                     <div style={{
                                         width: '56px', height: '56px', borderRadius: '50%',
-                                        background: 'linear-gradient(135deg, var(--primary) 0%, color-mix(in srgb, var(--primary) 70%, #2563EB) 100%)',
+                                        background: ORANGE,
                                         color: '#fff', display: 'flex', alignItems: 'center',
-                                        justifyContent: 'center', boxShadow: '0 6px 18px rgba(var(--primary-rgb),0.25)'
+                                        justifyContent: 'center', boxShadow: '0 4px 16px rgba(var(--primary-rgb),0.4)'
                                     }}>
                                         <Plus size={26} strokeWidth={2.5} />
                                     </div>
@@ -581,6 +689,53 @@ export default function Collections() {
                     onDelete={handleDelete}
                     onClose={() => { setShowModal(false); setEditingCollection(null); }}
                 />
+            )}
+
+            {showPremiumModal && createPortal(
+                <div className="premium-modal-overlay" onClick={() => setShowPremiumModal(false)}>
+                    <div onClick={e => e.stopPropagation()} style={{
+                        background: '#fff', borderRadius: '24px', padding: '2.5rem',
+                        maxWidth: '400px', width: '90%', textAlign: 'center',
+                        boxShadow: '0 24px 48px rgba(0,0,0,0.2)', position: 'relative',
+                        animation: 'slideUp 0.25s cubic-bezier(0.2,0.8,0.4,1)'
+                    }}>
+                        <button
+                            onClick={() => setShowPremiumModal(false)}
+                            style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'none', border: 'none', cursor: 'pointer' }}
+                        >
+                            <X size={24} color="#666" />
+                        </button>
+
+                        <div style={{
+                            width: '64px', height: '64px', background: 'linear-gradient(135deg, var(--primary), var(--primary-dk))',
+                            borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            margin: '0 auto 1.5rem', color: '#fff', boxShadow: '0 6px 20px rgba(var(--primary-rgb),0.3)'
+                        }}>
+                            <Crown size={32} />
+                        </div>
+
+                        <h2 style={{ fontSize: '1.8rem', fontWeight: 900, marginBottom: '0.5rem', color: '#111' }}>Unlock Limitless</h2>
+                        <p style={{ color: '#666', marginBottom: '2rem', lineHeight: '1.5' }}>
+                            You have reached the free tier limit of 5 items. Upgrade to WishFlow Premium for ₹100 and add unlimited wishes forever!
+                        </p>
+
+                        <button
+                            onClick={handleUpgradeToPremium}
+                            style={{
+                                width: '100%', padding: '1rem', background: 'linear-gradient(135deg, var(--primary), var(--primary-dk))',
+                                color: '#fff', border: 'none', borderRadius: '14px', fontWeight: 800, fontSize: '1.1rem',
+                                cursor: 'pointer', boxShadow: '0 8px 24px rgba(var(--primary-rgb),0.35)', transition: 'all 0.2s'
+                            }}
+                            onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
+                            onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
+                        >
+                            Upgrade for ₹100
+                        </button>
+
+                        <p style={{ marginTop: '1rem', fontSize: '0.8rem', color: '#999' }}>One-time payment. Lifetime access.</p>
+                    </div>
+                </div>,
+                document.body
             )}
 
             <style>{`@keyframes fadeInUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }`}</style>

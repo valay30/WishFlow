@@ -86,8 +86,30 @@ export default function Home() {
         }
     }, [searchParams, setSearchParams]);
 
-    const openModal = () => setSearchParams(p => { const n = new URLSearchParams(p); n.set('add', 'true'); return n; });
+    const openModal = async () => {
+        if (user?.isPremium !== true) {
+            const currentItems = items.length > 0 ? items : await db.items.getAll();
+            if (currentItems.length >= 5) {
+                setShowPremiumModal(true);
+                return;
+            }
+        }
+        setSearchParams(p => { const n = new URLSearchParams(p); n.set('add', 'true'); return n; });
+    };
     const closeModal = () => setSearchParams(p => { const n = new URLSearchParams(p); n.delete('add'); return n; });
+
+    useEffect(() => {
+        const checkLimitOnAdd = async () => {
+            if (showAddModal && user?.isPremium !== true) {
+                const currentItems = items.length > 0 ? items : await db.items.getAll();
+                if (currentItems.length >= 5) {
+                    closeModal();
+                    setShowPremiumModal(true);
+                }
+            }
+        };
+        checkLimitOnAdd();
+    }, [showAddModal, items, user]);
 
     const selectCat = (id) => {
         const n = new URLSearchParams(searchParams);
@@ -172,10 +194,19 @@ export default function Home() {
     const allCat = { id: null, name: 'All Items' };
     const catCards = [allCat, ...categories];
 
+    const isFreeLimitReached = user?.isPremium !== true && items.length >= 5;
+    const shouldShowAddModal = showAddModal && !isFreeLimitReached;
+    const shouldShowPremiumModal = showPremiumModal || (showAddModal && isFreeLimitReached);
+
+    const handleClosePremiumModal = () => {
+        setShowPremiumModal(false);
+        if (showAddModal) closeModal();
+    };
+
     return (
         <>
             {/* ── Modal ── */}
-            {showAddModal && <AddProductModal categories={categories} onAdd={handleAdd} onClose={closeModal} />}
+            {shouldShowAddModal && <AddProductModal categories={categories} onAdd={handleAdd} onClose={closeModal} />}
 
             {/* ══════════ MOBILE: hero + sheet layout ══════════ */}
             <div className="d-mobile-layout">
@@ -328,28 +359,25 @@ export default function Home() {
             </div>
 
             {/* Premium Upgrade Modal */}
-            {showPremiumModal && (
-                <div style={{
-                    position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
-                    background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(5px)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999
-                }}>
-                    <div style={{
+            {shouldShowPremiumModal && createPortal(
+                <div className="premium-modal-overlay" onClick={handleClosePremiumModal}>
+                    <div onClick={e => e.stopPropagation()} style={{
                         background: '#fff', borderRadius: '24px', padding: '2.5rem',
                         maxWidth: '400px', width: '90%', textAlign: 'center',
-                        boxShadow: '0 24px 48px rgba(0,0,0,0.2)', position: 'relative'
+                        boxShadow: '0 24px 48px rgba(0,0,0,0.2)', position: 'relative',
+                        animation: 'slideUp 0.25s cubic-bezier(0.2,0.8,0.4,1)'
                     }}>
                         <button
-                            onClick={() => setShowPremiumModal(false)}
+                            onClick={handleClosePremiumModal}
                             style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'none', border: 'none', cursor: 'pointer' }}
                         >
                             <X size={24} color="#666" />
                         </button>
 
                         <div style={{
-                            width: '64px', height: '64px', background: 'linear-gradient(135deg, var(--primary), var(--primary-lt))',
+                            width: '64px', height: '64px', background: 'linear-gradient(135deg, var(--primary), var(--primary-dk))',
                             borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            margin: '0 auto 1.5rem', color: '#fff'
+                            margin: '0 auto 1.5rem', color: '#fff', boxShadow: '0 6px 20px rgba(var(--primary-rgb),0.3)'
                         }}>
                             <Crown size={32} />
                         </div>
@@ -362,9 +390,9 @@ export default function Home() {
                         <button
                             onClick={handleUpgradeToPremium}
                             style={{
-                                width: '100%', padding: '1rem', background: 'linear-gradient(135deg, var(--primary), var(--primary-lt))',
+                                width: '100%', padding: '1rem', background: 'linear-gradient(135deg, var(--primary), var(--primary-dk))',
                                 color: '#fff', border: 'none', borderRadius: '14px', fontWeight: 800, fontSize: '1.1rem',
-                                cursor: 'pointer', boxShadow: '0 8px 24px rgba(73,99,232,0.3)', transition: 'all 0.2s'
+                                cursor: 'pointer', boxShadow: '0 8px 24px rgba(var(--primary-rgb),0.35)', transition: 'all 0.2s'
                             }}
                             onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
                             onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
@@ -374,7 +402,8 @@ export default function Home() {
 
                         <p style={{ marginTop: '1rem', fontSize: '0.8rem', color: '#999' }}>One-time payment. Lifetime access.</p>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
 
             <style>{`
@@ -382,19 +411,6 @@ export default function Home() {
                 @keyframes slideUp { from { opacity: 0; transform: translateY(40px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
                 @media (min-width: 1024px) {
                     .home-hero { padding: 2.5rem 2.5rem 2rem; border-radius: 0 0 24px 24px; }
-                    /* Keep overlay full-screen but center modal within content area */
-                    .modal-backdrop {
-                        padding-left: 260px !important;
-                        align-items: center !important;
-                        justify-content: center !important;
-                    }
-                    .modal-card {
-                        border-radius: 24px !important;
-                        border-bottom: 1px solid #2A2A2A !important;
-                        box-shadow: 0 24px 60px rgba(0,0,0,0.8) !important;
-                        max-height: 88vh !important;
-                        width: 520px !important;
-                    }
                 }
                 @media (min-width: 768px) {
                     .home-sheet { padding: 1.5rem 2rem 2rem; }

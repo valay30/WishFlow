@@ -369,6 +369,10 @@ export const db = {
     delete: async (itemId) => {
       const id = await getUserId();
       if (!id) return;
+
+      // Delete from collectionItems first to prevent foreign key constraint errors
+      await supabase.from('collectionItems').delete().eq('item_id', itemId);
+
       const { error } = await supabase.from('items').delete().eq('id', itemId).eq('user_id', id);
       if (error) throw error;
       if (__itemCache) {

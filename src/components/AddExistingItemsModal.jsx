@@ -144,7 +144,7 @@ export default function AddExistingItemsModal({ allItems, activeCollectionId, on
                             disabled={selectedIds.size === 0 || saving}
                             style={{
                                 width: '100%', padding: '1rem',
-                                background: saving || selectedIds.size === 0 ? '#8fa0f5' : ORANGE,
+                                background: saving || selectedIds.size === 0 ? 'rgba(var(--primary-rgb),0.5)' : ORANGE,
                                 color: '#fff', border: 'none', borderRadius: '14px',
                                 fontWeight: 800, fontSize: '1rem', cursor: saving || selectedIds.size === 0 ? 'not-allowed' : 'pointer',
                                 fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',

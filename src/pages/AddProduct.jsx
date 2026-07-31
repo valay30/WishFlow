@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { db, supabase } from '../db';
 import { Upload, X, ArrowLeft, Sparkles, Crown } from 'lucide-react';
 import { useAuth } from '../context/useAuth';
@@ -22,9 +23,12 @@ export default function AddProduct() {
             setCategories(await db.categories.getAll());
             const items = await db.items.getAll();
             setItemCount(items.length);
+            if (items.length >= 5 && !user?.isPremium) {
+                setShowPremiumModal(true);
+            }
         };
         loadInitialData();
-    }, []);
+    }, [user]);
 
     const handleUpgradeToPremium = async () => {
         try {
@@ -131,7 +135,7 @@ export default function AddProduct() {
             <div style={{
                 background: '#fff', borderRadius: '20px',
                 border: '1px solid #E8ECF4',
-                boxShadow: '0 4px 24px rgba(73,99,232,0.09)',
+                boxShadow: '0 4px 24px rgba(var(--primary-rgb),0.09)',
                 padding: 'clamp(1.25rem, 3vw, 2rem)',
             }}>
                 <form onSubmit={handleSubmit} style={{ display: 'grid', gap: '1.25rem', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))' }}>
@@ -218,16 +222,13 @@ export default function AddProduct() {
             </div>
 
             {/* Premium Upgrade Modal */}
-            {showPremiumModal && (
-                <div style={{
-                    position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
-                    background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(5px)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999
-                }}>
-                    <div style={{
+            {showPremiumModal && createPortal(
+                <div className="premium-modal-overlay" onClick={() => setShowPremiumModal(false)}>
+                    <div onClick={e => e.stopPropagation()} style={{
                         background: '#fff', borderRadius: '24px', padding: '2.5rem',
                         maxWidth: '400px', width: '90%', textAlign: 'center',
-                        boxShadow: '0 24px 48px rgba(0,0,0,0.2)', position: 'relative'
+                        boxShadow: '0 24px 48px rgba(0,0,0,0.2)', position: 'relative',
+                        animation: 'slideUp 0.25s cubic-bezier(0.2,0.8,0.4,1)'
                     }}>
                         <button
                             onClick={() => setShowPremiumModal(false)}
@@ -237,9 +238,9 @@ export default function AddProduct() {
                         </button>
 
                         <div style={{
-                            width: '64px', height: '64px', background: 'linear-gradient(135deg, var(--primary), var(--primary-lt))',
+                            width: '64px', height: '64px', background: 'linear-gradient(135deg, var(--primary), var(--primary-dk))',
                             borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            margin: '0 auto 1.5rem', color: '#fff'
+                            margin: '0 auto 1.5rem', color: '#fff', boxShadow: '0 6px 20px rgba(var(--primary-rgb),0.3)'
                         }}>
                             <Crown size={32} />
                         </div>
@@ -252,9 +253,9 @@ export default function AddProduct() {
                         <button
                             onClick={handleUpgradeToPremium}
                             style={{
-                                width: '100%', padding: '1rem', background: 'linear-gradient(135deg, var(--primary), var(--primary-lt))',
+                                width: '100%', padding: '1rem', background: 'linear-gradient(135deg, var(--primary), var(--primary-dk))',
                                 color: '#fff', border: 'none', borderRadius: '14px', fontWeight: 800, fontSize: '1.1rem',
-                                cursor: 'pointer', boxShadow: '0 8px 24px rgba(73,99,232,0.3)', transition: 'all 0.2s'
+                                cursor: 'pointer', boxShadow: '0 8px 24px rgba(var(--primary-rgb),0.35)', transition: 'all 0.2s'
                             }}
                             onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
                             onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
@@ -264,7 +265,8 @@ export default function AddProduct() {
 
                         <p style={{ marginTop: '1rem', fontSize: '0.8rem', color: '#999' }}>One-time payment. Lifetime access.</p>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
         </div>
     );
