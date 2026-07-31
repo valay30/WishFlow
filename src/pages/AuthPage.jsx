@@ -218,8 +218,10 @@ function FormContent({
                 </button>
             </form>
 
+            {/* Social sign in disabled for now
             <p style={{ textAlign: 'center', fontSize: '0.82rem', color: '#9EA6B7', margin: '1.25rem 0 0.75rem' }}>Sign in with</p>
-            <SocialRow />
+            <SocialRow /> 
+            */}
             <p style={{ textAlign: 'center', marginTop: '1.25rem', fontSize: '0.85rem', color: '#9EA6B7' }}>
                 {screen === 'login' ? "Don't have an account? " : 'Already have an account? '}
                 <button onClick={() => go(screen === 'login' ? 'signup' : 'login')}
