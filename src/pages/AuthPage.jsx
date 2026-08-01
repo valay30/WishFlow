@@ -10,16 +10,16 @@ import { useResponsive } from '../hooks/useResponsive';
 // Suppress Google Auto Ads on content-less auth screen to comply with AdSense policy.
 // This avoids the "Google-served ads on screens without publisher-content" violation.
 function useDisableAutoAds() {
-  useEffect(() => {
-    try {
-      (window.adsbygoogle = window.adsbygoogle || []).pauseAdRequests = 1;
-    } catch (e) { /* AdSense not loaded yet */ }
-    return () => {
-      try {
-        (window.adsbygoogle = window.adsbygoogle || []).pauseAdRequests = 0;
-      } catch (e) { /* ignore */ }
-    };
-  }, []);
+    useEffect(() => {
+        try {
+            (window.adsbygoogle = window.adsbygoogle || []).pauseAdRequests = 1;
+        } catch (e) { /* AdSense not loaded yet */ }
+        return () => {
+            try {
+                (window.adsbygoogle = window.adsbygoogle || []).pauseAdRequests = 0;
+            } catch (e) { /* ignore */ }
+        };
+    }, []);
 }
 
 const BLUE = '#10367D';
@@ -203,7 +203,8 @@ function FormContent({
                 ) : (
                     <label style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', cursor: 'pointer', fontSize: '0.85rem', color: '#5A5F7A' }}>
                         <input type="checkbox" checked={agree} onChange={e => setAgree(e.target.checked)} style={{ accentColor: BLUE, width: '15px', height: '15px', marginTop: '2px', flexShrink: 0 }} />
-                        <span>I agree to the processing of <span style={{ color: BLUE, fontWeight: 600 }}>Personal data</span></span>
+                        {/* <span>I agree to the processing of <span style={{ color: BLUE, fontWeight: 600 }}>Personal data</span></span> */}
+                        <span>I agree to the<span style={{ color: BLUE, fontWeight: 600 }}>Terms & Conditions</span></span> and <span style={{ color: BLUE, fontWeight: 600 }}>Privacy Policy</span>
                     </label>
                 )}
 
@@ -276,7 +277,7 @@ export default function AuthPage() {
         if (!email || !password) { setError('Please fill in all fields.'); return; }
         if (screen === 'signup' && !name.trim()) { setError('Please enter your full name.'); return; }
         if (password.length < 6) { setError('Password must be at least 6 characters.'); return; }
-        if (screen === 'signup' && !agree) { setError('Please agree to the Personal data processing.'); return; }
+        if (screen === 'signup' && !agree) { setError('Please agree to the Terms & Conditions and Privacy Policy.'); return; }
 
         setLoading(true);
         await new Promise(r => setTimeout(r, 400));
