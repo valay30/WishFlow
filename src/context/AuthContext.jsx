@@ -6,6 +6,9 @@ export const AuthContext = createContext(null);
 export function AuthProvider({ children }) {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [recoveryMode, setRecoveryMode] = useState(() => {
+        return window.location.hash.includes('type=recovery') || window.location.search.includes('type=recovery');
+    });
 
     useEffect(() => {
         const initSession = async () => {
@@ -22,7 +25,13 @@ export function AuthProvider({ children }) {
         initSession();
 
         // Listen for Supabase session changes (e.g., login in another tab or token refresh)
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+            if (event === 'PASSWORD_RECOVERY') {
+                // User clicked the reset link from their email — show reset screen
+                setRecoveryMode(true);
+                setLoading(false);
+                return;
+            }
             if (session) {
                 setUser({
                     id: session.user.id,
@@ -57,6 +66,16 @@ export function AuthProvider({ children }) {
         setUser(null);
     };
 
+    const resetPassword = async (email) => {
+        return await auth.resetPassword(email);
+    };
+
+    const updatePassword = async (newPassword) => {
+        const result = await auth.updatePassword(newPassword);
+        if (result.success) setRecoveryMode(false);
+        return result;
+    };
+
     if (loading) {
         return (
             <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#111', color: '#fff' }}>
@@ -66,7 +85,7 @@ export function AuthProvider({ children }) {
     }
 
     return (
-        <AuthContext.Provider value={{ user, login, signup, logout }}>
+        <AuthContext.Provider value={{ user, login, signup, logout, resetPassword, updatePassword, recoveryMode, setRecoveryMode }}>
             {children}
         </AuthContext.Provider>
     );

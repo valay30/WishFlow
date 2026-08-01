@@ -29,14 +29,14 @@ function ScrollToTop() {
 }
 
 function AppRoutes() {
-  const { user } = useAuth();
+  const { user, recoveryMode } = useAuth();
 
   return (
     <Routes>
-      {/* Public route — redirect to home if already logged in */}
+      {/* Public route — redirect to home if already logged in (unless in recovery mode) */}
       <Route
         path="/auth"
-        element={user ? <Navigate to="/" replace /> : <AuthPage />}
+        element={(user && !recoveryMode) ? <Navigate to="/" replace /> : <AuthPage />}
       />
 
 

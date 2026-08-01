@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
-import { Eye, EyeOff, ChevronLeft, ShoppingBag } from 'lucide-react';
+import { Eye, EyeOff, ChevronLeft, ShoppingBag, Mail, CheckCircle } from 'lucide-react';
 import { useResponsive } from '../hooks/useResponsive';
 
 /* ─────────────────────────────────────────
@@ -196,7 +196,8 @@ function FormContent({
                             <input type="checkbox" checked={remember} onChange={e => setRemember(e.target.checked)} style={{ accentColor: BLUE, width: '15px', height: '15px' }} />
                             Remember me
                         </label>
-                        <button type="button" style={{ background: 'none', border: 'none', color: BLUE, fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer', fontFamily: 'inherit' }}>
+                        <button type="button" onClick={() => go('forgot')}
+                            style={{ background: 'none', border: 'none', color: BLUE, fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer', fontFamily: 'inherit' }}>
                             Forgot password?
                         </button>
                     </div>
@@ -249,9 +250,172 @@ function FormContent({
     );
 }
 
-/* ══════════════════════════════════════════
-   MAIN AUTH PAGE  — only holds state
-══════════════════════════════════════════ */
+/* ─────────────────────────────────────────
+   Forgot Password Screen
+───────────────────────────────────────── */
+function ForgotPasswordContent({ forgotEmail, setForgotEmail, forgotError, forgotLoading, forgotSent, handleForgot, go }) {
+    const focusSt = (e) => { e.target.style.borderColor = BLUE; e.target.style.boxShadow = '0 0 0 4px rgba(16,54,125,0.1)'; };
+    const blurSt = (e) => { e.target.style.borderColor = '#E8ECF4'; e.target.style.boxShadow = 'none'; };
+
+    if (forgotSent) return (
+        <div style={{ textAlign: 'center', padding: '1rem 0' }}>
+            <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: 'rgba(16,54,125,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.25rem' }}>
+                <CheckCircle size={34} color={BLUE} />
+            </div>
+            <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: BLUE, marginBottom: '0.6rem' }}>Check your email</h2>
+            <p style={{ color: '#9EA6B7', fontSize: '0.9rem', lineHeight: 1.65, marginBottom: '2rem' }}>
+                We sent a password reset link to <strong style={{ color: '#444' }}>{forgotEmail}</strong>.<br />
+                Click the link in the email to reset your password.
+            </p>
+            <button onClick={() => go('login')} style={{
+                width: '100%', padding: '1rem',
+                background: `linear-gradient(135deg, ${BLUE}, ${BLUE_DARK})`,
+                color: '#fff', border: 'none', borderRadius: '12px',
+                fontWeight: 700, fontSize: '1rem', fontFamily: 'inherit',
+                cursor: 'pointer', boxShadow: '0 6px 20px rgba(16,54,125,0.38)',
+            }}>Back to Sign In</button>
+        </div>
+    );
+
+    return (
+        <div>
+            <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: 'rgba(16,54,125,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1rem' }}>
+                <Mail size={24} color={BLUE} />
+            </div>
+            <h2 style={{ fontSize: 'clamp(1.35rem, 2vw, 1.75rem)', fontWeight: 800, color: BLUE, marginBottom: '0.3rem' }}>Forgot Password?</h2>
+            <p style={{ fontSize: '0.85rem', color: '#9EA6B7', marginBottom: '1.6rem', lineHeight: 1.65 }}>
+                No worries! Enter your email and we'll send you a reset link.
+            </p>
+
+            <form onSubmit={handleForgot} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <div>
+                    <label style={LABEL_ST}>Email Address</label>
+                    <input
+                        style={INPUT_ST} type="email"
+                        placeholder="your@email.com"
+                        value={forgotEmail} onChange={e => setForgotEmail(e.target.value)}
+                        onFocus={focusSt} onBlur={blurSt}
+                        autoFocus
+                    />
+                </div>
+
+                {forgotError && (
+                    <div style={{ background: '#fff0f3', color: '#c0143c', padding: '0.7rem 1rem', borderRadius: '10px', fontSize: '0.83rem', fontWeight: 600, border: '1px solid #ffc7d4' }}>
+                        ⚠️ {forgotError}
+                    </div>
+                )}
+
+                <button type="submit" disabled={forgotLoading} style={{
+                    width: '100%', padding: '1rem',
+                    background: forgotLoading ? '#8fa0f5' : `linear-gradient(135deg, ${BLUE}, ${BLUE_DARK})`,
+                    color: '#fff', border: 'none', borderRadius: '12px',
+                    fontWeight: 700, fontSize: '1rem', fontFamily: 'inherit',
+                    cursor: forgotLoading ? 'not-allowed' : 'pointer',
+                    boxShadow: forgotLoading ? 'none' : '0 6px 20px rgba(16,54,125,0.38)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
+                    transition: 'opacity 0.2s',
+                }}>
+                    {forgotLoading
+                        ? <><span style={{ width: '16px', height: '16px', border: '2px solid rgba(255,255,255,0.4)', borderTopColor: '#fff', borderRadius: '50%', animation: 'spin 0.7s linear infinite', display: 'inline-block' }} /> Sending...</>
+                        : 'Send Reset Link'
+                    }
+                </button>
+            </form>
+
+            <p style={{ textAlign: 'center', marginTop: '1.25rem', fontSize: '0.85rem', color: '#9EA6B7' }}>
+                Remember your password?{' '}
+                <button onClick={() => go('login')} style={{ background: 'none', border: 'none', color: BLUE, fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer', fontFamily: 'inherit' }}>Sign in</button>
+            </p>
+        </div>
+    );
+}
+
+/* ─────────────────────────────────────────
+   Reset Password Screen
+───────────────────────────────────────── */
+function ResetPasswordContent({ resetPass, setResetPass, resetConfirm, setResetConfirm, showResetPass, setShowResetPass, resetError, resetLoading, resetSuccess, handleReset }) {
+    const focusSt = (e) => { e.target.style.borderColor = BLUE; e.target.style.boxShadow = '0 0 0 4px rgba(16,54,125,0.1)'; };
+    const blurSt = (e) => { e.target.style.borderColor = '#E8ECF4'; e.target.style.boxShadow = 'none'; };
+
+    if (resetSuccess) return (
+        <div style={{ textAlign: 'center', padding: '1rem 0' }}>
+            <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: 'rgba(16,54,125,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.25rem' }}>
+                <CheckCircle size={34} color={BLUE} />
+            </div>
+            <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: BLUE, marginBottom: '0.6rem' }}>Password Updated!</h2>
+            <p style={{ color: '#9EA6B7', fontSize: '0.9rem', lineHeight: 1.65, marginBottom: '0.5rem' }}>
+                Your password has been changed successfully. You can now sign in with your new password.
+            </p>
+        </div>
+    );
+
+    return (
+        <div>
+            <h2 style={{ fontSize: 'clamp(1.35rem, 2vw, 1.75rem)', fontWeight: 800, color: BLUE, marginBottom: '0.3rem' }}>Set New Password</h2>
+            <p style={{ fontSize: '0.85rem', color: '#9EA6B7', marginBottom: '1.6rem' }}>Choose a strong password for your account.</p>
+
+            <form onSubmit={handleReset} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <div>
+                    <label style={LABEL_ST}>New Password</label>
+                    <div style={{ position: 'relative' }}>
+                        <input
+                            style={{ ...INPUT_ST, paddingRight: '3rem' }}
+                            type={showResetPass ? 'text' : 'password'}
+                            placeholder="Enter new password"
+                            value={resetPass} onChange={e => setResetPass(e.target.value)}
+                            onFocus={focusSt} onBlur={blurSt}
+                            autoFocus
+                        />
+                        <button type="button" onClick={() => setShowResetPass(v => !v)}
+                            style={{ position: 'absolute', right: '0.85rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#bbb', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center' }}>
+                            {showResetPass ? <EyeOff size={18} /> : <Eye size={18} />}
+                        </button>
+                    </div>
+                </div>
+
+                <div>
+                    <label style={LABEL_ST}>Confirm Password</label>
+                    <input
+                        style={INPUT_ST}
+                        type="password"
+                        placeholder="Confirm new password"
+                        value={resetConfirm} onChange={e => setResetConfirm(e.target.value)}
+                        onFocus={focusSt} onBlur={blurSt}
+                    />
+                </div>
+
+                {resetError && (
+                    <div style={{ background: '#fff0f3', color: '#c0143c', padding: '0.7rem 1rem', borderRadius: '10px', fontSize: '0.83rem', fontWeight: 600, border: '1px solid #ffc7d4' }}>
+                        ⚠️ {resetError}
+                    </div>
+                )}
+
+                {/* Password strength hint */}
+                {resetPass && (
+                    <div style={{ fontSize: '0.78rem', color: resetPass.length >= 8 ? '#2e7d32' : '#c0143c', fontWeight: 600 }}>
+                        {resetPass.length >= 8 ? '✓ Strong enough' : `Password needs ${8 - resetPass.length} more characters`}
+                    </div>
+                )}
+
+                <button type="submit" disabled={resetLoading} style={{
+                    width: '100%', padding: '1rem',
+                    background: resetLoading ? '#8fa0f5' : `linear-gradient(135deg, ${BLUE}, ${BLUE_DARK})`,
+                    color: '#fff', border: 'none', borderRadius: '12px',
+                    fontWeight: 700, fontSize: '1rem', fontFamily: 'inherit',
+                    cursor: resetLoading ? 'not-allowed' : 'pointer',
+                    boxShadow: resetLoading ? 'none' : '0 6px 20px rgba(16,54,125,0.38)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
+                    transition: 'opacity 0.2s',
+                }}>
+                    {resetLoading
+                        ? <><span style={{ width: '16px', height: '16px', border: '2px solid rgba(255,255,255,0.4)', borderTopColor: '#fff', borderRadius: '50%', animation: 'spin 0.7s linear infinite', display: 'inline-block' }} /> Updating...</>
+                        : 'Update Password'
+                    }
+                </button>
+            </form>
+        </div>
+    );
+}
 export default function AuthPage() {
     useDisableAutoAds(); // Suppress Auto Ads — no publisher content on auth screens
     const [screen, setScreen] = useState('welcome');
@@ -264,12 +428,36 @@ export default function AuthPage() {
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
 
-    const { login, signup } = useAuth();
+    // Forgot password state
+    const [forgotEmail, setForgotEmail] = useState('');
+    const [forgotError, setForgotError] = useState('');
+    const [forgotLoading, setForgotLoading] = useState(false);
+    const [forgotSent, setForgotSent] = useState(false);
+
+    // Reset password state
+    const [resetPass, setResetPass] = useState('');
+    const [resetConfirm, setResetConfirm] = useState('');
+    const [showResetPass, setShowResetPass] = useState(false);
+    const [resetError, setResetError] = useState('');
+    const [resetLoading, setResetLoading] = useState(false);
+    const [resetSuccess, setResetSuccess] = useState(false);
+
+    const { login, signup, resetPassword, updatePassword, recoveryMode, setRecoveryMode } = useAuth();
     const navigate = useNavigate();
     const { isMobile, isTablet, isDesktop } = useResponsive();
 
+    // When Supabase fires PASSWORD_RECOVERY, show the reset screen
+    useEffect(() => {
+        if (recoveryMode) setScreen('reset');
+    }, [recoveryMode]);
+
     const reset = () => { setName(''); setEmail(''); setPassword(''); setError(''); setAgree(false); setRemember(false); };
-    const go = (s) => { reset(); setScreen(s); };
+    const go = (s) => {
+        reset();
+        setForgotEmail(''); setForgotError(''); setForgotSent(false);
+        setResetPass(''); setResetConfirm(''); setResetError(''); setResetSuccess(false);
+        setScreen(s);
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -289,8 +477,38 @@ export default function AuthPage() {
         else setError(result.error);
     };
 
+    const handleForgot = async (e) => {
+        e.preventDefault();
+        setForgotError('');
+        if (!forgotEmail.trim()) { setForgotError('Please enter your email address.'); return; }
+        setForgotLoading(true);
+        const result = await resetPassword(forgotEmail.trim());
+        setForgotLoading(false);
+        if (result.success) setForgotSent(true);
+        else setForgotError(result.error);
+    };
+
+    const handleReset = async (e) => {
+        e.preventDefault();
+        setResetError('');
+        if (!resetPass) { setResetError('Please enter a new password.'); return; }
+        if (resetPass.length < 8) { setResetError('Password must be at least 8 characters.'); return; }
+        if (resetPass !== resetConfirm) { setResetError('Passwords do not match.'); return; }
+        setResetLoading(true);
+        const result = await updatePassword(resetPass);
+        setResetLoading(false);
+        if (result.success) {
+            setResetSuccess(true);
+            setTimeout(() => navigate('/'), 2500);
+        } else {
+            setResetError(result.error);
+        }
+    };
+
     /* shared form props bundle */
     const formProps = { screen, name, setName, email, setEmail, password, setPassword, showPass, setShowPass, remember, setRemember, agree, setAgree, error, loading, handleSubmit, go };
+    const forgotProps = { forgotEmail, setForgotEmail, forgotError, forgotLoading, forgotSent, handleForgot, go };
+    const resetProps = { resetPass, setResetPass, resetConfirm, setResetConfirm, showResetPass, setShowResetPass, resetError, resetLoading, resetSuccess, handleReset };
 
     /* ── WELCOME ── */
     if (screen === 'welcome') {
@@ -343,7 +561,17 @@ export default function AuthPage() {
         );
     }
 
-    /* ── FORM SCREENS (login / signup) ── */
+    /* ── FORM SCREENS (login / signup / forgot / reset) ── */
+
+    /* Determine the content to render */
+    const renderFormContent = () => {
+        if (screen === 'forgot') return <ForgotPasswordContent {...forgotProps} />;
+        if (screen === 'reset') return <ResetPasswordContent {...resetProps} />;
+        return <FormContent {...formProps} />;
+    };
+
+    const backDest = screen === 'forgot' ? 'login' : 'welcome';
+    const showBack = screen !== 'reset'; // no back on reset (user arrived via email link)
 
     /* Desktop / Tablet: two-panel */
     if (isDesktop || isTablet) return (
@@ -353,10 +581,12 @@ export default function AuthPage() {
             </div>
             <div style={{ flex: 1, background: '#F5F5F5', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2.5rem', overflowY: 'auto' }}>
                 <div style={{ width: '100%', maxWidth: '460px' }}>
-                    <button onClick={() => go('welcome')} style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', background: 'none', border: 'none', color: '#666', fontWeight: 600, fontSize: '0.9rem', cursor: 'pointer', marginBottom: '2rem', fontFamily: 'inherit', padding: 0 }}>
-                        <ChevronLeft size={18} /> Back
-                    </button>
-                    <FormContent {...formProps} />
+                    {showBack && (
+                        <button onClick={() => go(backDest)} style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', background: 'none', border: 'none', color: '#666', fontWeight: 600, fontSize: '0.9rem', cursor: 'pointer', marginBottom: '2rem', fontFamily: 'inherit', padding: 0 }}>
+                            <ChevronLeft size={18} /> Back
+                        </button>
+                    )}
+                    {renderFormContent()}
                 </div>
             </div>
             <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
@@ -368,12 +598,14 @@ export default function AuthPage() {
         <div style={{ minHeight: '100vh', background: BG_GRAD, display: 'flex', flexDirection: 'column', fontFamily: '"Outfit", sans-serif', position: 'relative' }}>
             <div style={{ position: 'relative', height: '230px', flexShrink: 0 }}>
                 <Bubbles />
-                <button onClick={() => go('welcome')} style={{ position: 'absolute', top: '1.25rem', left: '1.25rem', zIndex: 10, display: 'flex', alignItems: 'center', gap: '0.25rem', background: 'rgba(255,255,255,0.25)', border: 'none', borderRadius: '8px', padding: '0.4rem 0.9rem', color: '#fff', fontWeight: 600, fontSize: '0.9rem', fontFamily: 'inherit', cursor: 'pointer', backdropFilter: 'blur(4px)' }}>
-                    <ChevronLeft size={16} /> Back
-                </button>
+                {showBack && (
+                    <button onClick={() => go(backDest)} style={{ position: 'absolute', top: '1.25rem', left: '1.25rem', zIndex: 10, display: 'flex', alignItems: 'center', gap: '0.25rem', background: 'rgba(255,255,255,0.25)', border: 'none', borderRadius: '8px', padding: '0.4rem 0.9rem', color: '#fff', fontWeight: 600, fontSize: '0.9rem', fontFamily: 'inherit', cursor: 'pointer', backdropFilter: 'blur(4px)' }}>
+                        <ChevronLeft size={16} /> Back
+                    </button>
+                )}
             </div>
             <div style={{ flex: 1, background: '#fff', borderRadius: '28px 28px 0 0', marginTop: '-28px', padding: '2rem 1.5rem 3rem', position: 'relative', zIndex: 5, boxShadow: '0 -4px 30px rgba(0,0,0,0.5)', overflowY: 'auto' }}>
-                <FormContent {...formProps} />
+                {renderFormContent()}
             </div>
             <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
         </div>

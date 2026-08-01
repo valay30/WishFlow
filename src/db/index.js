@@ -105,6 +105,19 @@ export const auth = {
     clearDbCache(); // ✅ now safe — clearDbCache is declared above
     await supabase.auth.signOut();
   },
+
+  resetPassword: async (email) => {
+    const redirectTo = `${window.location.origin}/auth`;
+    const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
+    if (error) return { success: false, error: error.message };
+    return { success: true };
+  },
+
+  updatePassword: async (newPassword) => {
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    if (error) return { success: false, error: error.message };
+    return { success: true };
+  },
 };
 
 // ─── Internal helper ──────────────────────────────────────────────────────────
