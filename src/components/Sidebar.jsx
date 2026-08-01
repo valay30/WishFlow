@@ -30,11 +30,11 @@ export default function Sidebar({ user, onLogout }) {
                 <div style={{ width: '2.4rem', height: '2.4rem', borderRadius: '12px', background: ORANGE, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: `0 4px 12px rgba(var(--primary-rgb),0.4)`, flexShrink: 0 }}>
                     <ShoppingBag size={18} color="#fff" />
                 </div>
-                <h1 style={{ fontSize: '1.2rem', fontWeight: 900, color: '#111', letterSpacing: '-0.02em' }}>WishFlow</h1>
+                <h1 style={{ fontSize: '1.2rem', fontWeight: 900, color: 'var(--text)', letterSpacing: '-0.02em' }}>WishFlow</h1>
             </div>
 
             <nav className="sidebar-nav">
-                <p style={{ fontSize: '0.68rem', fontWeight: 700, color: '#444', textTransform: 'uppercase', letterSpacing: '0.1em', padding: '0.5rem 1rem 0.35rem' }}>Menu</p>
+                <p style={{ fontSize: '0.68rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', padding: '0.5rem 1rem 0.35rem' }}>Menu</p>
                 {NAV_LINKS.map(({ to, icon: Icon, label }) => (
                     <Link key={to} to={to} className={`sidebar-nav-link${isActive(to) ? ' active' : ''}`}>
                         <Icon size={20} /> {label}
@@ -52,19 +52,19 @@ export default function Sidebar({ user, onLogout }) {
 
             {/* User + Logout */}
             <div className="sidebar-footer">
-                <Link to="/profile" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.85rem', padding: '0.75rem', background: '#F5F5F5', borderRadius: '14px', border: '1px solid #D1D5DB', textDecoration: 'none', cursor: 'pointer' }}>
+                <Link to="/profile" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.85rem', padding: '0.75rem', background: 'var(--surface-2)', borderRadius: '14px', border: '1px solid var(--border)', textDecoration: 'none', cursor: 'pointer' }}>
                     <div style={{ width: '2.4rem', height: '2.4rem', borderRadius: '50%', background: ORANGE, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 800, fontSize: '0.72rem', flexShrink: 0 }}>
                         {initials}
                     </div>
                     <div style={{ overflow: 'hidden', flex: 1, minWidth: 0 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                            <p style={{ fontWeight: 700, fontSize: '0.9rem', color: '#111', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user?.name || 'User'}</p>
+                            <p style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user?.name || 'User'}</p>
                             {user?.isPremium
                                 ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.2rem', background: 'linear-gradient(135deg,#f59e0b,#d97706)', color: '#fff', fontSize: '0.58rem', fontWeight: 800, padding: '0.15rem 0.45rem', borderRadius: '99px', textTransform: 'uppercase', letterSpacing: '0.05em', flexShrink: 0 }}><Crown size={8} />Pro</span>
-                                : <span style={{ display: 'inline-flex', alignItems: 'center', background: '#E5E7EB', color: '#6B7280', fontSize: '0.58rem', fontWeight: 700, padding: '0.15rem 0.45rem', borderRadius: '99px', textTransform: 'uppercase', letterSpacing: '0.05em', flexShrink: 0 }}>Free</span>
+                                : <span style={{ display: 'inline-flex', alignItems: 'center', background: 'var(--border)', color: 'var(--text-dim)', fontSize: '0.58rem', fontWeight: 700, padding: '0.15rem 0.45rem', borderRadius: '99px', textTransform: 'uppercase', letterSpacing: '0.05em', flexShrink: 0 }}>Free</span>
                             }
                         </div>
-                        <p style={{ fontSize: '0.74rem', color: '#666', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user?.email || ''}</p>
+                        <p style={{ fontSize: '0.74rem', color: 'var(--text-dim)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user?.email || ''}</p>
                     </div>
                 </Link>
                 <button

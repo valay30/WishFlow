@@ -17,7 +17,7 @@ const LABEL_ST = {
 const INPUT_ST = {
     width: '100%', padding: '0.85rem 1rem',
     background: SURFACE2, border: `1.5px solid ${BORDER}`,
-    borderRadius: '14px', color: '#111',
+    borderRadius: '14px', color: 'var(--text)',
     fontFamily: 'inherit', fontSize: '0.95rem',
     outline: 'none', transition: 'border-color 0.2s, box-shadow 0.2s',
 };
@@ -68,14 +68,14 @@ export default function AddProductModal({ categories, onAdd, onClose }) {
                 <div onClick={e => e.stopPropagation()} className="modal-card" style={{ background: '#FFFFFF', borderRadius: '28px 28px 0 0', width: '100%', maxWidth: '560px', maxHeight: '92vh', overflowY: 'auto', boxShadow: '0 -8px 40px rgba(0,0,0,0.7)', animation: 'slideUp 0.28s cubic-bezier(0.2,0.8,0.4,1)', border: `1px solid ${BORDER}`, borderBottom: 'none', position: 'relative' }}>
                     {/* Drag handle */}
                     <div style={{ display: 'flex', justifyContent: 'center', padding: '0.85rem 0 0' }}>
-                        <div style={{ width: '40px', height: '4px', borderRadius: '99px', background: '#D1D5DB' }} />
+                        <div style={{ width: '40px', height: '4px', borderRadius: '99px', background: 'var(--border)' }} />
                     </div>
 
                     <div style={{ padding: '0.75rem 1.5rem 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: ORANGE }}>Add New Item ✨</h2>
-                        <button onClick={onClose} style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#F5F5F5', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#888' }}
+                        <button onClick={onClose} style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'var(--surface-2)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}
                             onMouseEnter={e => e.currentTarget.style.background = 'rgba(239,68,68,0.15)'}
-                            onMouseLeave={e => e.currentTarget.style.background = '#F5F5F5'}>
+                            onMouseLeave={e => e.currentTarget.style.background = 'var(--surface-2)'}>
                             <X size={16} />
                         </button>
                     </div>
@@ -106,7 +106,7 @@ export default function AddProductModal({ categories, onAdd, onClose }) {
                             <label style={LABEL_ST}>Image</label>
                             <div style={{ display: 'flex', gap: '0.5rem' }}>
                                 <input style={{ ...INPUT_ST, flex: 1 }} placeholder="Paste image URL..." value={image.startsWith('data:') ? '' : image} onChange={e => setImage(e.target.value)} onFocus={focus} onBlur={blur} />
-                                <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: '2.8rem', background: '#F5F5F5', color: ORANGE, borderRadius: '14px', cursor: isUploading ? 'wait' : 'pointer', border: `1.5px dashed ${ORANGE}`, opacity: isUploading ? 0.7 : 1 }}>
+                                <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: '2.8rem', background: 'var(--surface-2)', color: ORANGE, borderRadius: '14px', cursor: isUploading ? 'wait' : 'pointer', border: `1.5px dashed ${ORANGE}`, opacity: isUploading ? 0.7 : 1 }}>
                                     {isUploading ? <span style={{ width: '16px', height: '16px', border: '2px solid rgba(var(--primary-rgb),0.4)', borderTopColor: ORANGE, borderRadius: '50%', animation: 'spin 0.7s linear infinite', display: 'inline-block' }} /> : <Upload size={17} />}
                                     <input type="file" accept="image/*" hidden onChange={handleImageUpload} disabled={isUploading} />
                                 </label>
@@ -131,7 +131,7 @@ export default function AddProductModal({ categories, onAdd, onClose }) {
                             </div>
                         )}
                         <div style={{ display: 'flex', gap: '0.75rem', paddingTop: '0.25rem' }}>
-                            <button type="button" onClick={onClose} style={{ flex: 1, padding: '0.9rem', background: '#F5F5F5', color: '#555', border: `1px solid ${BORDER}`, borderRadius: '14px', fontWeight: 600, fontSize: '0.95rem', cursor: 'pointer', fontFamily: 'inherit' }}>Cancel</button>
+                            <button type="button" onClick={onClose} style={{ flex: 1, padding: '0.9rem', background: 'var(--surface-2)', color: 'var(--text-dim)', border: `1px solid ${BORDER}`, borderRadius: '14px', fontWeight: 600, fontSize: '0.95rem', cursor: 'pointer', fontFamily: 'inherit' }}>Cancel</button>
                             <button type="submit" disabled={isUploading} style={{ flex: 2, padding: '0.9rem', background: isUploading ? 'rgba(var(--primary-rgb),0.5)' : ORANGE, color: '#fff', border: 'none', borderRadius: '14px', fontWeight: 800, fontSize: '0.95rem', cursor: isUploading ? 'wait' : 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', boxShadow: '0 4px 16px rgba(var(--primary-rgb),0.4)' }}>
                                 <Sparkles size={17} /> Save Product
                             </button>

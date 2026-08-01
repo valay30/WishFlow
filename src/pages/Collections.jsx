@@ -171,7 +171,7 @@ export default function Collections() {
     if (loading) {
         return (
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
-                <div style={{ textAlign: 'center', color: '#888' }}>
+                <div style={{ textAlign: 'center', color: 'var(--text-muted)' }}>
                     <FolderHeart size={48} style={{ opacity: 0.3, marginBottom: '1rem' }} />
                     <p>Loading collections...</p>
                 </div>
@@ -213,7 +213,7 @@ export default function Collections() {
                                     }
                                 }
                                 setShowAddProductModal(true);
-                            }} style={{ background: '#fff', color: ORANGE, border: 'none', borderRadius: '14px', padding: '0.65rem 1rem', fontWeight: 800, fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
+                            }} style={{ background: 'var(--surface)', color: ORANGE, border: 'none', borderRadius: '14px', padding: '0.65rem 1rem', fontWeight: 800, fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
                                 <Plus size={16} /> New Item
                             </button>
                         </div>
@@ -249,9 +249,9 @@ export default function Collections() {
                 >
                     {activeItems.length === 0 ? (
                         <div style={{ background: SURFACE, borderRadius: '24px', padding: '3rem 2rem', textAlign: 'center', border: `1px solid ${BORDER}` }}>
-                            <Package size={48} color="#D1D5DB" style={{ marginBottom: '1rem' }} />
-                            <p style={{ color: '#888', fontWeight: 600 }}>No items in this collection yet.</p>
-                            <p style={{ color: '#aaa', fontSize: '0.85rem', marginTop: '0.5rem' }}>Add items and assign them to this collection.</p>
+                            <Package size={48} color="var(--border)" style={{ marginBottom: '1rem' }} />
+                            <p style={{ color: 'var(--text-muted)', fontWeight: 600 }}>No items in this collection yet.</p>
+                            <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '0.5rem' }}>Add items and assign them to this collection.</p>
                         </div>
                     ) : (
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '1rem' }}>
@@ -302,7 +302,7 @@ export default function Collections() {
                 {showPremiumModal && createPortal(
                     <div className="premium-modal-overlay" onClick={() => setShowPremiumModal(false)}>
                         <div onClick={e => e.stopPropagation()} style={{
-                            background: '#fff', borderRadius: '24px', padding: '2.5rem',
+                            background: 'var(--surface)', borderRadius: '24px', padding: '2.5rem',
                             maxWidth: '400px', width: '90%', textAlign: 'center',
                             boxShadow: '0 24px 48px rgba(0,0,0,0.2)', position: 'relative',
                             animation: 'slideUp 0.25s cubic-bezier(0.2,0.8,0.4,1)'
@@ -322,8 +322,8 @@ export default function Collections() {
                                 <Crown size={32} />
                             </div>
 
-                            <h2 style={{ fontSize: '1.8rem', fontWeight: 900, marginBottom: '0.5rem', color: '#111' }}>Unlock Limitless</h2>
-                            <p style={{ color: '#666', marginBottom: '2rem', lineHeight: '1.5' }}>
+                            <h2 style={{ fontSize: '1.8rem', fontWeight: 900, marginBottom: '0.5rem', color: 'var(--text)' }}>Unlock Limitless</h2>
+                            <p style={{ color: 'var(--text-dim)', marginBottom: '2rem', lineHeight: '1.5' }}>
                                 You have reached the free tier limit of 5 items. Upgrade to WishFlow Premium for ₹100 and add unlimited wishes forever!
                             </p>
 
@@ -340,7 +340,7 @@ export default function Collections() {
                                 Upgrade for ₹100
                             </button>
 
-                            <p style={{ marginTop: '1rem', fontSize: '0.8rem', color: '#999' }}>One-time payment. Lifetime access.</p>
+                            <p style={{ marginTop: '1rem', fontSize: '0.8rem', color: 'var(--text-dim)' }}>One-time payment. Lifetime access.</p>
                         </div>
                     </div>,
                     document.body
@@ -381,8 +381,8 @@ export default function Collections() {
                         animation: 'fadeInUp 0.4s ease-out',
                     }}>
                         <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>🎁</div>
-                        <h2 style={{ fontSize: '1.3rem', fontWeight: 800, color: '#111', margin: '0 0 0.5rem' }}>No collections yet</h2>
-                        <p style={{ color: '#888', fontSize: '0.9rem', margin: '0 0 1.5rem', lineHeight: 1.5 }}>
+                        <h2 style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--text)', margin: '0 0 0.5rem' }}>No collections yet</h2>
+                        <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', margin: '0 0 1.5rem', lineHeight: 1.5 }}>
                             Create your first collection for occasions like<br />
                             "Birthday 2026", "Diwali Shopping", or "Dream Setup".
                         </p>
@@ -473,7 +473,7 @@ export default function Collections() {
                                             </div>
 
                                             <div style={{ width: '100%' }}>
-                                                <h3 style={{ fontWeight: 900, fontSize: '1.15rem', color: '#111', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                                <h3 style={{ fontWeight: 900, fontSize: '1.15rem', color: 'var(--text)', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                                                     {col.name}
                                                 </h3>
 
@@ -569,7 +569,7 @@ export default function Collections() {
                                     {/* Info */}
                                     <div style={{ flex: 1, minWidth: 0 }}>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-                                            <h3 style={{ fontWeight: 800, fontSize: '1.05rem', color: '#111', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                            <h3 style={{ fontWeight: 800, fontSize: '1.05rem', color: 'var(--text)', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                                                 {col.name}
                                             </h3>
                                             {days !== null && (
@@ -584,7 +584,7 @@ export default function Collections() {
                                             )}
                                         </div>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginTop: '0.3rem', flexWrap: 'wrap' }}>
-                                            <span style={{ fontSize: '0.8rem', color: '#888', fontWeight: 600 }}>
+                                            <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 600 }}>
                                                 {colItems.length} item{colItems.length !== 1 ? 's' : ''}
                                             </span>
                                             {colItems.length > 0 && (
@@ -593,7 +593,7 @@ export default function Collections() {
                                                 </span>
                                             )}
                                             {col.target_date && (
-                                                <span style={{ fontSize: '0.78rem', color: '#aaa', display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
+                                                <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
                                                     <Calendar size={12} />
                                                     {new Date(col.target_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
                                                 </span>
@@ -633,7 +633,7 @@ export default function Collections() {
                             } : {
                                 width: '100%', padding: '1rem', background: 'transparent',
                                 border: `2px dashed ${BORDER}`, borderRadius: '24px',
-                                color: '#888', fontWeight: 600, fontSize: '0.95rem', cursor: 'pointer',
+                                color: 'var(--text-muted)', fontWeight: 600, fontSize: '0.95rem', cursor: 'pointer',
                                 fontFamily: 'inherit', display: 'flex', alignItems: 'center',
                                 justifyContent: 'center', gap: '0.5rem', transition: 'all 0.2s',
                             }}
@@ -694,7 +694,7 @@ export default function Collections() {
             {showPremiumModal && createPortal(
                 <div className="premium-modal-overlay" onClick={() => setShowPremiumModal(false)}>
                     <div onClick={e => e.stopPropagation()} style={{
-                        background: '#fff', borderRadius: '24px', padding: '2.5rem',
+                        background: 'var(--surface)', borderRadius: '24px', padding: '2.5rem',
                         maxWidth: '400px', width: '90%', textAlign: 'center',
                         boxShadow: '0 24px 48px rgba(0,0,0,0.2)', position: 'relative',
                         animation: 'slideUp 0.25s cubic-bezier(0.2,0.8,0.4,1)'
@@ -714,8 +714,8 @@ export default function Collections() {
                             <Crown size={32} />
                         </div>
 
-                        <h2 style={{ fontSize: '1.8rem', fontWeight: 900, marginBottom: '0.5rem', color: '#111' }}>Unlock Limitless</h2>
-                        <p style={{ color: '#666', marginBottom: '2rem', lineHeight: '1.5' }}>
+                        <h2 style={{ fontSize: '1.8rem', fontWeight: 900, marginBottom: '0.5rem', color: 'var(--text)' }}>Unlock Limitless</h2>
+                        <p style={{ color: 'var(--text-dim)', marginBottom: '2rem', lineHeight: '1.5' }}>
                             You have reached the free tier limit of 5 items. Upgrade to WishFlow Premium for ₹100 and add unlimited wishes forever!
                         </p>
 
@@ -732,7 +732,7 @@ export default function Collections() {
                             Upgrade for ₹100
                         </button>
 
-                        <p style={{ marginTop: '1rem', fontSize: '0.8rem', color: '#999' }}>One-time payment. Lifetime access.</p>
+                        <p style={{ marginTop: '1rem', fontSize: '0.8rem', color: 'var(--text-dim)' }}>One-time payment. Lifetime access.</p>
                     </div>
                 </div>,
                 document.body

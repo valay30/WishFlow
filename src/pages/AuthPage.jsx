@@ -30,12 +30,12 @@ const INPUT_ST = {
     width: '100%', padding: '0.875rem 1rem',
     border: '1.5px solid #E8ECF4', borderRadius: '10px',
     fontSize: '0.95rem', fontFamily: 'inherit',
-    color: '#111', background: '#fff', outline: 'none',
+    color: 'var(--text)', background: 'var(--surface)', outline: 'none',
     transition: 'border-color 0.2s, box-shadow 0.2s',
 };
 const LABEL_ST = {
     fontSize: '0.78rem', fontWeight: 600,
-    color: '#888', display: 'block', marginBottom: '0.35rem',
+    color: 'var(--text-muted)', display: 'block', marginBottom: '0.35rem',
 };
 
 /* ─────────────────────────────────────────
@@ -70,7 +70,7 @@ function SocialRow() {
                 { label: 'Apple', svg: <svg width="20" height="20" viewBox="0 0 24 24" fill="#000"><path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.7 9.05 7.42c1.27.07 2.16.74 2.9.8 1.1-.19 2.16-.89 3.34-.84 1.42.06 2.49.6 3.18 1.53-2.93 1.67-2.4 5.6.48 6.84-.57 1.58-1.32 3.15-1.9 4.53zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z" /></svg> },
             ].map(s => (
                 <button key={s.label} title={s.label}
-                    style={{ width: '46px', height: '46px', borderRadius: '50%', border: '1.5px solid #E8ECF4', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', transition: 'box-shadow 0.2s, transform 0.2s' }}
+                    style={{ width: '46px', height: '46px', borderRadius: '50%', border: '1.5px solid #E8ECF4', background: 'var(--surface)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', transition: 'box-shadow 0.2s, transform 0.2s' }}
                     onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 4px 16px rgba(16,54,125,0.2)'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
                     onMouseLeave={e => { e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)'; e.currentTarget.style.transform = 'translateY(0)'; }}
                 >
@@ -184,7 +184,7 @@ function FormContent({
                             onFocus={focusSt} onBlur={blurSt}
                         />
                         <button type="button" onClick={() => setShowPass(v => !v)}
-                            style={{ position: 'absolute', right: '0.85rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#bbb', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center' }}>
+                            style={{ position: 'absolute', right: '0.85rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center' }}>
                             {showPass ? <EyeOff size={18} /> : <Eye size={18} />}
                         </button>
                     </div>
@@ -264,7 +264,7 @@ function ForgotPasswordContent({ forgotEmail, setForgotEmail, forgotError, forgo
             </div>
             <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: BLUE, marginBottom: '0.6rem' }}>Check your email</h2>
             <p style={{ color: '#9EA6B7', fontSize: '0.9rem', lineHeight: 1.65, marginBottom: '2rem' }}>
-                We sent a password reset link to <strong style={{ color: '#444' }}>{forgotEmail}</strong>.<br />
+                We sent a password reset link to <strong style={{ color: 'var(--text-muted)' }}>{forgotEmail}</strong>.<br />
                 Click the link in the email to reset your password.
             </p>
             <button onClick={() => go('login')} style={{
@@ -367,7 +367,7 @@ function ResetPasswordContent({ resetPass, setResetPass, resetConfirm, setResetC
                             autoFocus
                         />
                         <button type="button" onClick={() => setShowResetPass(v => !v)}
-                            style={{ position: 'absolute', right: '0.85rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#bbb', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center' }}>
+                            style={{ position: 'absolute', right: '0.85rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center' }}>
                             {showResetPass ? <EyeOff size={18} /> : <Eye size={18} />}
                         </button>
                     </div>
@@ -520,7 +520,7 @@ export default function AuthPage() {
                 <div style={{ flex: 1, background: '#FFFFFF', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '3rem 2.5rem' }}>
                     <div style={{ maxWidth: '380px', width: '100%' }}>
                         <h2 style={{ fontSize: 'clamp(1.5rem, 2.5vw, 2rem)', fontWeight: 900, color: BLUE, marginBottom: '0.5rem' }}>Your Personal WishFlow</h2>
-                        <p style={{ color: '#666', fontSize: '0.95rem', marginBottom: '2.5rem', lineHeight: 1.65 }}>
+                        <p style={{ color: 'var(--text-dim)', fontSize: '0.95rem', marginBottom: '2.5rem', lineHeight: 1.65 }}>
                             Save products you love and track prices — all in one place.
                         </p>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem' }}>
@@ -554,7 +554,7 @@ export default function AuthPage() {
                 </div>
                 <div style={{ position: 'relative', zIndex: 1, display: 'flex', gap: '1rem', width: '100%', maxWidth: '380px' }}>
                     <button onClick={() => go('login')} style={{ flex: 1, padding: '1rem', borderRadius: '12px', border: '2px solid rgba(255,255,255,0.6)', background: 'transparent', color: '#fff', fontWeight: 700, fontSize: '1rem', fontFamily: 'inherit', cursor: 'pointer' }}>Sign in</button>
-                    <button onClick={() => go('signup')} style={{ flex: 1, padding: '1rem', borderRadius: '12px', background: '#fff', color: BLUE, fontWeight: 700, fontSize: '1rem', fontFamily: 'inherit', cursor: 'pointer', boxShadow: '0 4px 20px rgba(0,0,0,0.15)', border: 'none' }}>Sign up</button>
+                    <button onClick={() => go('signup')} style={{ flex: 1, padding: '1rem', borderRadius: '12px', background: 'var(--surface)', color: BLUE, fontWeight: 700, fontSize: '1rem', fontFamily: 'inherit', cursor: 'pointer', boxShadow: '0 4px 20px rgba(0,0,0,0.15)', border: 'none' }}>Sign up</button>
                 </div>
                 <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
             </div>
@@ -579,10 +579,10 @@ export default function AuthPage() {
             <div style={{ width: isDesktop ? '44%' : '40%', flexShrink: 0 }}>
                 <HeroPanel compact />
             </div>
-            <div style={{ flex: 1, background: '#F5F5F5', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2.5rem', overflowY: 'auto' }}>
+            <div style={{ flex: 1, background: 'var(--surface-2)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2.5rem', overflowY: 'auto' }}>
                 <div style={{ width: '100%', maxWidth: '460px' }}>
                     {showBack && (
-                        <button onClick={() => go(backDest)} style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', background: 'none', border: 'none', color: '#666', fontWeight: 600, fontSize: '0.9rem', cursor: 'pointer', marginBottom: '2rem', fontFamily: 'inherit', padding: 0 }}>
+                        <button onClick={() => go(backDest)} style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', background: 'none', border: 'none', color: 'var(--text-dim)', fontWeight: 600, fontSize: '0.9rem', cursor: 'pointer', marginBottom: '2rem', fontFamily: 'inherit', padding: 0 }}>
                             <ChevronLeft size={18} /> Back
                         </button>
                     )}
@@ -604,7 +604,7 @@ export default function AuthPage() {
                     </button>
                 )}
             </div>
-            <div style={{ flex: 1, background: '#fff', borderRadius: '28px 28px 0 0', marginTop: '-28px', padding: '2rem 1.5rem 3rem', position: 'relative', zIndex: 5, boxShadow: '0 -4px 30px rgba(0,0,0,0.5)', overflowY: 'auto' }}>
+            <div style={{ flex: 1, background: 'var(--surface)', borderRadius: '28px 28px 0 0', marginTop: '-28px', padding: '2rem 1.5rem 3rem', position: 'relative', zIndex: 5, boxShadow: '0 -4px 30px rgba(0,0,0,0.5)', overflowY: 'auto' }}>
                 {renderFormContent()}
             </div>
             <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>

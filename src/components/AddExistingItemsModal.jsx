@@ -43,7 +43,7 @@ export default function AddExistingItemsModal({ allItems, activeCollectionId, on
                 <div
                     onClick={e => e.stopPropagation()}
                     style={{
-                        background: '#fff',
+                        background: 'var(--surface)',
                         width: '380px', maxWidth: '85vw', height: '100vh',
                         display: 'flex', flexDirection: 'column',
                         boxShadow: '-8px 0 40px rgba(0,0,0,0.2)',
@@ -57,11 +57,11 @@ export default function AddExistingItemsModal({ allItems, activeCollectionId, on
                             <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: ORANGE, margin: 0 }}>
                                 Add Items to Collection
                             </h2>
-                            <p style={{ color: '#888', margin: '0.2rem 0 0', fontSize: '0.85rem' }}>
+                            <p style={{ color: 'var(--text-muted)', margin: '0.2rem 0 0', fontSize: '0.85rem' }}>
                                 Tap items to select them
                             </p>
                         </div>
-                        <button onClick={onClose} style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#F5F5F5', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#888' }}>
+                        <button onClick={onClose} style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'var(--surface-2)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>
                             <X size={16} />
                         </button>
                     </div>
@@ -87,7 +87,7 @@ export default function AddExistingItemsModal({ allItems, activeCollectionId, on
                     {/* Grid */}
                     <div style={{ flex: 1, overflowY: 'auto', padding: '0 1.5rem 1rem' }}>
                         {filteredItems.length === 0 ? (
-                            <div style={{ textAlign: 'center', color: '#888', marginTop: '3rem' }}>
+                            <div style={{ textAlign: 'center', color: 'var(--text-muted)', marginTop: '3rem' }}>
                                 <p>No items found.</p>
                             </div>
                         ) : (
@@ -121,10 +121,10 @@ export default function AddExistingItemsModal({ allItems, activeCollectionId, on
                                                 {item.image ? (
                                                     <img src={item.image} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                                 ) : (
-                                                    <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#aaa', fontSize: '2rem' }}>?</div>
+                                                    <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', fontSize: '2rem' }}>?</div>
                                                 )}
                                             </div>
-                                            <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#111', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                            <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                                                 {item.name}
                                             </div>
                                             <div style={{ fontSize: '0.75rem', color: ORANGE, fontWeight: 700 }}>

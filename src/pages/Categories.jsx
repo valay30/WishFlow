@@ -130,7 +130,7 @@ export default function Categories() {
                                 onChange={e => setNewCatName(e.target.value)}
                                 style={{
                                     width: '100%', padding: '0.9rem 1rem 0.9rem 3.1rem',
-                                    background: 'transparent', border: 'none', color: '#111',
+                                    background: 'transparent', border: 'none', color: 'var(--text)',
                                     fontFamily: 'inherit', fontSize: '0.95rem', outline: 'none',
                                     boxSizing: 'border-box', fontWeight: 600
                                 }}
@@ -141,7 +141,7 @@ export default function Categories() {
                             disabled={!newCatName.trim()}
                             style={{
                                 padding: '0 1.4rem',
-                                background: newCatName.trim() ? ORANGE : '#F3F4F6',
+                                background: newCatName.trim() ? ORANGE : 'var(--surface-2)',
                                 color: newCatName.trim() ? '#fff' : '#9CA3AF',
                                 border: 'none', borderRadius: '18px', fontWeight: 800,
                                 display: 'flex', alignItems: 'center', gap: '0.5rem',
@@ -191,7 +191,7 @@ export default function Categories() {
                                             autoFocus
                                             style={{
                                                 padding: '0.8rem 1rem', background: SURFACE2, border: `2px solid ${ORANGE}`,
-                                                borderRadius: '16px', color: '#111', flex: 1,
+                                                borderRadius: '16px', color: 'var(--text)', flex: 1,
                                                 fontFamily: 'inherit', fontSize: '0.95rem', outline: 'none',
                                                 fontWeight: 600
                                             }}
@@ -204,7 +204,7 @@ export default function Categories() {
                                             <Check size={20} strokeWidth={3} />
                                         </button>
                                         <button onClick={() => setEditingId(null)} style={{
-                                            background: '#fff', color: '#6B7280', border: `1px solid ${BORDER}`, borderRadius: '14px',
+                                            background: 'var(--surface)', color: 'var(--text-dim)', border: `1px solid ${BORDER}`, borderRadius: '14px',
                                             width: '42px', height: '42px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center'
                                         }}>
                                             <X size={20} />
@@ -225,7 +225,7 @@ export default function Categories() {
                                             </div>
                                             <div style={{ minWidth: 0 }}>
                                                 <h3 style={{
-                                                    fontWeight: 800, fontSize: '1rem', color: '#111', margin: 0,
+                                                    fontWeight: 800, fontSize: '1rem', color: 'var(--text)', margin: 0,
                                                     whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'
                                                 }}>
                                                     {cat.name}
@@ -236,12 +236,12 @@ export default function Categories() {
                                             <button
                                                 onClick={() => startEdit(cat)}
                                                 style={{
-                                                    background: '#F5F5F5', color: '#555', border: 'none',
+                                                    background: 'var(--surface-2)', color: 'var(--text-dim)', border: 'none',
                                                     borderRadius: '12px', width: '38px', height: '38px', cursor: 'pointer',
                                                     display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s'
                                                 }}
                                                 onMouseEnter={e => { e.currentTarget.style.background = ORANGE; e.currentTarget.style.color = '#fff'; }}
-                                                onMouseLeave={e => { e.currentTarget.style.background = '#F5F5F5'; e.currentTarget.style.color = '#555'; }}
+                                                onMouseLeave={e => { e.currentTarget.style.background = 'var(--surface-2)'; e.currentTarget.style.color = '#555'; }}
                                             >
                                                 <Edit2 size={16} />
                                             </button>

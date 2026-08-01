@@ -133,7 +133,7 @@ export default function AddProduct() {
             </div>
 
             <div style={{
-                background: '#fff', borderRadius: '20px',
+                background: 'var(--surface)', borderRadius: '20px',
                 border: '1px solid #E8ECF4',
                 boxShadow: '0 4px 24px rgba(var(--primary-rgb),0.09)',
                 padding: 'clamp(1.25rem, 3vw, 2rem)',
@@ -225,7 +225,7 @@ export default function AddProduct() {
             {showPremiumModal && createPortal(
                 <div className="premium-modal-overlay" onClick={() => setShowPremiumModal(false)}>
                     <div onClick={e => e.stopPropagation()} style={{
-                        background: '#fff', borderRadius: '24px', padding: '2.5rem',
+                        background: 'var(--surface)', borderRadius: '24px', padding: '2.5rem',
                         maxWidth: '400px', width: '90%', textAlign: 'center',
                         boxShadow: '0 24px 48px rgba(0,0,0,0.2)', position: 'relative',
                         animation: 'slideUp 0.25s cubic-bezier(0.2,0.8,0.4,1)'
@@ -245,8 +245,8 @@ export default function AddProduct() {
                             <Crown size={32} />
                         </div>
 
-                        <h2 style={{ fontSize: '1.8rem', fontWeight: 900, marginBottom: '0.5rem', color: '#111' }}>Unlock Limitless</h2>
-                        <p style={{ color: '#666', marginBottom: '2rem', lineHeight: '1.5' }}>
+                        <h2 style={{ fontSize: '1.8rem', fontWeight: 900, marginBottom: '0.5rem', color: 'var(--text)' }}>Unlock Limitless</h2>
+                        <p style={{ color: 'var(--text-dim)', marginBottom: '2rem', lineHeight: '1.5' }}>
                             You have reached the free tier limit of 5 items. Upgrade to WishFlow Premium for ₹100 and add unlimited wishes forever!
                         </p>
 
@@ -263,7 +263,7 @@ export default function AddProduct() {
                             Upgrade for ₹100
                         </button>
 
-                        <p style={{ marginTop: '1rem', fontSize: '0.8rem', color: '#999' }}>One-time payment. Lifetime access.</p>
+                        <p style={{ marginTop: '1rem', fontSize: '0.8rem', color: 'var(--text-dim)' }}>One-time payment. Lifetime access.</p>
                     </div>
                 </div>,
                 document.body

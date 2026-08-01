@@ -24,7 +24,7 @@ const THEMES = [
 
 export default function Profile() {
     const { user, logout } = useAuth();
-    const { viewMode, setViewMode, colorTheme, setColorTheme } = useSettings();
+    const { viewMode, setViewMode, colorTheme, setColorTheme, darkMode, setDarkMode } = useSettings();
     const navigate = useNavigate();
     const [showGeneral, setShowGeneral] = useState(false);
 
@@ -171,7 +171,7 @@ export default function Profile() {
                                         display: 'flex', alignItems: 'center', gap: '1.25rem',
                                         padding: '1.15rem 1.5rem', background: SURFACE,
                                         border: item.id === 'admin' ? '1.5px solid #d97706' : `1px solid ${BORDER}`, borderRadius: '24px',
-                                        color: item.id === 'admin' ? '#d97706' : '#111', fontSize: '1.05rem', fontWeight: 700,
+                                        color: item.id === 'admin' ? '#d97706' : 'var(--text)', fontSize: '1.05rem', fontWeight: 700,
                                         cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.25s',
                                         textAlign: 'left', width: '100%',
                                         boxShadow: item.id === 'admin' ? '0 4px 14px rgba(217,119,6,0.15)' : '0 2px 8px rgba(0,0,0,0.03)'
@@ -207,7 +207,7 @@ export default function Profile() {
                                 {/* General Settings Expanded */}
                                 {item.id === 'general' && showGeneral && (
                                     <div style={{
-                                        background: '#fff',
+                                        background: 'var(--surface)',
                                         borderRadius: '24px',
                                         padding: '1.5rem',
                                         border: `1px solid ${ORANGE}`,
@@ -219,16 +219,16 @@ export default function Profile() {
                                     }}>
                                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                                             <div>
-                                                <p style={{ margin: 0, fontWeight: 800, fontSize: '0.95rem', color: '#111' }}>Home View Mode</p>
-                                                <p style={{ margin: '0.1rem 0 0', fontSize: '0.82rem', color: '#6B7280' }}>Choose list or card layout</p>
+                                                <p style={{ margin: 0, fontWeight: 800, fontSize: '0.95rem', color: 'var(--text)' }}>Home View Mode</p>
+                                                <p style={{ margin: '0.1rem 0 0', fontSize: '0.82rem', color: 'var(--text-dim)' }}>Choose list or card layout</p>
                                             </div>
                                             <div style={{
                                                 display: 'flex',
                                                 padding: '5px',
-                                                background: '#F3F4F6',
+                                                background: 'var(--surface-2)',
                                                 borderRadius: '14px',
                                                 gap: '4px',
-                                                border: '1px solid #E5E7EB'
+                                                border: '1px solid var(--border)'
                                             }}>
                                                 <button
                                                     onClick={() => setViewMode('card')}
@@ -236,8 +236,8 @@ export default function Profile() {
                                                         display: 'flex', alignItems: 'center', gap: '0.4rem',
                                                         padding: '0.55rem 1rem', borderRadius: '10px',
                                                         border: 'none', cursor: 'pointer',
-                                                        background: viewMode === 'card' ? '#fff' : 'transparent',
-                                                        color: viewMode === 'card' ? ORANGE : '#6B7280',
+                                                        background: viewMode === 'card' ? 'var(--surface)' : 'transparent',
+                                                        color: viewMode === 'card' ? ORANGE : 'var(--text-dim)',
                                                         fontWeight: 800, fontSize: '0.85rem',
                                                         boxShadow: viewMode === 'card' ? '0 3px 8px rgba(0,0,0,0.08)' : 'none',
                                                         transition: 'all 0.2s',
@@ -252,8 +252,8 @@ export default function Profile() {
                                                         display: 'flex', alignItems: 'center', gap: '0.4rem',
                                                         padding: '0.55rem 1rem', borderRadius: '10px',
                                                         border: 'none', cursor: 'pointer',
-                                                        background: viewMode === 'list' ? '#fff' : 'transparent',
-                                                        color: viewMode === 'list' ? ORANGE : '#6B7280',
+                                                        background: viewMode === 'list' ? 'var(--surface)' : 'transparent',
+                                                        color: viewMode === 'list' ? ORANGE : 'var(--text-dim)',
                                                         fontWeight: 800, fontSize: '0.85rem',
                                                         boxShadow: viewMode === 'list' ? '0 3px 8px rgba(0,0,0,0.08)' : 'none',
                                                         transition: 'all 0.2s',
@@ -265,17 +265,52 @@ export default function Profile() {
                                             </div>
                                         </div>
 
+                                        {/* Dark Mode — Premium Only */}
+                                        <div style={{ borderTop: `1px solid ${BORDER}`, paddingTop: '1rem' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.85rem' }}>
+                                                <div>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                        <p style={{ margin: 0, fontWeight: 800, fontSize: '0.95rem', color: 'var(--text)' }}>Dark Mode</p>
+                                                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.2rem', background: 'linear-gradient(135deg,#f59e0b,#d97706)', color: '#fff', fontSize: '0.58rem', fontWeight: 800, padding: '0.15rem 0.45rem', borderRadius: '99px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                                            <Crown size={8} /> Pro
+                                                        </span>
+                                                    </div>
+                                                    <p style={{ margin: '0.1rem 0 0', fontSize: '0.82rem', color: 'var(--text-dim)' }}>Switch to Midnight Obsidian</p>
+                                                </div>
+                                                
+                                                {user?.isPremium ? (
+                                                    <div style={{
+                                                        width: '44px', height: '24px', borderRadius: '12px',
+                                                        background: darkMode ? ORANGE : 'var(--surface-3)',
+                                                        position: 'relative', cursor: 'pointer',
+                                                        transition: 'background 0.3s'
+                                                    }} onClick={() => setDarkMode(!darkMode)}>
+                                                        <div style={{
+                                                            width: '20px', height: '20px', borderRadius: '50%',
+                                                            background: 'var(--surface)', position: 'absolute', top: '2px',
+                                                            left: darkMode ? '22px' : '2px', transition: 'left 0.3s',
+                                                            boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                                                        }} />
+                                                    </div>
+                                                ) : (
+                                                    <div style={{ padding: '0.25rem 0.75rem', background: 'rgba(245,158,11,0.1)', color: '#d97706', borderRadius: '8px', fontSize: '0.75rem', fontWeight: 700 }}>
+                                                        Locked
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+
                                         {/* App Theme — Premium Only */}
                                         <div style={{ borderTop: `1px solid ${BORDER}`, paddingTop: '1rem' }}>
                                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.85rem' }}>
                                                 <div>
                                                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                                        <p style={{ margin: 0, fontWeight: 800, fontSize: '0.95rem', color: '#111' }}>App Theme</p>
+                                                        <p style={{ margin: 0, fontWeight: 800, fontSize: '0.95rem', color: 'var(--text)' }}>App Theme</p>
                                                         <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.2rem', background: 'linear-gradient(135deg,#f59e0b,#d97706)', color: '#fff', fontSize: '0.58rem', fontWeight: 800, padding: '0.15rem 0.45rem', borderRadius: '99px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                                                             <Crown size={8} /> Pro
                                                         </span>
                                                     </div>
-                                                    <p style={{ margin: '0.1rem 0 0', fontSize: '0.82rem', color: '#6B7280' }}>Choose your accent color</p>
+                                                    <p style={{ margin: '0.1rem 0 0', fontSize: '0.82rem', color: 'var(--text-dim)' }}>Choose your accent color</p>
                                                 </div>
                                             </div>
 
@@ -290,7 +325,7 @@ export default function Profile() {
                                                                 width: '36px', height: '36px',
                                                                 borderRadius: '50%',
                                                                 background: theme.color,
-                                                                border: colorTheme === theme.id ? `3px solid #111` : '3px solid transparent',
+                                                                border: colorTheme === theme.id ? '3px solid var(--text)' : '3px solid transparent',
                                                                 outline: colorTheme === theme.id ? `2px solid ${theme.color}` : 'none',
                                                                 outlineOffset: '2px',
                                                                 cursor: 'pointer',
@@ -319,8 +354,8 @@ export default function Profile() {
                                                         <Lock size={18} color="#d97706" />
                                                     </div>
                                                     <div style={{ flex: 1, minWidth: 0 }}>
-                                                        <p style={{ margin: 0, fontWeight: 700, fontSize: '0.88rem', color: '#111' }}>Premium Feature</p>
-                                                        <p style={{ margin: '0.1rem 0 0', fontSize: '0.78rem', color: '#6B7280' }}>Upgrade to Pro to unlock custom themes</p>
+                                                        <p style={{ margin: 0, fontWeight: 700, fontSize: '0.88rem', color: 'var(--text)' }}>Premium Feature</p>
+                                                        <p style={{ margin: '0.1rem 0 0', fontSize: '0.78rem', color: 'var(--text-dim)' }}>Upgrade to Pro to unlock custom themes and dark mode</p>
                                                     </div>
                                                     <button
                                                         onClick={handleUpgradeToPremium}

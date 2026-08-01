@@ -15,7 +15,7 @@ const EMOJI_PRESETS = [
 const INPUT_ST = {
     width: '100%', padding: '0.85rem 1rem',
     background: SURFACE2, border: `1.5px solid ${BORDER}`,
-    borderRadius: '14px', color: '#111',
+    borderRadius: '14px', color: 'var(--text)',
     fontFamily: 'inherit', fontSize: '0.95rem',
     outline: 'none', transition: 'border-color 0.2s, box-shadow 0.2s',
     boxSizing: 'border-box',
@@ -74,7 +74,7 @@ export default function CollectionModal({ existing = null, onSave, onDelete, onC
                 >
                     {/* Handle */}
                     <div style={{ display: 'flex', justifyContent: 'center', padding: '0.85rem 0 0' }}>
-                        <div style={{ width: '40px', height: '4px', borderRadius: '99px', background: '#D1D5DB' }} />
+                        <div style={{ width: '40px', height: '4px', borderRadius: '99px', background: 'var(--border)' }} />
                     </div>
 
                     {/* Header */}
@@ -82,9 +82,9 @@ export default function CollectionModal({ existing = null, onSave, onDelete, onC
                         <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: ORANGE }}>
                             {existing ? 'Edit Collection' : 'New Collection ✨'}
                         </h2>
-                        <button onClick={onClose} style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#F5F5F5', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#888' }}
+                        <button onClick={onClose} style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'var(--surface-2)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}
                             onMouseEnter={e => e.currentTarget.style.background = 'rgba(239,68,68,0.15)'}
-                            onMouseLeave={e => e.currentTarget.style.background = '#F5F5F5'}>
+                            onMouseLeave={e => e.currentTarget.style.background = 'var(--surface-2)'}>
                             <X size={16} />
                         </button>
                     </div>
@@ -113,7 +113,7 @@ export default function CollectionModal({ existing = null, onSave, onDelete, onC
                                     {showEmojiPicker && (
                                         <div style={{
                                             position: 'absolute', top: '60px', left: 0, zIndex: 100,
-                                            background: '#fff', borderRadius: '16px',
+                                            background: 'var(--surface)', borderRadius: '16px',
                                             boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
                                             border: `1px solid ${BORDER}`,
                                             padding: '0.75rem',
@@ -159,7 +159,7 @@ export default function CollectionModal({ existing = null, onSave, onDelete, onC
                                 onChange={e => setTargetDate(e.target.value)}
                                 onFocus={focus} onBlur={blur}
                             />
-                            <p style={{ fontSize: '0.75rem', color: '#888', marginTop: '0.3rem' }}>
+                            <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.3rem' }}>
                                 A countdown will appear on the collection card.
                             </p>
                         </div>
@@ -174,7 +174,7 @@ export default function CollectionModal({ existing = null, onSave, onDelete, onC
                                     <Trash2 size={16} />
                                 </button>
                             )}
-                            <button type="button" onClick={onClose} style={{ flex: 1, padding: '0.9rem', background: '#F5F5F5', color: '#555', border: `1px solid ${BORDER}`, borderRadius: '14px', fontWeight: 600, fontSize: '0.95rem', cursor: 'pointer', fontFamily: 'inherit' }}>
+                            <button type="button" onClick={onClose} style={{ flex: 1, padding: '0.9rem', background: 'var(--surface-2)', color: 'var(--text-dim)', border: `1px solid ${BORDER}`, borderRadius: '14px', fontWeight: 600, fontSize: '0.95rem', cursor: 'pointer', fontFamily: 'inherit' }}>
                                 Cancel
                             </button>
                             <button

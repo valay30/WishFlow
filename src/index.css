@@ -37,6 +37,19 @@
   --transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+:root.dark {
+  --bg: #0A0A0A;
+  --surface: #171717;
+  --surface-2: #262626;
+  --surface-3: #404040;
+  
+  --text: #EDEDED;
+  --text-muted: #A1A1AA;
+  --text-dim: #71717A;
+  
+  --border: #27272A;
+}
+
 /* ══════════════════════════════════════
    COLOR THEMES (Premium feature)
 ══════════════════════════════════════ */
@@ -118,6 +131,7 @@ body {
   color: var(--text);
   min-height: 100vh;
   overflow-x: hidden;
+  transition: background 0.3s ease, color 0.3s ease;
 }
 
 #root {
@@ -192,7 +206,7 @@ a {
   gap: 0.75rem;
   padding: 0.8rem 1rem;
   border-radius: var(--radius-md);
-  color: var(--text-muted);
+  color: var(--text);
   text-decoration: none;
   font-weight: 600;
   font-size: 0.95rem;
@@ -849,4 +863,73 @@ a {
 [data-theme='glass'] .modal-content {
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
+}
+/* --------------------------------------
+   PREMIUM DARK MODE EFFECTS
+-------------------------------------- */
+/* 1. Ambient Background Blob */
+body::before {
+  content: '';
+  position: fixed;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle at 50% 50%, rgba(var(--primary-rgb), 0.12) 0%, transparent 40%),
+              radial-gradient(circle at 80% 20%, rgba(var(--primary-rgb), 0.08) 0%, transparent 30%);
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 1s ease;
+  animation: pulseBlob 15s infinite alternate ease-in-out;
+}
+
+:root.dark body::before {
+  opacity: 1;
+}
+
+@keyframes pulseBlob {
+  0% { transform: scale(1) translate(0, 0); }
+  100% { transform: scale(1.1) translate(2%, 2%); }
+}
+
+/* 2. Glassmorphic Glow on Cards */
+.premium-card {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+:root.dark .premium-card {
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.05);
+}
+
+:root.dark .premium-card:hover {
+  box-shadow: 0 8px 32px rgba(var(--primary-rgb), 0.35), inset 0 1px 1px rgba(255,255,255,0.1) !important;
+  border-color: rgba(var(--primary-rgb), 0.5) !important;
+  transform: translateY(-4px) !important;
+}
+
+:root:not(.dark) .premium-card:hover {
+  box-shadow: 0 8px 28px rgba(var(--primary-rgb), 0.15) !important;
+  border-color: var(--primary) !important;
+  transform: translateY(-4px) !important;
+}
+
+/* 3. Button Glow */
+.btn-glow {
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+:root.dark .btn-glow {
+  box-shadow: 0 4px 14px rgba(var(--primary-rgb), 0.35);
+}
+
+:root.dark .btn-glow:hover {
+  box-shadow: 0 6px 24px rgba(var(--primary-rgb), 0.6) !important;
+  transform: translateY(-2px) !important;
+}
+
+:root:not(.dark) .btn-glow:hover {
+  box-shadow: 0 6px 20px rgba(var(--primary-rgb), 0.25) !important;
+  transform: translateY(-2px) !important;
 }

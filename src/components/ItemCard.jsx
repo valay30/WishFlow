@@ -47,14 +47,14 @@ export default function ItemCard({ item, categoryName, onRemove, onTogglePurchas
                         display: 'flex', alignItems: 'center', justifyContent: 'center'
                     }}
                 >
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>
                 </button>
             )}
 
             {/* ── Inset image box (padded, rounded inner corners) ── */}
             <div style={{ padding: '0.8rem 0.8rem 0.4rem', position: 'relative' }}>
                 <div style={{
-                    background: '#fff',
+                    background: 'var(--surface)',
                     borderRadius: '16px',
                     aspectRatio: '1 / 1',
                     overflow: 'hidden',
@@ -63,12 +63,12 @@ export default function ItemCard({ item, categoryName, onRemove, onTogglePurchas
                     justifyContent: 'center',
                     width: '100%',
                     boxShadow: '0 6px 16px rgba(0, 0, 0, 0.08)',
-                    border: '1px solid #E5E7EB'
+                    border: '1px solid var(--border)'
                 }}>
                     {item.image ? (
                         <img src={item.image} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     ) : (
-                        <span style={{ fontSize: '2.5rem', color: '#ccc' }}>📦</span>
+                        <span style={{ fontSize: '2.5rem', color: 'var(--text-muted)' }}>📦</span>
                     )}
                     {onTogglePurchased && (
                         <div
@@ -78,7 +78,7 @@ export default function ItemCard({ item, categoryName, onRemove, onTogglePurchas
                                 width: '28px', height: '28px', borderRadius: '50%',
                                 background: item.is_purchased ? '#059669' : 'rgba(255,255,255,0.95)',
                                 color: item.is_purchased ? '#fff' : '#aaa',
-                                border: `2px solid ${item.is_purchased ? '#059669' : '#D1D5DB'}`,
+                                border: `2px solid ${item.is_purchased ? '#059669' : 'var(--border)'}`,
                                 cursor: 'pointer', zIndex: 10,
                                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                                 boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
@@ -98,7 +98,7 @@ export default function ItemCard({ item, categoryName, onRemove, onTogglePurchas
                     <p style={{
                         fontWeight: 800,
                         fontSize: '1.05rem',
-                        color: '#111',
+                        color: 'var(--text)',
                         lineHeight: 1.3,
                         display: '-webkit-box',
                         WebkitLineClamp: 2,
@@ -111,12 +111,12 @@ export default function ItemCard({ item, categoryName, onRemove, onTogglePurchas
                     <span style={{
                         display: 'inline-block',
                         fontSize: '0.65rem', fontWeight: 800,
-                        color: ORANGE,
-                        background: 'var(--primary-lt)',
+                        color: 'var(--text-muted)',
+                        background: 'var(--surface-2)',
                         padding: '0.2rem 0.55rem',
                         borderRadius: '6px',
                         textTransform: 'uppercase', letterSpacing: '0.05em',
-                        border: '1px solid rgba(var(--primary-rgb), 0.15)',
+                        border: '1px solid var(--border)',
                         whiteSpace: 'nowrap',
                     }}>
                         {categoryName}
@@ -133,7 +133,7 @@ export default function ItemCard({ item, categoryName, onRemove, onTogglePurchas
                     <p style={{
                         fontWeight: 900,
                         fontSize: '1.15rem',
-                        color: ORANGE,
+                        color: 'var(--text)',
                         letterSpacing: '-0.02em',
                     }}>
                         {price}

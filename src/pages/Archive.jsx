@@ -138,7 +138,7 @@ export default function Archive() {
                                         </div>
                                         <div style={{ minWidth: 0 }}>
                                             <h3 style={{
-                                                fontWeight: 800, fontSize: '0.98rem', color: '#111', margin: 0,
+                                                fontWeight: 800, fontSize: '0.98rem', color: 'var(--text)', margin: 0,
                                                 whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'
                                             }}>
                                                 {item.name}
@@ -147,7 +147,7 @@ export default function Archive() {
                                                 <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#059669', background: '#E1FCEF', padding: '0.1rem 0.6rem', borderRadius: '99px', textTransform: 'uppercase' }}>
                                                     {categories.find(c => c.id === item.category_id)?.name || 'Misc'}
                                                 </span>
-                                                <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#6B7280' }}>
+                                                <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-dim)' }}>
                                                     ₹{item.price?.toLocaleString('en-IN')}
                                                 </span>
                                             </div>
@@ -158,12 +158,12 @@ export default function Archive() {
                                         <button
                                             onClick={(e) => handleRestore(item.id, e)}
                                             style={{
-                                                background: '#F5F5F5', color: '#555', border: 'none',
+                                                background: 'var(--surface-2)', color: 'var(--text-dim)', border: 'none',
                                                 borderRadius: '12px', width: '38px', height: '38px', cursor: 'pointer',
                                                 display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s'
                                             }}
                                             onMouseEnter={e => { e.currentTarget.style.background = ORANGE; e.currentTarget.style.color = '#fff'; }}
-                                            onMouseLeave={e => { e.currentTarget.style.background = '#F5F5F5'; e.currentTarget.style.color = '#555'; }}
+                                            onMouseLeave={e => { e.currentTarget.style.background = 'var(--surface-2)'; e.currentTarget.style.color = '#555'; }}
                                         >
                                             <RotateCcw size={18} />
                                         </button>
@@ -190,11 +190,11 @@ export default function Archive() {
                         }}>
                             <div style={{
                                 width: '100px', height: '100px', borderRadius: '50%',
-                                background: '#fff', border: `2px dashed ${BORDER}`,
+                                background: 'var(--surface)', border: `2px dashed ${BORDER}`,
                                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                                 position: 'relative'
                             }}>
-                                <Package size={42} color="#D1D5DB" />
+                                <Package size={42} color="var(--border)" />
                                 <div style={{
                                     position: 'absolute', bottom: '0', right: '0',
                                     background: ORANGE, color: '#fff', width: '32px', height: '32px',
@@ -205,8 +205,8 @@ export default function Archive() {
                                 </div>
                             </div>
                             <div>
-                                <h2 style={{ fontWeight: 800, color: '#111', fontSize: '1.25rem', margin: '0 0 0.5rem' }}>No memories yet</h2>
-                                <p style={{ fontSize: '0.92rem', color: '#6B7280', maxWidth: '240px', lineHeight: 1.5 }}>
+                                <h2 style={{ fontWeight: 800, color: 'var(--text)', fontSize: '1.25rem', margin: '0 0 0.5rem' }}>No memories yet</h2>
+                                <p style={{ fontSize: '0.92rem', color: 'var(--text-dim)', maxWidth: '240px', lineHeight: 1.5 }}>
                                     Your purchased items will be archived here safely. Go grab something from your list!
                                 </p>
                             </div>

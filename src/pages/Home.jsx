@@ -267,47 +267,47 @@ export default function Home() {
                         {catCards.map(cat => {
                             const isActive = cat.id === null ? selectedCategory === null : selectedCategory === cat.id;
                             return (
-                                    <button
-                                        key={cat.id ?? 'all'}
-                                        onClick={() => selectCat(cat.id)}
-                                        style={{
-                                            flexShrink: 0,
-                                            display: 'flex', alignItems: 'center', gap: '0.55rem',
-                                            padding: '0.65rem 1.25rem',
-                                            borderRadius: '99px',
-                                            border: isActive ? 'none' : `1px solid rgba(0,0,0,0.04)`,
-                                            background: isActive ? ORANGE : '#FFFFFF',
-                                            color: isActive ? '#fff' : '#4B5563',
-                                            fontWeight: 800,
-                                            fontSize: '0.9rem',
-                                            fontFamily: 'inherit',
-                                            cursor: 'pointer',
-                                            transition: 'all 0.18s ease',
-                                            whiteSpace: 'nowrap',
-                                            boxShadow: isActive ? '0 4px 14px rgba(var(--primary-rgb),0.4)' : '0 1px 4px rgba(0,0,0,0.03)',
-                                        }}
-                                    >
-                                        {cat.id !== null && <GetCategoryIcon name={cat.name} size={16} color={isActive ? '#fff' : ORANGE} />}
-                                        {cat.name}
-                                    </button>
+                                <button
+                                    key={cat.id ?? 'all'}
+                                    onClick={() => selectCat(cat.id)}
+                                    style={{
+                                        flexShrink: 0,
+                                        display: 'flex', alignItems: 'center', gap: '0.55rem',
+                                        padding: '0.65rem 1.25rem',
+                                        borderRadius: '99px',
+                                        border: isActive ? 'none' : `1px solid rgba(0,0,0,0.04)`,
+                                        background: isActive ? ORANGE : '#FFFFFF',
+                                        color: isActive ? '#fff' : '#4B5563',
+                                        fontWeight: 800,
+                                        fontSize: '0.9rem',
+                                        fontFamily: 'inherit',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.18s ease',
+                                        whiteSpace: 'nowrap',
+                                        boxShadow: isActive ? '0 4px 14px rgba(var(--primary-rgb),0.4)' : '0 1px 4px rgba(0,0,0,0.03)',
+                                    }}
+                                >
+                                    {cat.id !== null && <GetCategoryIcon name={cat.name} size={16} color={isActive ? '#fff' : ORANGE} />}
+                                    {cat.name}
+                                </button>
                             );
                         })}
                     </div>
 
                     {/* ── Search bar ── */}
                     <div style={{ position: 'relative', marginBottom: '1.25rem' }}>
-                        <Search size={17} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: '#555', pointerEvents: 'none' }} />
+                        <Search size={17} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-dim)', pointerEvents: 'none' }} />
                         <input
                             type="text"
                             placeholder="Search products..."
                             value={search}
                             onChange={e => setSearch(e.target.value)}
-                            style={{ width: '100%', padding: '0.85rem 1rem 0.85rem 2.75rem', background: SURFACE, border: `1.5px solid ${BORDER}`, borderRadius: '99px', color: '#111', fontFamily: 'inherit', fontSize: '0.95rem', outline: 'none', transition: 'border-color 0.2s' }}
+                            style={{ width: '100%', padding: '0.85rem 1rem 0.85rem 2.75rem', background: SURFACE, border: `1.5px solid ${BORDER}`, borderRadius: '99px', color: 'var(--text)', fontFamily: 'inherit', fontSize: '0.95rem', outline: 'none', transition: 'border-color 0.2s' }}
                             onFocus={e => e.target.style.borderColor = ORANGE}
                             onBlur={e => e.target.style.borderColor = BORDER}
                         />
                         {search && (
-                            <button onClick={() => setSearch('')} style={{ position: 'absolute', right: '0.85rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#555', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+                            <button onClick={() => setSearch('')} style={{ position: 'absolute', right: '0.85rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'var(--text-dim)', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
                                 <X size={16} />
                             </button>
                         )}
@@ -315,10 +315,10 @@ export default function Home() {
 
                     {/* ── Items list ── */}
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.85rem' }}>
-                        <h2 style={{ fontWeight: 800, fontSize: '1.05rem', color: '#111' }}>
+                        <h2 style={{ fontWeight: 800, fontSize: '1.05rem', color: 'var(--text)' }}>
                             {selectedCategory ? categories.find(c => c.id === selectedCategory)?.name : 'All Items'}
                         </h2>
-                        <span style={{ fontSize: '0.8rem', color: '#6B7280' }}>{filtered.length} item{filtered.length !== 1 ? 's' : ''}</span>
+                        <span style={{ fontSize: '0.8rem', color: 'var(--text-dim)' }}>{filtered.length} item{filtered.length !== 1 ? 's' : ''}</span>
                     </div>
 
                     {filtered.length > 0 ? (
@@ -341,11 +341,11 @@ export default function Home() {
                         </div>
                     ) : (
                         <div style={{ textAlign: 'center', padding: '3rem 1rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.85rem' }}>
-                            <div style={{ width: '70px', height: '70px', borderRadius: '50%', background: '#F5F5F5', display: 'flex', alignItems: 'center', justifyContent: 'center', border: `1px solid ${BORDER}` }}>
+                            <div style={{ width: '70px', height: '70px', borderRadius: '50%', background: 'var(--surface-2)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: `1px solid ${BORDER}` }}>
                                 <ShoppingBag size={28} color={ORANGE} />
                             </div>
-                            <p style={{ fontWeight: 700, color: '#111', fontSize: '1rem' }}>Nothing here yet!</p>
-                            <p style={{ fontSize: '0.82rem', color: '#6B7280', maxWidth: '220px' }}>
+                            <p style={{ fontWeight: 700, color: 'var(--text)', fontSize: '1rem' }}>Nothing here yet!</p>
+                            <p style={{ fontSize: '0.82rem', color: 'var(--text-dim)', maxWidth: '220px' }}>
                                 {search ? 'No results found. Try a different search.' : 'Tap the + button to add your first item.'}
                             </p>
                             {!search && (
@@ -362,7 +362,7 @@ export default function Home() {
             {shouldShowPremiumModal && createPortal(
                 <div className="premium-modal-overlay" onClick={handleClosePremiumModal}>
                     <div onClick={e => e.stopPropagation()} style={{
-                        background: '#fff', borderRadius: '24px', padding: '2.5rem',
+                        background: 'var(--surface)', borderRadius: '24px', padding: '2.5rem',
                         maxWidth: '400px', width: '90%', textAlign: 'center',
                         boxShadow: '0 24px 48px rgba(0,0,0,0.2)', position: 'relative',
                         animation: 'slideUp 0.25s cubic-bezier(0.2,0.8,0.4,1)'
@@ -382,8 +382,8 @@ export default function Home() {
                             <Crown size={32} />
                         </div>
 
-                        <h2 style={{ fontSize: '1.8rem', fontWeight: 900, marginBottom: '0.5rem', color: '#111' }}>Unlock Limitless</h2>
-                        <p style={{ color: '#666', marginBottom: '2rem', lineHeight: '1.5' }}>
+                        <h2 style={{ fontSize: '1.8rem', fontWeight: 900, marginBottom: '0.5rem', color: 'var(--text)' }}>Unlock Limitless</h2>
+                        <p style={{ color: 'var(--text-dim)', marginBottom: '2rem', lineHeight: '1.5' }}>
                             You have reached the free tier limit of 5 items. Upgrade to WishFlow Premium for ₹100 and add unlimited wishes forever!
                         </p>
 
@@ -400,7 +400,7 @@ export default function Home() {
                             Upgrade for ₹100
                         </button>
 
-                        <p style={{ marginTop: '1rem', fontSize: '0.8rem', color: '#999' }}>One-time payment. Lifetime access.</p>
+                        <p style={{ marginTop: '1rem', fontSize: '0.8rem', color: 'var(--text-dim)' }}>One-time payment. Lifetime access.</p>
                     </div>
                 </div>,
                 document.body

@@ -11,9 +11,18 @@ export function SettingsProvider({ children }) {
         return localStorage.getItem('wishflow_color_theme') || 'blue';
     });
 
+    const [darkMode, setDarkModeState] = useState(() => {
+        return localStorage.getItem('wishflow_dark_mode') === 'true';
+    });
+
     const setColorTheme = (theme) => {
         setColorThemeState(theme);
         localStorage.setItem('wishflow_color_theme', theme);
+    };
+
+    const setDarkMode = (isDark) => {
+        setDarkModeState(isDark);
+        localStorage.setItem('wishflow_dark_mode', isDark);
     };
 
     useEffect(() => {
@@ -24,14 +33,27 @@ export function SettingsProvider({ children }) {
         document.documentElement.setAttribute('data-theme', colorTheme);
     }, [colorTheme]);
 
+    useEffect(() => {
+        if (darkMode) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    }, [darkMode]);
+
     // Apply theme on first mount (from localStorage)
     useEffect(() => {
         document.documentElement.setAttribute('data-theme', colorTheme);
+        if (darkMode) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     return (
-        <SettingsContext.Provider value={{ viewMode, setViewMode, colorTheme, setColorTheme }}>
+        <SettingsContext.Provider value={{ viewMode, setViewMode, colorTheme, setColorTheme, darkMode, setDarkMode }}>
             {children}
         </SettingsContext.Provider>
     );

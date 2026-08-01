@@ -13,7 +13,7 @@ const BG = 'var(--bg)';
 const INPUT_ST = {
     width: '100%', padding: '0.8rem 1rem',
     background: SURFACE2, border: `1.5px solid ${BORDER}`,
-    borderRadius: '12px', color: '#111',
+    borderRadius: '12px', color: 'var(--text)',
     fontFamily: 'inherit', fontSize: '0.95rem',
     outline: 'none', boxSizing: 'border-box',
     transition: 'border-color 0.2s',
@@ -144,7 +144,7 @@ export default function ProductDetails() {
         <div style={{ minHeight: '100vh', background: `linear-gradient(160deg, var(--primary-dk) 0%, var(--primary-dk) 45%, var(--primary) 100%)`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <div style={{ textAlign: 'center' }}>
                 <p style={{ fontWeight: 700, color: 'rgba(255,255,255,0.7)', marginBottom: '1rem', fontSize: '1.1rem' }}>Item not found.</p>
-                <button onClick={() => navigate('/')} style={{ padding: '0.75rem 2rem', background: '#fff', color: BLUE, border: 'none', borderRadius: '99px', fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.95rem' }}>← Go Home</button>
+                <button onClick={() => navigate('/')} style={{ padding: '0.75rem 2rem', background: 'var(--surface)', color: BLUE, border: 'none', borderRadius: '99px', fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.95rem' }}>← Go Home</button>
             </div>
         </div>
     );
@@ -180,7 +180,7 @@ export default function ProductDetails() {
                     </div>
                     <div style={{
                         width: '240px', height: '240px',
-                        background: '#fff', borderRadius: '32px',
+                        background: 'var(--surface)', borderRadius: '32px',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                         boxShadow: '0 12px 40px rgba(0,0,0,0.15)',
                         overflow: 'hidden'
@@ -208,12 +208,12 @@ export default function ProductDetails() {
                     gap: '1.5rem'
                 }}>
                     {isEditing ? (
-                        <div style={{ background: '#fff', borderRadius: '24px', padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.25rem', boxShadow: '0 4px 20px rgba(0,0,0,0.03)' }}>
+                        <div style={{ background: 'var(--surface)', borderRadius: '24px', padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.25rem', boxShadow: '0 4px 20px rgba(0,0,0,0.03)' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.25rem' }}>
                                 <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: `rgba(var(--primary-rgb),0.07)`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: BLUE }}>
                                     <Edit size={19} />
                                 </div>
-                                <h3 style={{ fontWeight: 900, fontSize: '1.2rem', color: '#111', margin: 0 }}>Edit Details</h3>
+                                <h3 style={{ fontWeight: 900, fontSize: '1.2rem', color: 'var(--text)', margin: 0 }}>Edit Details</h3>
                             </div>
                             <div>
                                 <label style={LABEL_ST}>Product Name</label>
@@ -240,9 +240,9 @@ export default function ProductDetails() {
                                 <label style={LABEL_ST}>Change Image</label>
                                 <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
                                     <label style={{
-                                        flex: 1, padding: '0.9rem', background: '#F9FAFB', border: `2px dashed ${BORDER}`,
+                                        flex: 1, padding: '0.9rem', background: 'var(--surface-2)', border: `2px dashed ${BORDER}`,
                                         borderRadius: '12px', textAlign: 'center', cursor: isUploading ? 'wait' : 'pointer',
-                                        transition: 'all 0.2s', color: '#6B7280', fontSize: '0.9rem', fontWeight: 600,
+                                        transition: 'all 0.2s', color: 'var(--text-dim)', fontSize: '0.9rem', fontWeight: 600,
                                     }}
                                         onMouseEnter={e => e.currentTarget.style.borderColor = BLUE}
                                         onMouseLeave={e => e.currentTarget.style.borderColor = BORDER}
@@ -265,14 +265,14 @@ export default function ProductDetails() {
                                     cursor: 'pointer', boxShadow: '0 6px 20px rgba(var(--primary-rgb),0.3)',
                                 }}><Check size={17} strokeWidth={3} /> Save Details</button>
                                 <button onClick={() => setIsEditing(false)} style={{
-                                    flex: 1, padding: '0.95rem', background: '#F3F4F6', color: '#6B7280', border: 'none', borderRadius: '14px',
+                                    flex: 1, padding: '0.95rem', background: 'var(--surface-2)', color: 'var(--text-dim)', border: 'none', borderRadius: '14px',
                                     fontWeight: 700, cursor: 'pointer', fontSize: '0.95rem', fontFamily: 'inherit',
                                 }}>Cancel</button>
                             </div>
                         </div>
                     ) : (
                         <div style={{
-                            background: '#fff', borderRadius: '28px', padding: '1.5rem', boxShadow: '0 4px 20px rgba(0,0,0,0.03)'
+                            background: 'var(--surface)', borderRadius: '28px', padding: '1.5rem', boxShadow: '0 4px 20px rgba(0,0,0,0.03)'
                         }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
                                 <span style={{ display: 'inline-block', background: '#E6F4EA', color: '#137333', padding: '0.35rem 0.8rem', borderRadius: '8px', fontSize: '0.65rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
@@ -284,7 +284,7 @@ export default function ProductDetails() {
                                     </p>
                                 </div>
                             </div>
-                            <h1 style={{ fontSize: '1.7rem', fontWeight: 900, color: '#111', margin: 0, lineHeight: 1.1 }}>
+                            <h1 style={{ fontSize: '1.7rem', fontWeight: 900, color: 'var(--text)', margin: 0, lineHeight: 1.1 }}>
                                 {item.name}
                             </h1>
                         </div>
@@ -296,7 +296,7 @@ export default function ProductDetails() {
                                 onClick={e => { if (!item.link) e.preventDefault(); }}
                                 style={{
                                     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
-                                    padding: '1rem', background: item.link ? BLUE : '#D1D5DB',
+                                    padding: '1rem', background: item.link ? BLUE : 'var(--border)',
                                     color: '#fff', borderRadius: '16px', fontWeight: 800, fontSize: '0.95rem',
                                     textDecoration: 'none', cursor: item.link ? 'pointer' : 'default',
                                     boxShadow: item.link ? '0 8px 25px rgba(var(--primary-rgb),0.25)' : 'none'
@@ -316,7 +316,7 @@ export default function ProductDetails() {
 
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
                                 <button onClick={() => setIsEditing(true)} style={{
-                                    padding: '0.9rem', background: '#F3F4F6', color: '#4B5563', border: 'none',
+                                    padding: '0.9rem', background: 'var(--surface-2)', color: 'var(--text-muted)', border: 'none',
                                     borderRadius: '14px', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', cursor: 'pointer'
                                 }}>
                                     <Edit size={16} /> Edit
@@ -330,9 +330,9 @@ export default function ProductDetails() {
                             </div>
 
                             {item.link && (
-                                <div style={{ background: '#F9FAFB', borderRadius: '14px', padding: '1rem', display: 'flex', alignItems: 'center', gap: '0.75rem', border: '1px solid #E5E7EB' }}>
+                                <div style={{ background: 'var(--surface-2)', borderRadius: '14px', padding: '1rem', display: 'flex', alignItems: 'center', gap: '0.75rem', border: '1px solid var(--border)' }}>
                                     <ExternalLink size={16} color="#9CA3AF" style={{ flexShrink: 0 }} />
-                                    <span style={{ fontSize: '0.85rem', color: '#6B7280', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                    <span style={{ fontSize: '0.85rem', color: 'var(--text-dim)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                         Source: {item.link.replace(/^https?:\/\//, '')}
                                     </span>
                                 </div>
@@ -385,7 +385,7 @@ export default function ProductDetails() {
                                 <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: `rgba(var(--primary-rgb),0.07)`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: BLUE }}>
                                     <Edit size={19} />
                                 </div>
-                                <h3 style={{ fontWeight: 900, fontSize: '1.2rem', color: '#111', margin: 0 }}>Edit Details</h3>
+                                <h3 style={{ fontWeight: 900, fontSize: '1.2rem', color: 'var(--text)', margin: 0 }}>Edit Details</h3>
                             </div>
 
                             <div>
@@ -416,9 +416,9 @@ export default function ProductDetails() {
                                 <label style={LABEL_ST}>Change Image</label>
                                 <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
                                     <label style={{
-                                        flex: 1, padding: '0.9rem', background: '#F9FAFB', border: `2px dashed ${BORDER}`,
+                                        flex: 1, padding: '0.9rem', background: 'var(--surface-2)', border: `2px dashed ${BORDER}`,
                                         borderRadius: '12px', textAlign: 'center', cursor: isUploading ? 'wait' : 'pointer',
-                                        transition: 'all 0.2s', color: '#6B7280', fontSize: '0.9rem', fontWeight: 600,
+                                        transition: 'all 0.2s', color: 'var(--text-dim)', fontSize: '0.9rem', fontWeight: 600,
                                     }}
                                         onMouseEnter={e => e.currentTarget.style.borderColor = BLUE}
                                         onMouseLeave={e => e.currentTarget.style.borderColor = BORDER}
@@ -442,7 +442,7 @@ export default function ProductDetails() {
                                     cursor: 'pointer', boxShadow: '0 6px 20px rgba(var(--primary-rgb),0.3)',
                                 }}><Check size={17} strokeWidth={3} /> Save Details</button>
                                 <button onClick={() => setIsEditing(false)} style={{
-                                    flex: 1, padding: '0.95rem', background: '#F3F4F6', color: '#6B7280', border: 'none', borderRadius: '14px',
+                                    flex: 1, padding: '0.95rem', background: 'var(--surface-2)', color: 'var(--text-dim)', border: 'none', borderRadius: '14px',
                                     fontWeight: 700, cursor: 'pointer', fontSize: '0.95rem', fontFamily: 'inherit',
                                 }}>Cancel</button>
                             </div>
@@ -455,7 +455,7 @@ export default function ProductDetails() {
                             <div className="product-image-panel" style={{
                                 width: '46%',
                                 flexShrink: 0,
-                                background: '#F0F2F8',
+                                background: 'var(--surface-2)',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
@@ -466,7 +466,7 @@ export default function ProductDetails() {
                                     width: '100%',
                                     maxWidth: '320px',
                                     aspectRatio: '1/1',
-                                    background: '#fff',
+                                    background: 'var(--surface)',
                                     borderRadius: '20px',
                                     display: 'flex',
                                     alignItems: 'center',
@@ -508,10 +508,11 @@ export default function ProductDetails() {
                                     <div className="text-details-category">
                                         <span style={{
                                             display: 'inline-block',
-                                            background: '#EAECF4',
-                                            color: '#4B5563',
+                                            background: 'var(--surface-2)',
+                                            color: 'var(--text-muted)',
                                             padding: '0.3rem 0.8rem',
                                             borderRadius: '8px',
+                                            border: '1px solid var(--border)',
                                             fontSize: '0.7rem',
                                             fontWeight: 800,
                                             textTransform: 'uppercase',
@@ -522,12 +523,12 @@ export default function ProductDetails() {
                                     </div>
 
                                     {/* Product Name */}
-                                    <h1 className="text-details-name" style={{ fontSize: 'clamp(1.6rem, 3vw, 2.2rem)', fontWeight: 900, color: '#111', margin: 0, lineHeight: 1.0, letterSpacing: '-0.02em' }}>
+                                    <h1 className="text-details-name" style={{ fontSize: 'clamp(1.6rem, 3vw, 2.2rem)', fontWeight: 900, color: 'var(--text)', margin: 0, lineHeight: 1.0, letterSpacing: '-0.02em' }}>
                                         {item.name}
                                     </h1>
 
                                     {/* Price */}
-                                    <p className="text-details-price" style={{ fontSize: '1.6rem', fontWeight: 900, color: BLUE, margin: 0, letterSpacing: '-0.02em' }}>
+                                    <p className="text-details-price" style={{ fontSize: '1.6rem', fontWeight: 900, color: 'var(--text)', margin: 0, letterSpacing: '-0.02em' }}>
                                         {price}
                                     </p>
                                 </div>
@@ -541,7 +542,7 @@ export default function ProductDetails() {
                                     style={{
                                         display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.55rem',
                                         padding: '0.95rem 1.25rem',
-                                        background: item.link ? BLUE : '#F3F4F6',
+                                        background: item.link ? BLUE : 'var(--surface-2)',
                                         color: item.link ? '#fff' : '#9CA3AF',
                                         borderRadius: '14px',
                                         fontWeight: 800, fontSize: '0.95rem', textDecoration: 'none',
@@ -563,7 +564,7 @@ export default function ProductDetails() {
                                         onClick={handlePurchase}
                                         style={{
                                             padding: '0.95rem 1.25rem',
-                                            background: '#fff',
+                                            background: 'var(--surface)',
                                             color: '#16a34a',
                                             border: '2px solid #16a34a',
                                             borderRadius: '14px',
@@ -573,7 +574,7 @@ export default function ProductDetails() {
                                             fontFamily: 'inherit',
                                         }}
                                         onMouseEnter={e => { e.currentTarget.style.background = '#16a34a'; e.currentTarget.style.color = '#fff'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
-                                        onMouseLeave={e => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.color = '#16a34a'; e.currentTarget.style.transform = 'translateY(0)'; }}
+                                        onMouseLeave={e => { e.currentTarget.style.background = 'var(--surface)'; e.currentTarget.style.color = '#16a34a'; e.currentTarget.style.transform = 'translateY(0)'; }}
                                     >
                                         <PackageCheck size={18} /> Mark as Purchased
                                     </button>
@@ -584,26 +585,26 @@ export default function ProductDetails() {
                                     <button
                                         onClick={() => setIsEditing(true)}
                                         style={{
-                                            padding: '0.8rem', background: '#F3F4F6', color: '#4B5563',
+                                            padding: '0.8rem', background: 'var(--surface-2)', color: 'var(--text)',
                                             border: 'none', borderRadius: '12px', fontWeight: 700, fontSize: '0.88rem',
                                             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.45rem',
                                             cursor: 'pointer', transition: 'all 0.2s', fontFamily: 'inherit',
                                         }}
                                         onMouseEnter={e => { e.currentTarget.style.background = BLUE; e.currentTarget.style.color = '#fff'; }}
-                                        onMouseLeave={e => { e.currentTarget.style.background = '#F3F4F6'; e.currentTarget.style.color = '#4B5563'; }}
+                                        onMouseLeave={e => { e.currentTarget.style.background = 'var(--surface-2)'; e.currentTarget.style.color = 'var(--text)'; }}
                                     >
                                         <Edit size={16} /> Edit
                                     </button>
                                     <button
                                         onClick={handleDelete}
                                         style={{
-                                            padding: '0.8rem', background: 'rgba(239,68,68,0.07)', color: '#ef4444',
+                                            padding: '0.8rem', background: 'var(--surface-2)', color: '#ef4444',
                                             border: 'none', borderRadius: '12px', fontWeight: 700, fontSize: '0.88rem',
                                             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.45rem',
                                             cursor: 'pointer', transition: 'all 0.2s', fontFamily: 'inherit',
                                         }}
                                         onMouseEnter={e => { e.currentTarget.style.background = '#ef4444'; e.currentTarget.style.color = '#fff'; }}
-                                        onMouseLeave={e => { e.currentTarget.style.background = 'rgba(239,68,68,0.07)'; e.currentTarget.style.color = '#ef4444'; }}
+                                        onMouseLeave={e => { e.currentTarget.style.background = 'var(--surface-2)'; e.currentTarget.style.color = '#ef4444'; }}
                                     >
                                         <Trash2 size={16} /> Delete
                                     </button>
@@ -613,7 +614,7 @@ export default function ProductDetails() {
                                 {item.link && (
                                     <div style={{
                                         padding: '0.75rem 1rem',
-                                        background: '#F9FAFB',
+                                        background: 'var(--surface-2)',
                                         borderRadius: '12px',
                                         border: `1px solid ${BORDER}`,
                                         display: 'flex',
@@ -621,9 +622,9 @@ export default function ProductDetails() {
                                         gap: '0.6rem',
                                         minWidth: 0,
                                     }}>
-                                        <ExternalLink size={14} style={{ color: '#9CA3AF', flexShrink: 0 }} />
+                                        <ExternalLink size={14} style={{ color: 'var(--text)', flexShrink: 0 }} />
                                         <p style={{
-                                            margin: 0, fontSize: '0.78rem', color: '#6B7280',
+                                            margin: 0, fontSize: '0.78rem', color: 'var(--text)',
                                             whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
                                         }}>
                                             Source: {item.link.replace(/^https?:\/\//, '')}
