@@ -15,38 +15,61 @@ export default function AlertModal({
 
     const hasCancel = typeof onCancel === 'function';
 
+    const handleConfirm = (e) => {
+        if (e) {
+            e.stopPropagation();
+            if (e.type === 'touchend') e.preventDefault();
+        }
+        if (onConfirm) onConfirm();
+    };
+
+    const handleCancel = (e) => {
+        if (e) {
+            e.stopPropagation();
+            if (e.type === 'touchend') e.preventDefault();
+        }
+        if (onCancel) onCancel();
+    };
+
     return createPortal(
-        <div style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            width: '100vw',
-            height: '100vh',
-            zIndex: 99999,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            background: 'rgba(0, 0, 0, 0.45)',
-            backdropFilter: 'blur(3px)',
-            WebkitBackdropFilter: 'blur(3px)',
-            animation: 'alertModalFadeIn 0.2s ease-out',
-            padding: '1.25rem'
-        }}>
-            <div style={{
-                background: 'rgba(255, 255, 255, 0.96)',
-                backdropFilter: 'blur(24px)',
-                WebkitBackdropFilter: 'blur(24px)',
-                width: '90%',
-                maxWidth: '340px',
-                borderRadius: '18px',
+        <div
+            style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                width: '100vw',
+                height: '100vh',
+                zIndex: 999999,
                 display: 'flex',
-                flexDirection: 'column',
-                boxShadow: '0 24px 48px rgba(0, 0, 0, 0.25)',
-                textAlign: 'center',
-                overflow: 'hidden',
-                border: '1px solid rgba(255, 255, 255, 0.6)',
-                animation: 'alertModalPopIn 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
-            }}>
+                alignItems: 'center',
+                justifyContent: 'center',
+                background: 'rgba(0, 0, 0, 0.45)',
+                backdropFilter: 'blur(3px)',
+                WebkitBackdropFilter: 'blur(3px)',
+                animation: 'alertModalFadeIn 0.2s ease-out',
+                padding: '1.25rem',
+                touchAction: 'manipulation'
+            }}
+            onClick={hasCancel ? handleCancel : undefined}
+        >
+            <div
+                onClick={(e) => e.stopPropagation()}
+                style={{
+                    background: 'rgba(255, 255, 255, 0.96)',
+                    backdropFilter: 'blur(24px)',
+                    WebkitBackdropFilter: 'blur(24px)',
+                    width: '90%',
+                    maxWidth: '340px',
+                    borderRadius: '18px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    boxShadow: '0 24px 48px rgba(0, 0, 0, 0.25)',
+                    textAlign: 'center',
+                    overflow: 'hidden',
+                    border: '1px solid rgba(255, 255, 255, 0.6)',
+                    animation: 'alertModalPopIn 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
+                }}
+            >
                 <div style={{ padding: '1.5rem 1.25rem 1.25rem' }}>
                     {title && (
                         <h3 style={{
@@ -76,7 +99,10 @@ export default function AlertModal({
                 {hasCancel ? (
                     <div style={{ display: 'flex', width: '100%', height: '48px' }}>
                         <button
-                            onClick={onCancel}
+                            type="button"
+                            onClick={handleCancel}
+                            onTouchEnd={handleCancel}
+                            className="ios-modal-btn"
                             style={{
                                 flex: 1,
                                 background: 'transparent',
@@ -87,19 +113,18 @@ export default function AlertModal({
                                 fontWeight: 400,
                                 cursor: 'pointer',
                                 fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
-                                transition: 'background 0.15s ease',
-                                outline: 'none'
+                                outline: 'none',
+                                touchAction: 'manipulation'
                             }}
-                            onMouseEnter={e => e.currentTarget.style.background = 'rgba(0, 0, 0, 0.05)'}
-                            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-                            onMouseDown={e => e.currentTarget.style.background = 'rgba(0, 0, 0, 0.1)'}
-                            onMouseUp={e => e.currentTarget.style.background = 'rgba(0, 0, 0, 0.05)'}
                         >
                             {cancelText}
                         </button>
                         <div style={{ width: '1px', background: 'rgba(60, 60, 67, 0.18)' }}></div>
                         <button
-                            onClick={onConfirm}
+                            type="button"
+                            onClick={handleConfirm}
+                            onTouchEnd={handleConfirm}
+                            className="ios-modal-btn"
                             style={{
                                 flex: 1,
                                 background: 'transparent',
@@ -110,20 +135,19 @@ export default function AlertModal({
                                 fontWeight: 600,
                                 cursor: 'pointer',
                                 fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
-                                transition: 'background 0.15s ease',
-                                outline: 'none'
+                                outline: 'none',
+                                touchAction: 'manipulation'
                             }}
-                            onMouseEnter={e => e.currentTarget.style.background = 'rgba(0, 0, 0, 0.05)'}
-                            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-                            onMouseDown={e => e.currentTarget.style.background = 'rgba(0, 0, 0, 0.1)'}
-                            onMouseUp={e => e.currentTarget.style.background = 'rgba(0, 0, 0, 0.05)'}
                         >
                             {confirmText}
                         </button>
                     </div>
                 ) : (
                     <button
-                        onClick={onConfirm}
+                        type="button"
+                        onClick={handleConfirm}
+                        onTouchEnd={handleConfirm}
+                        className="ios-modal-btn"
                         style={{
                             background: 'transparent',
                             border: 'none',
@@ -134,13 +158,9 @@ export default function AlertModal({
                             cursor: 'pointer',
                             width: '100%',
                             fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
-                            transition: 'background 0.15s ease',
-                            outline: 'none'
+                            outline: 'none',
+                            touchAction: 'manipulation'
                         }}
-                        onMouseEnter={e => e.currentTarget.style.background = 'rgba(0, 0, 0, 0.05)'}
-                        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-                        onMouseDown={e => e.currentTarget.style.background = 'rgba(0, 0, 0, 0.1)'}
-                        onMouseUp={e => e.currentTarget.style.background = 'rgba(0, 0, 0, 0.05)'}
                     >
                         {confirmText}
                     </button>
@@ -155,6 +175,9 @@ export default function AlertModal({
                 @keyframes alertModalPopIn {
                     from { opacity: 0; transform: scale(0.92); }
                     to { opacity: 1; transform: scale(1); }
+                }
+                .ios-modal-btn:active {
+                    background: rgba(0, 0, 0, 0.08) !important;
                 }
             `}</style>
         </div>,

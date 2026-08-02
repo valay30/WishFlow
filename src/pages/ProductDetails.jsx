@@ -320,17 +320,28 @@ export default function ProductDetails() {
                             )}
 
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-                                <button onClick={() => setIsEditing(true)} style={{
-                                    padding: '0.9rem', background: 'var(--surface-2)', color: 'var(--text-muted)', border: 'none',
-                                    borderRadius: '14px', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', cursor: 'pointer'
-                                }}>
+                                <button
+                                    type="button"
+                                    onClick={(e) => { e.stopPropagation(); setIsEditing(true); }}
+                                    onTouchEnd={(e) => { e.stopPropagation(); setIsEditing(true); }}
+                                    style={{
+                                        padding: '0.9rem', background: 'var(--surface-2)', color: 'var(--text-muted)', border: 'none',
+                                        borderRadius: '14px', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', cursor: 'pointer',
+                                        touchAction: 'manipulation'
+                                    }}
+                                >
                                     <Edit size={16} /> Edit
                                 </button>
-                                <button onClick={handleDelete} style={{
-                                    padding: '0.9rem', background: '#fef2f2', color: '#ef4444', border: 'none',
-                                    borderRadius: '14px', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', cursor: 'pointer',
-                                    position: 'relative', zIndex: 5, touchAction: 'manipulation'
-                                }}>
+                                <button
+                                    type="button"
+                                    onClick={(e) => { e.stopPropagation(); handleDelete(); }}
+                                    onTouchEnd={(e) => { e.stopPropagation(); handleDelete(); }}
+                                    style={{
+                                        padding: '0.9rem', background: '#fef2f2', color: '#ef4444', border: 'none',
+                                        borderRadius: '14px', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', cursor: 'pointer',
+                                        position: 'relative', zIndex: 5, touchAction: 'manipulation'
+                                    }}
+                                >
                                     <Trash2 size={16} /> Delete
                                 </button>
                             </div>
@@ -589,12 +600,15 @@ export default function ProductDetails() {
                                 {/* Edit & Delete Buttons */}
                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.6rem' }}>
                                     <button
-                                        onClick={() => setIsEditing(true)}
+                                        type="button"
+                                        onClick={(e) => { e.stopPropagation(); setIsEditing(true); }}
+                                        onTouchEnd={(e) => { e.stopPropagation(); setIsEditing(true); }}
                                         style={{
                                             padding: '0.8rem', background: 'var(--surface-2)', color: 'var(--text)',
                                             border: 'none', borderRadius: '12px', fontWeight: 700, fontSize: '0.88rem',
                                             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.45rem',
                                             cursor: 'pointer', transition: 'all 0.2s', fontFamily: 'inherit',
+                                            touchAction: 'manipulation'
                                         }}
                                         onMouseEnter={e => { e.currentTarget.style.background = BLUE; e.currentTarget.style.color = '#fff'; }}
                                         onMouseLeave={e => { e.currentTarget.style.background = 'var(--surface-2)'; e.currentTarget.style.color = 'var(--text)'; }}
@@ -602,12 +616,15 @@ export default function ProductDetails() {
                                         <Edit size={16} /> Edit
                                     </button>
                                     <button
-                                        onClick={handleDelete}
+                                        type="button"
+                                        onClick={(e) => { e.stopPropagation(); handleDelete(); }}
+                                        onTouchEnd={(e) => { e.stopPropagation(); handleDelete(); }}
                                         style={{
                                             padding: '0.8rem', background: 'var(--surface-2)', color: '#ef4444',
                                             border: 'none', borderRadius: '12px', fontWeight: 700, fontSize: '0.88rem',
                                             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.45rem',
                                             cursor: 'pointer', transition: 'all 0.2s', fontFamily: 'inherit',
+                                            touchAction: 'manipulation'
                                         }}
                                         onMouseEnter={e => { e.currentTarget.style.background = '#ef4444'; e.currentTarget.style.color = '#fff'; }}
                                         onMouseLeave={e => { e.currentTarget.style.background = 'var(--surface-2)'; e.currentTarget.style.color = '#ef4444'; }}
