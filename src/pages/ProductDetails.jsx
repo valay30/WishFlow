@@ -204,7 +204,7 @@ export default function ProductDetails() {
                     background: BG,
                     borderRadius: '32px 32px 0 0',
                     padding: '1.5rem',
-                    paddingBottom: '3rem',
+                    paddingBottom: 'calc(var(--bottom-nav) + 4rem)',
                     marginTop: '-32px',
                     zIndex: 10,
                     position: 'relative',
@@ -328,7 +328,8 @@ export default function ProductDetails() {
                                 </button>
                                 <button onClick={handleDelete} style={{
                                     padding: '0.9rem', background: '#fef2f2', color: '#ef4444', border: 'none',
-                                    borderRadius: '14px', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', cursor: 'pointer'
+                                    borderRadius: '14px', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', cursor: 'pointer',
+                                    position: 'relative', zIndex: 5, touchAction: 'manipulation'
                                 }}>
                                     <Trash2 size={16} /> Delete
                                 </button>
