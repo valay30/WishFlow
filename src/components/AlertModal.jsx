@@ -101,7 +101,6 @@ export default function AlertModal({
                         <button
                             type="button"
                             onClick={handleCancel}
-                            onTouchEnd={handleCancel}
                             className="ios-modal-btn"
                             style={{
                                 flex: 1,
@@ -123,7 +122,6 @@ export default function AlertModal({
                         <button
                             type="button"
                             onClick={handleConfirm}
-                            onTouchEnd={handleConfirm}
                             className="ios-modal-btn"
                             style={{
                                 flex: 1,
@@ -146,7 +144,6 @@ export default function AlertModal({
                     <button
                         type="button"
                         onClick={handleConfirm}
-                        onTouchEnd={handleConfirm}
                         className="ios-modal-btn"
                         style={{
                             background: 'transparent',

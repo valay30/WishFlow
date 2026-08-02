@@ -159,6 +159,7 @@ export default function ProductDetails() {
 
     if (isMobile) {
         return (
+            <>
             <div style={{ minHeight: '100%', background: BG, display: 'flex', flexDirection: 'column' }}>
                 {/* ── Hero Section (Image Showcase) ── */}
                 <div style={{
@@ -323,7 +324,6 @@ export default function ProductDetails() {
                                 <button
                                     type="button"
                                     onClick={(e) => { e.stopPropagation(); setIsEditing(true); }}
-                                    onTouchEnd={(e) => { e.stopPropagation(); setIsEditing(true); }}
                                     style={{
                                         padding: '0.9rem', background: 'var(--surface-2)', color: 'var(--text-muted)', border: 'none',
                                         borderRadius: '14px', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', cursor: 'pointer',
@@ -335,11 +335,10 @@ export default function ProductDetails() {
                                 <button
                                     type="button"
                                     onClick={(e) => { e.stopPropagation(); handleDelete(); }}
-                                    onTouchEnd={(e) => { e.stopPropagation(); handleDelete(); }}
                                     style={{
                                         padding: '0.9rem', background: '#fef2f2', color: '#ef4444', border: 'none',
                                         borderRadius: '14px', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', cursor: 'pointer',
-                                        position: 'relative', zIndex: 5, touchAction: 'manipulation'
+                                        touchAction: 'manipulation'
                                     }}
                                 >
                                     <Trash2 size={16} /> Delete
@@ -358,6 +357,17 @@ export default function ProductDetails() {
                     )}
                 </div>
             </div>
+
+            <AlertModal
+                isOpen={showDeleteConfirm}
+                title="wishflowlist.vercel.app says"
+                message="Delete this item from your WishFlow?"
+                cancelText="Cancel"
+                confirmText="OK"
+                onCancel={() => setShowDeleteConfirm(false)}
+                onConfirm={confirmDelete}
+            />
+        </>
         );
     }
 
@@ -618,7 +628,6 @@ export default function ProductDetails() {
                                     <button
                                         type="button"
                                         onClick={(e) => { e.stopPropagation(); handleDelete(); }}
-                                        onTouchEnd={(e) => { e.stopPropagation(); handleDelete(); }}
                                         style={{
                                             padding: '0.8rem', background: 'var(--surface-2)', color: '#ef4444',
                                             border: 'none', borderRadius: '12px', fontWeight: 700, fontSize: '0.88rem',
