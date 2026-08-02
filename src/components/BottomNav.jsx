@@ -24,8 +24,12 @@ export default function BottomNav({ user }) {
             </Link>
 
             {/* Add Button */}
-            <Link to="/?add=true" className="bottom-nav-add" aria-label="Add product">
-                <Plus size={22} />
+            <Link to="/?add=true" className={`bottom-nav-add${new URLSearchParams(location.search).get('add') === 'true' ? ' active' : ''}`} aria-label="Add product">
+                <div className="bottom-nav-add-inner">
+                    <div className="add-icon-wrapper">
+                        <Plus size={24} />
+                    </div>
+                </div>
                 <span>Add</span>
             </Link>
 
