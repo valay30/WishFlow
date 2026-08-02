@@ -1,8 +1,19 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
 
-export default function AlertModal({ isOpen, title, message, onConfirm }) {
+export default function AlertModal({
+    isOpen,
+    title,
+    message,
+    onConfirm,
+    onCancel,
+    cancelText = 'Cancel',
+    confirmText = 'OK',
+    isDestructive = false
+}) {
     if (!isOpen) return null;
+
+    const hasCancel = typeof onCancel === 'function';
 
     return createPortal(
         <div style={{
@@ -62,28 +73,78 @@ export default function AlertModal({ isOpen, title, message, onConfirm }) {
 
                 <div style={{ height: '1px', background: 'rgba(60, 60, 67, 0.18)' }}></div>
 
-                <button
-                    onClick={onConfirm}
-                    style={{
-                        background: 'transparent',
-                        border: 'none',
-                        padding: '1rem 1.25rem',
-                        color: '#007AFF',
-                        fontSize: '1.1rem',
-                        fontWeight: 600,
-                        cursor: 'pointer',
-                        width: '100%',
-                        fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
-                        transition: 'background 0.15s ease',
-                        outline: 'none'
-                    }}
-                    onMouseEnter={e => e.currentTarget.style.background = 'rgba(0, 0, 0, 0.05)'}
-                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-                    onMouseDown={e => e.currentTarget.style.background = 'rgba(0, 0, 0, 0.1)'}
-                    onMouseUp={e => e.currentTarget.style.background = 'rgba(0, 0, 0, 0.05)'}
-                >
-                    OK
-                </button>
+                {hasCancel ? (
+                    <div style={{ display: 'flex', width: '100%', height: '48px' }}>
+                        <button
+                            onClick={onCancel}
+                            style={{
+                                flex: 1,
+                                background: 'transparent',
+                                border: 'none',
+                                padding: '0 0.75rem',
+                                color: '#007AFF',
+                                fontSize: '1.05rem',
+                                fontWeight: 400,
+                                cursor: 'pointer',
+                                fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+                                transition: 'background 0.15s ease',
+                                outline: 'none'
+                            }}
+                            onMouseEnter={e => e.currentTarget.style.background = 'rgba(0, 0, 0, 0.05)'}
+                            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                            onMouseDown={e => e.currentTarget.style.background = 'rgba(0, 0, 0, 0.1)'}
+                            onMouseUp={e => e.currentTarget.style.background = 'rgba(0, 0, 0, 0.05)'}
+                        >
+                            {cancelText}
+                        </button>
+                        <div style={{ width: '1px', background: 'rgba(60, 60, 67, 0.18)' }}></div>
+                        <button
+                            onClick={onConfirm}
+                            style={{
+                                flex: 1,
+                                background: 'transparent',
+                                border: 'none',
+                                padding: '0 0.75rem',
+                                color: isDestructive ? '#FF3B30' : '#007AFF',
+                                fontSize: '1.05rem',
+                                fontWeight: 600,
+                                cursor: 'pointer',
+                                fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+                                transition: 'background 0.15s ease',
+                                outline: 'none'
+                            }}
+                            onMouseEnter={e => e.currentTarget.style.background = 'rgba(0, 0, 0, 0.05)'}
+                            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                            onMouseDown={e => e.currentTarget.style.background = 'rgba(0, 0, 0, 0.1)'}
+                            onMouseUp={e => e.currentTarget.style.background = 'rgba(0, 0, 0, 0.05)'}
+                        >
+                            {confirmText}
+                        </button>
+                    </div>
+                ) : (
+                    <button
+                        onClick={onConfirm}
+                        style={{
+                            background: 'transparent',
+                            border: 'none',
+                            padding: '1rem 1.25rem',
+                            color: isDestructive ? '#FF3B30' : '#007AFF',
+                            fontSize: '1.1rem',
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                            width: '100%',
+                            fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+                            transition: 'background 0.15s ease',
+                            outline: 'none'
+                        }}
+                        onMouseEnter={e => e.currentTarget.style.background = 'rgba(0, 0, 0, 0.05)'}
+                        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                        onMouseDown={e => e.currentTarget.style.background = 'rgba(0, 0, 0, 0.1)'}
+                        onMouseUp={e => e.currentTarget.style.background = 'rgba(0, 0, 0, 0.05)'}
+                    >
+                        {confirmText}
+                    </button>
+                )}
             </div>
 
             <style>{`

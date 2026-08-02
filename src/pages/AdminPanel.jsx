@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
 import { Crown, Users, ShieldCheck, ArrowLeft, RefreshCw, CheckCircle, XCircle, Search, Trash2 } from 'lucide-react';
 import { API_URL as API, ADMIN_SECRET } from '../config';
+import AlertModal from '../components/AlertModal';
 
 const headers = {
     'Content-Type': 'application/json',
@@ -17,6 +18,7 @@ export default function AdminPanel() {
     const [search, setSearch] = useState('');
     const [actionLoading, setActionLoading] = useState(null); // userId being acted on
     const [toast, setToast] = useState(null);
+    const [deleteTargetUserId, setDeleteTargetUserId] = useState(null);
 
     // Redirect non-admins immediately
     useEffect(() => {
@@ -85,8 +87,14 @@ export default function AdminPanel() {
         }
     };
 
-    const deleteUser = async (userId) => {
-        if (!window.confirm('Are you sure you want to permanently delete this user?')) return;
+    const deleteUser = (userId) => {
+        setDeleteTargetUserId(userId);
+    };
+
+    const confirmDeleteUser = async () => {
+        if (!deleteTargetUserId) return;
+        const userId = deleteTargetUserId;
+        setDeleteTargetUserId(null);
         setActionLoading(userId + '_delete');
         try {
             const res = await fetch(`${API}/api/admin/users/${userId}`, {
@@ -490,6 +498,16 @@ export default function AdminPanel() {
                 @keyframes fadeInUp { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
                 @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
             `}</style>
+            <AlertModal
+                isOpen={deleteTargetUserId !== null}
+                title="wishflowlist.vercel.app says"
+                message="Are you sure you want to permanently delete this user?"
+                cancelText="Cancel"
+                confirmText="OK"
+                isDestructive={true}
+                onCancel={() => setDeleteTargetUserId(null)}
+                onConfirm={confirmDeleteUser}
+            />
         </div>
     );
 }

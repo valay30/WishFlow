@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Trash2, Calendar, Sparkles } from 'lucide-react';
+import AlertModal from './AlertModal';
 
 const ORANGE = 'var(--primary)';
 const BORDER = 'var(--border)';
@@ -30,8 +31,9 @@ const LABEL_ST = {
 export default function CollectionModal({ existing = null, onSave, onDelete, onClose }) {
     const [emoji, setEmoji] = useState(existing?.emoji || '🎁');
     const [name, setName] = useState(existing?.name || '');
-    const [targetDate, setTargetDate] = useState(existing?.target_date || '');
+    const [targetDate, setTargetDate] = useState(existing?.target_date ? existing.target_date.split('T')[0] : '');
     const [saving, setSaving] = useState(false);
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
     const focus = e => { e.target.style.borderColor = ORANGE; e.target.style.boxShadow = `0 0 0 4px rgba(var(--primary-rgb),0.1)`; };
@@ -51,8 +53,12 @@ export default function CollectionModal({ existing = null, onSave, onDelete, onC
         }
     };
 
-    const handleDelete = async () => {
-        if (!window.confirm(`Delete "${existing.name}"? Items in this collection won't be deleted.`)) return;
+    const handleDelete = () => {
+        setShowDeleteConfirm(true);
+    };
+
+    const confirmDelete = async () => {
+        setShowDeleteConfirm(false);
         await onDelete(existing.id);
         onClose();
     };
@@ -188,6 +194,15 @@ export default function CollectionModal({ existing = null, onSave, onDelete, onC
                 </div>
             </div>
             <style>{`@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }`}</style>
+            <AlertModal
+                isOpen={showDeleteConfirm}
+                title="wishflowlist.vercel.app says"
+                message={`Delete "${existing?.name}"? Items in this collection won't be deleted.`}
+                cancelText="Cancel"
+                confirmText="OK"
+                onCancel={() => setShowDeleteConfirm(false)}
+                onConfirm={confirmDelete}
+            />
         </>,
         document.body
     );

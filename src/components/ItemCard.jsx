@@ -139,34 +139,39 @@ export default function ItemCard({ item, categoryName, onRemove, onTogglePurchas
                         {price}
                     </p>
 
-                    {/* Arrow button — opens external product link */}
+                    {/* Arrow button — opens external product link or details */}
                     <a
                         href={item.link || '#'}
                         target={item.link ? '_blank' : '_self'}
                         rel="noopener noreferrer"
                         onClick={e => {
-                            e.stopPropagation();
-                            if (!item.link) e.preventDefault();
+                            if (!item.link) {
+                                e.stopPropagation();
+                                e.preventDefault();
+                                navigate(`/product/${item.id}`);
+                            } else {
+                                e.stopPropagation();
+                            }
                         }}
                         style={{
                             width: '36px',
                             height: '36px',
                             borderRadius: '50%',
-                            background: item.link ? ORANGE : '#E5E5E5',
+                            background: ORANGE,
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
                             flexShrink: 0,
-                            boxShadow: item.link ? '0 4px 12px rgba(var(--primary-rgb),0.28)' : 'none',
+                            boxShadow: '0 4px 12px rgba(var(--primary-rgb),0.28)',
                             transition: 'transform 0.18s ease, background 0.18s ease',
                             textDecoration: 'none',
-                            cursor: item.link ? 'pointer' : 'default',
+                            cursor: 'pointer',
                         }}
-                        onMouseEnter={e => { if (item.link) e.currentTarget.style.transform = 'scale(1.12)'; }}
+                        onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.12)'; }}
                         onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
-                        title={item.link ? 'Open product link' : 'No link added'}
+                        title={item.link ? 'Open product link' : 'View details'}
                     >
-                        <ArrowRight size={17} color={item.link ? '#fff' : '#999'} strokeWidth={2.5} />
+                        <ArrowRight size={17} color="#fff" strokeWidth={2.5} />
                     </a>
                 </div>
             </div>

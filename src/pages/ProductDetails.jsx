@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { db } from '../db';
 import { Trash2, Edit, ArrowLeft, ExternalLink, Upload, X, Check, PackageCheck } from 'lucide-react';
 import { uploadToImageKit } from '../utils/imagekit';
+import AlertModal from '../components/AlertModal';
 
 const BLUE = 'var(--primary)';
 const SURFACE = 'var(--surface)';
@@ -37,6 +38,7 @@ export default function ProductDetails() {
     const [editImage, setEditImage] = useState('');
     const [editCategoryId, setEditCategoryId] = useState('');
     const [isUploading, setIsUploading] = useState(false);
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
     const [isMobile, setIsMobile] = useState(window.innerWidth <= 640);
     useEffect(() => {
@@ -110,10 +112,13 @@ export default function ProductDetails() {
     };
 
     const handleDelete = async () => {
-        if (window.confirm('Delete this item from your WishFlow?')) {
-            await db.items.delete(item.id);
-            navigate('/');
-        }
+        setShowDeleteConfirm(true);
+    };
+
+    const confirmDelete = async () => {
+        setShowDeleteConfirm(false);
+        await db.items.delete(item.id);
+        navigate('/');
     };
 
     const handleSave = async () => {
@@ -646,6 +651,15 @@ export default function ProductDetails() {
                     to { transform: rotate(360deg); }
                 }
             `}</style>
+            <AlertModal
+                isOpen={showDeleteConfirm}
+                title="wishflowlist.vercel.app says"
+                message="Delete this item from your WishFlow?"
+                cancelText="Cancel"
+                confirmText="OK"
+                onCancel={() => setShowDeleteConfirm(false)}
+                onConfirm={confirmDelete}
+            />
         </div>
     );
 }

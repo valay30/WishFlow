@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { db } from '../db';
 import { Trash2, Edit2, Plus, X, Check, ArrowLeft, Tag, Layers } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import AlertModal from '../components/AlertModal';
 
 const ORANGE = 'var(--primary)';
 const SURFACE = 'var(--surface)';
@@ -14,6 +15,7 @@ export default function Categories() {
     const [newCatName, setNewCatName] = useState('');
     const [editingId, setEditingId] = useState(null);
     const [editingName, setEditingName] = useState('');
+    const [deleteTargetId, setDeleteTargetId] = useState(null);
     const navigate = useNavigate();
 
     const loadCategories = async () => {
@@ -37,10 +39,15 @@ export default function Categories() {
         }
     };
 
-    const handleDelete = async (id) => {
-        if (window.confirm('Delete this category?')) {
-            await db.categories.delete(id);
+    const handleDelete = (id) => {
+        setDeleteTargetId(id);
+    };
+
+    const confirmDelete = async () => {
+        if (deleteTargetId) {
+            await db.categories.delete(deleteTargetId);
             await loadCategories();
+            setDeleteTargetId(null);
         }
     };
 
@@ -282,6 +289,15 @@ export default function Categories() {
                     to { opacity: 1; transform: translateY(0); }
                 }
             `}</style>
+            <AlertModal
+                isOpen={deleteTargetId !== null}
+                title="wishflowlist.vercel.app says"
+                message="Delete this category?"
+                cancelText="Cancel"
+                confirmText="OK"
+                onCancel={() => setDeleteTargetId(null)}
+                onConfirm={confirmDelete}
+            />
         </div>
     );
 }

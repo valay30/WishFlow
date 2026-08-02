@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { db } from '../db';
 import { Package, ArrowLeft, Trash2, RotateCcw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import AlertModal from '../components/AlertModal';
 
 const ORANGE = 'var(--primary)';
 const SURFACE = 'var(--surface)';
@@ -11,6 +12,7 @@ const BG = 'var(--bg)';
 export default function Archive() {
     const [purchasedItems, setPurchasedItems] = useState([]);
     const [categories, setCategories] = useState([]);
+    const [deleteTargetId, setDeleteTargetId] = useState(null);
     const navigate = useNavigate();
 
     const loadData = async () => {
@@ -35,11 +37,16 @@ export default function Archive() {
         }
     };
 
-    const handleDelete = async (id, e) => {
+    const handleDelete = (id, e) => {
         e.stopPropagation();
-        if (window.confirm('Permanently delete this purchased item?')) {
-            await db.items.delete(id);
+        setDeleteTargetId(id);
+    };
+
+    const confirmDelete = async () => {
+        if (deleteTargetId) {
+            await db.items.delete(deleteTargetId);
             await loadData();
+            setDeleteTargetId(null);
         }
     };
 
@@ -238,6 +245,15 @@ export default function Archive() {
                     to { opacity: 1; }
                 }
             `}</style>
+            <AlertModal
+                isOpen={deleteTargetId !== null}
+                title="wishflowlist.vercel.app says"
+                message="Permanently delete this purchased item?"
+                cancelText="Cancel"
+                confirmText="OK"
+                onCancel={() => setDeleteTargetId(null)}
+                onConfirm={confirmDelete}
+            />
         </div>
     );
 }
