@@ -15,12 +15,12 @@ const BORDER = 'var(--border)';
 const BG = 'var(--bg)';
 
 const THEMES = [
-    { id: 'blue',    label: 'Ocean Blue',  color: '#10367D' },
-    { id: 'purple',  label: 'Royal Purple', color: '#7C3AED' },
-    { id: 'emerald', label: 'Emerald',      color: '#059669' },
-    { id: 'rose',    label: 'Rose',         color: '#E11D48' },
-    { id: 'orange',  label: 'Sunset',       color: '#EA580C' },
-    { id: 'slate',   label: 'Slate',        color: '#475569' },
+    { id: 'blue', label: 'Ocean Blue', color: '#10367D' },
+    { id: 'purple', label: 'Royal Purple', color: '#7C3AED' },
+    { id: 'emerald', label: 'Emerald', color: '#059669' },
+    { id: 'rose', label: 'Rose', color: '#E11D48' },
+    { id: 'orange', label: 'Sunset', color: '#EA580C' },
+    { id: 'slate', label: 'Slate', color: '#475569' },
 ];
 
 export default function Profile() {
@@ -298,7 +298,7 @@ export default function Profile() {
                                                     </div>
                                                     <p style={{ margin: '0.1rem 0 0', fontSize: '0.82rem', color: 'var(--text-dim)' }}>Switch to Midnight Obsidian</p>
                                                 </div>
-                                                
+
                                                 {user?.isPremium ? (
                                                     <div style={{
                                                         width: '44px', height: '24px', borderRadius: '12px',
@@ -360,7 +360,7 @@ export default function Profile() {
                                                 </div>
                                             ) : (
                                                 <div style={{
-                                                    display: 'flex', alignItems: 'center', gap: '1rem',
+                                                    display: 'flex', alignItems: 'flex-start', gap: '1rem',
                                                     padding: '1rem 1.25rem',
                                                     background: 'rgba(245,158,11,0.06)',
                                                     border: '1px dashed rgba(245,158,11,0.4)',
@@ -374,24 +374,24 @@ export default function Profile() {
                                                     }}>
                                                         <Lock size={18} color="#d97706" />
                                                     </div>
-                                                    <div style={{ flex: 1, minWidth: 0 }}>
+                                                    <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
                                                         <p style={{ margin: 0, fontWeight: 700, fontSize: '0.88rem', color: 'var(--text)' }}>Premium Feature</p>
-                                                        <p style={{ margin: '0.1rem 0 0', fontSize: '0.78rem', color: 'var(--text-dim)' }}>Upgrade to Pro to unlock custom themes and dark mode</p>
+                                                        <p style={{ margin: '0.1rem 0 0.85rem', fontSize: '0.78rem', color: 'var(--text-dim)' }}>Upgrade to Pro to unlock custom themes and dark mode</p>
+                                                        <button
+                                                            onClick={handleUpgradeToPremium}
+                                                            style={{
+                                                                padding: '0.5rem 1rem', borderRadius: '10px',
+                                                                background: 'linear-gradient(135deg,#f59e0b,#d97706)',
+                                                                color: '#fff', fontWeight: 800, fontSize: '0.8rem',
+                                                                border: 'none', cursor: 'pointer',
+                                                                fontFamily: 'inherit', flexShrink: 0,
+                                                                boxShadow: '0 4px 12px rgba(245,158,11,0.3)',
+                                                                transition: 'all 0.2s',
+                                                            }}
+                                                        >
+                                                            Upgrade
+                                                        </button>
                                                     </div>
-                                                    <button
-                                                        onClick={handleUpgradeToPremium}
-                                                        style={{
-                                                            padding: '0.5rem 1rem', borderRadius: '10px',
-                                                            background: 'linear-gradient(135deg,#f59e0b,#d97706)',
-                                                            color: '#fff', fontWeight: 800, fontSize: '0.8rem',
-                                                            border: 'none', cursor: 'pointer',
-                                                            fontFamily: 'inherit', flexShrink: 0,
-                                                            boxShadow: '0 4px 12px rgba(245,158,11,0.3)',
-                                                            transition: 'all 0.2s',
-                                                        }}
-                                                    >
-                                                        Upgrade
-                                                    </button>
                                                 </div>
                                             )}
                                         </div>

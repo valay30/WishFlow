@@ -365,7 +365,7 @@ export default function Home() {
                                 <ShoppingBag size={28} color={ORANGE} />
                             </div>
                             <p style={{ fontWeight: 700, color: 'var(--text)', fontSize: '1rem' }}>Nothing here yet!</p>
-                            <p style={{ fontSize: '0.82rem', color: 'var(--text-dim)', maxWidth: '220px' }}>
+                            <p style={{ fontSize: '0.82rem', color: 'var(--text-dim)', maxWidth: '235px' }}>
                                 {search ? 'No results found. Try a different search.' : 'Tap the + button to add your first item.'}
                             </p>
                             {!search && (

@@ -257,7 +257,7 @@ a {
   }
 
   .mobile-header,
-  .bottom-nav,
+  .bottom-nav-container,
   .fab {
     display: none !important;
   }
@@ -465,7 +465,7 @@ a {
   pointer-events: auto;
 }
 
-@media (max-width: 767px) {
+@media (max-width: 1023px) {
   .modal-card {
     margin-bottom: 135px !important;
     border-radius: 28px !important;
@@ -474,12 +474,7 @@ a {
   }
 }
 
-/* Show bottom-nav only on mobile */
-@media (min-width: 768px) {
-  .bottom-nav-container {
-    display: none !important;
-  }
-}
+
 
 /* ══════════════════════════════════════
    PAGE CONTAINER
@@ -503,8 +498,8 @@ a {
   }
 }
 
-/* Mobile: pad bottom for bottom nav */
-@media (max-width: 767px) {
+/* Mobile and Tablet: pad bottom for bottom nav */
+@media (max-width: 1023px) {
   .page-container {
     padding: 0;
   }
@@ -979,4 +974,15 @@ body::before {
 :root:not(.dark) .btn-glow:hover {
   box-shadow: 0 6px 20px rgba(var(--primary-rgb), 0.25) !important;
   transform: translateY(-2px) !important;
+}
+
+@media (max-width: 600px) {
+  .tier-badge-top {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 0.75rem !important;
+  }
+  .tier-badge-top > button {
+    margin-left: 64px; /* 48px icon + 16px gap */
+  }
 }

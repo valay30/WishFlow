@@ -2,7 +2,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Plus } from 'lucide-react';
 import { useAuth } from '../context/useAuth';
 import Sidebar from './Sidebar';
-import MobileHeader from './MobileHeader';
 import BottomNav from './BottomNav';
 
 /* ══════════════════════════════════════
@@ -18,8 +17,6 @@ export default function Layout({ children }) {
             <Sidebar user={user} onLogout={handleLogout} />
 
             <div className="main-content">
-                {/* Tablet header */}
-                <MobileHeader user={user} onLogout={handleLogout} />
 
                 <main className="animate-fade-in" style={{ flex: 1 }}>
                     {children}
