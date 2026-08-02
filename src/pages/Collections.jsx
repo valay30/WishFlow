@@ -7,6 +7,7 @@ import CollectionModal from '../components/CollectionModal';
 import ItemCard from '../components/ItemCard';
 import AddExistingItemsModal from '../components/AddExistingItemsModal';
 import AddProductModal from '../components/AddProductModal';
+import AlertModal from '../components/AlertModal';
 import { useSettings } from '../context/SettingsContext';
 import { useAuth } from '../context/useAuth';
 import { API_URL } from '../config';
@@ -47,6 +48,7 @@ export default function Collections() {
     const [showAddExistingModal, setShowAddExistingModal] = useState(false);
     const [showAddProductModal, setShowAddProductModal] = useState(false);
     const [showPremiumModal, setShowPremiumModal] = useState(false);
+    const [paymentStatus, setPaymentStatus] = useState({ isOpen: false, success: false, title: '', message: '' });
 
     // Drill-down state
     const [activeCollection, setActiveCollection] = useState(null);
@@ -77,10 +79,19 @@ export default function Collections() {
                     });
                     const verificationData = await verificationRes.json();
                     if (verificationData.success) {
-                        alert('Payment Successful! Please re-login to activate your Premium features.');
-                        setShowPremiumModal(false);
+                        setPaymentStatus({
+                            isOpen: true,
+                            success: true,
+                            title: 'wishflowlist.vercel.app says',
+                            message: 'Payment Successful! Please relogin to activate your Premium features.'
+                        });
                     } else {
-                        alert('Payment verification failed.');
+                        setPaymentStatus({
+                            isOpen: true,
+                            success: false,
+                            title: 'Payment Verification Failed',
+                            message: 'We could not verify your payment. Please contact support.'
+                        });
                     }
                 },
                 theme: { color: 'var(--primary)' }
@@ -88,12 +99,22 @@ export default function Collections() {
 
             const rzp = new window.Razorpay(options);
             rzp.on('payment.failed', function (response) {
-                alert('Payment Failed. Please try again.');
+                setPaymentStatus({
+                    isOpen: true,
+                    success: false,
+                    title: 'Payment Failed',
+                    message: 'Payment Failed. Please try again.'
+                });
             });
             rzp.open();
         } catch (error) {
             console.error(error);
-            alert("Payment initiation failed. Please check your backend.");
+            setPaymentStatus({
+                isOpen: true,
+                success: false,
+                title: 'Error',
+                message: 'Payment initiation failed. Please check your backend.'
+            });
         }
     };
 
@@ -739,6 +760,18 @@ export default function Collections() {
             )}
 
             <style>{`@keyframes fadeInUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }`}</style>
+            <AlertModal
+                isOpen={paymentStatus.isOpen}
+                title={paymentStatus.title}
+                message={paymentStatus.message}
+                onConfirm={() => {
+                    setPaymentStatus({ ...paymentStatus, isOpen: false });
+                    if (paymentStatus.success) {
+                        setShowPremiumModal(false);
+                        window.location.reload();
+                    }
+                }}
+            />
         </div>
     );
 }

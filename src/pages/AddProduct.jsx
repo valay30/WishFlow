@@ -5,6 +5,7 @@ import { Upload, X, ArrowLeft, Sparkles, Crown } from 'lucide-react';
 import { useAuth } from '../context/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { API_URL } from '../config';
+import AlertModal from '../components/AlertModal';
 
 export default function AddProduct() {
     const navigate = useNavigate();
@@ -17,6 +18,7 @@ export default function AddProduct() {
     const [categories, setCategories] = useState([]);
     const [itemCount, setItemCount] = useState(0);
     const [showPremiumModal, setShowPremiumModal] = useState(false);
+    const [paymentStatus, setPaymentStatus] = useState({ isOpen: false, success: false, title: '', message: '' });
 
     useEffect(() => {
         const loadInitialData = async () => {
@@ -56,11 +58,19 @@ export default function AddProduct() {
                     });
                     const verificationData = await verificationRes.json();
                     if (verificationData.success) {
-                        alert('Payment Successful! Please re-login to activate your Premium features.');
-                        setShowPremiumModal(false);
-                        navigate('/profile');
+                        setPaymentStatus({
+                            isOpen: true,
+                            success: true,
+                            title: 'wishflowlist.vercel.app says',
+                            message: 'Payment Successful! Please relogin to activate your Premium features.'
+                        });
                     } else {
-                        alert('Payment verification failed.');
+                        setPaymentStatus({
+                            isOpen: true,
+                            success: false,
+                            title: 'Payment Verification Failed',
+                            message: 'We could not verify your payment. Please contact support.'
+                        });
                     }
                 },
                 theme: { color: 'var(--primary)' }
@@ -68,12 +78,22 @@ export default function AddProduct() {
 
             const rzp = new window.Razorpay(options);
             rzp.on('payment.failed', function (response) {
-                alert('Payment Failed. Please try again.');
+                setPaymentStatus({
+                    isOpen: true,
+                    success: false,
+                    title: 'Payment Failed',
+                    message: 'Payment Failed. Please try again.'
+                });
             });
             rzp.open();
         } catch (error) {
             console.error(error);
-            alert("Payment initiation failed. Please check your backend.");
+            setPaymentStatus({
+                isOpen: true,
+                success: false,
+                title: 'Error',
+                message: 'Payment initiation failed. Please check your backend.'
+            });
         }
     };
 
@@ -268,6 +288,19 @@ export default function AddProduct() {
                 </div>,
                 document.body
             )}
+            
+            <AlertModal
+                isOpen={paymentStatus.isOpen}
+                title={paymentStatus.title}
+                message={paymentStatus.message}
+                onConfirm={() => {
+                    setPaymentStatus({ ...paymentStatus, isOpen: false });
+                    if (paymentStatus.success) {
+                        setShowPremiumModal(false);
+                        navigate('/profile');
+                    }
+                }}
+            />
         </div>
     );
 }

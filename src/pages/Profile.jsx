@@ -5,6 +5,7 @@ import { LogOut, User, ArrowLeft, Settings, Shield, ShieldCheck, Bell, LayoutGri
 import { useSettings } from '../context/SettingsContext';
 import { db } from '../db';
 import TierBadgeCard from '../components/TierBadgeCard';
+import AlertModal from '../components/AlertModal';
 import { API_URL } from '../config';
 
 const ORANGE = 'var(--primary)';
@@ -27,6 +28,7 @@ export default function Profile() {
     const { viewMode, setViewMode, colorTheme, setColorTheme, darkMode, setDarkMode } = useSettings();
     const navigate = useNavigate();
     const [showGeneral, setShowGeneral] = useState(false);
+    const [paymentStatus, setPaymentStatus] = useState({ isOpen: false, success: false, title: '', message: '' });
 
     const handleLogout = () => {
         logout();
@@ -60,10 +62,19 @@ export default function Profile() {
                     });
                     const verificationData = await verificationRes.json();
                     if (verificationData.success) {
-                        alert('Payment Successful! Please re-login to activate your Premium features.');
-                        window.location.reload();
+                        setPaymentStatus({
+                            isOpen: true,
+                            success: true,
+                            title: 'wishflowlist.vercel.app says',
+                            message: 'Payment Successful! Please relogin to activate your Premium features.'
+                        });
                     } else {
-                        alert('Payment verification failed.');
+                        setPaymentStatus({
+                            isOpen: true,
+                            success: false,
+                            title: 'Payment Verification Failed',
+                            message: 'We could not verify your payment. Please contact support.'
+                        });
                     }
                 },
                 theme: { color: "#10367D" }
@@ -71,12 +82,22 @@ export default function Profile() {
 
             const rzp = new window.Razorpay(options);
             rzp.on('payment.failed', function (response) {
-                alert('Payment Failed. Please try again.');
+                setPaymentStatus({
+                    isOpen: true,
+                    success: false,
+                    title: 'Payment Failed',
+                    message: 'Payment Failed. Please try again.'
+                });
             });
             rzp.open();
         } catch (error) {
             console.error(error);
-            alert("Payment initiation failed. Please check your backend.");
+            setPaymentStatus({
+                isOpen: true,
+                success: false,
+                title: 'Error',
+                message: 'Payment initiation failed. Please check your backend.'
+            });
         }
     };
 
@@ -418,6 +439,17 @@ export default function Profile() {
                     to { opacity: 1; transform: translateY(0); }
                 }
             `}</style>
+            <AlertModal
+                isOpen={paymentStatus.isOpen}
+                title={paymentStatus.title}
+                message={paymentStatus.message}
+                onConfirm={() => {
+                    setPaymentStatus({ ...paymentStatus, isOpen: false });
+                    if (paymentStatus.success) {
+                        window.location.reload();
+                    }
+                }}
+            />
         </div>
     );
 }
