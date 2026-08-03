@@ -186,7 +186,7 @@ export default function CollectionModal({ existing = null, onSave, onDelete, onC
                                 type="submit" disabled={saving}
                                 style={{ flex: 2, padding: '0.9rem', background: saving ? 'rgba(var(--primary-rgb),0.5)' : ORANGE, color: '#fff', border: 'none', borderRadius: '14px', fontWeight: 800, fontSize: '0.95rem', cursor: saving ? 'wait' : 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', boxShadow: '0 4px 16px rgba(var(--primary-rgb),0.4)' }}
                             >
-                                <Sparkles size={17} /> {existing ? 'Save Changes' : 'Create Collection'}
+                                {existing ? 'Save Changes' : 'Create Collection'}
                             </button>
                         </div>
                     </form>
