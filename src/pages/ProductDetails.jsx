@@ -4,6 +4,7 @@ import { db } from '../db';
 import { Trash2, Edit, ArrowLeft, ExternalLink, Upload, X, Check, PackageCheck } from 'lucide-react';
 import { uploadToImageKit } from '../utils/imagekit';
 import AlertModal from '../components/AlertModal';
+import { useSettings } from '../context/SettingsContext';
 
 const BLUE = 'var(--primary)';
 const SURFACE = 'var(--surface)';
@@ -28,6 +29,7 @@ const LABEL_ST = {
 export default function ProductDetails() {
     const { id } = useParams();
     const navigate = useNavigate();
+    const { currency } = useSettings();
     const [item, setItem] = useState(null);
     const [availableCategories, setAvailableCategories] = useState([]);
     const [isEditing, setIsEditing] = useState(false);
@@ -155,219 +157,220 @@ export default function ProductDetails() {
     );
 
     const categoryName = availableCategories.find(c => c.id === item.category_id)?.name || 'Uncategorized';
-    const price = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 2 }).format(item.price);
+    const price = new Intl.NumberFormat(undefined, { style: 'currency', currency: currency || 'INR', maximumFractionDigits: 2 }).format(item.price);
+    const currencySymbol = new Intl.NumberFormat(undefined, { style: 'currency', currency: currency || 'INR' }).formatToParts(0).find(x => x.type === 'currency').value;
 
     if (isMobile) {
         return (
             <>
-            <div style={{ minHeight: '100%', background: BG, display: 'flex', flexDirection: 'column' }}>
-                {/* ── Hero Section (Image Showcase) ── */}
-                <div style={{
-                    background: `linear-gradient(160deg, var(--primary-dk) 0%, var(--primary-dk) 45%, var(--primary) 100%)`,
-                    padding: '2rem 1.5rem 4rem',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    position: 'relative',
-                    zIndex: 1
-                }}>
-                    <div style={{ width: '100%', maxWidth: '800px', display: 'flex', justifyContent: 'flex-start', marginBottom: '1.5rem' }}>
-                        <button onClick={() => navigate(-1)} style={{
-                            display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
-                            background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.2)',
-                            color: 'rgba(255,255,255,0.9)', fontWeight: 600, fontSize: '0.85rem',
-                            cursor: 'pointer', fontFamily: 'inherit',
-                            padding: '0.55rem 1.1rem', borderRadius: '99px',
-                            backdropFilter: 'blur(10px)',
-                            transition: 'all 0.2s ease',
-                        }}>
-                            <ArrowLeft size={15} /> Back
-                        </button>
-                    </div>
+                <div style={{ minHeight: '100%', background: BG, display: 'flex', flexDirection: 'column' }}>
+                    {/* ── Hero Section (Image Showcase) ── */}
                     <div style={{
-                        width: '240px', height: '240px',
-                        background: 'var(--surface)', borderRadius: '32px',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        boxShadow: '0 12px 40px rgba(0,0,0,0.15)',
-                        overflow: 'hidden'
+                        background: `linear-gradient(160deg, var(--primary-dk) 0%, var(--primary-dk) 45%, var(--primary) 100%)`,
+                        padding: '2rem 1.5rem 4rem',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        position: 'relative',
+                        zIndex: 1
                     }}>
-                        {item.image ? (
-                            <img src={item.image} alt={item.name} style={{ width: '85%', height: '85%', objectFit: 'contain' }} />
+                        <div style={{ width: '100%', maxWidth: '800px', display: 'flex', justifyContent: 'flex-start', marginBottom: '1.5rem' }}>
+                            <button onClick={() => navigate(-1)} style={{
+                                display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
+                                background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.2)',
+                                color: 'rgba(255,255,255,0.9)', fontWeight: 600, fontSize: '0.85rem',
+                                cursor: 'pointer', fontFamily: 'inherit',
+                                padding: '0.55rem 1.1rem', borderRadius: '99px',
+                                backdropFilter: 'blur(10px)',
+                                transition: 'all 0.2s ease',
+                            }}>
+                                <ArrowLeft size={15} /> Back
+                            </button>
+                        </div>
+                        <div style={{
+                            width: '240px', height: '240px',
+                            background: 'var(--surface)', borderRadius: '32px',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            boxShadow: '0 12px 40px rgba(0,0,0,0.15)',
+                            overflow: 'hidden'
+                        }}>
+                            {item.image ? (
+                                <img src={item.image} alt={item.name} style={{ width: '85%', height: '85%', objectFit: 'contain' }} />
+                            ) : (
+                                <div style={{ fontSize: '4.5rem', opacity: 0.25 }}>🛍️</div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* ── Content Sheet ── */}
+                    <div style={{
+                        flex: 1,
+                        background: BG,
+                        borderRadius: '32px 32px 0 0',
+                        padding: '1.5rem',
+                        paddingBottom: 'calc(var(--bottom-nav) + 4rem)',
+                        marginTop: '-32px',
+                        zIndex: 10,
+                        position: 'relative',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '1.5rem'
+                    }}>
+                        {isEditing ? (
+                            <div style={{ background: 'var(--surface)', borderRadius: '24px', padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.25rem', boxShadow: '0 4px 20px rgba(0,0,0,0.03)' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.25rem' }}>
+                                    <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: `rgba(var(--primary-rgb),0.07)`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: BLUE }}>
+                                        <Edit size={19} />
+                                    </div>
+                                    <h3 style={{ fontWeight: 900, fontSize: '1.2rem', color: 'var(--text)', margin: 0 }}>Edit Details</h3>
+                                </div>
+                                <div>
+                                    <label style={LABEL_ST}>Product Name</label>
+                                    <input style={INPUT_ST} value={editName} onChange={e => setEditName(e.target.value)} onFocus={focus} onBlur={blur} />
+                                </div>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                                    <div>
+                                        <label style={LABEL_ST}>Price ({currencySymbol})</label>
+                                        <input style={INPUT_ST} type="number" step="0.01" value={editPrice} onChange={e => setEditPrice(e.target.value)} onFocus={focus} onBlur={blur} />
+                                    </div>
+                                    <div>
+                                        <label style={LABEL_ST}>Category</label>
+                                        <select style={{ ...INPUT_ST, appearance: 'none' }} value={editCategoryId} onChange={e => setEditCategoryId(e.target.value)} onFocus={focus} onBlur={blur}>
+                                            <option value="">Select Category</option>
+                                            {availableCategories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                                        </select>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label style={LABEL_ST}>Product Link</label>
+                                    <input style={INPUT_ST} type="url" placeholder="https://..." value={editLink} onChange={e => setEditLink(e.target.value)} onFocus={focus} onBlur={blur} />
+                                </div>
+                                <div>
+                                    <label style={LABEL_ST}>Change Image</label>
+                                    <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                                        <label style={{
+                                            flex: 1, padding: '0.9rem', background: 'var(--surface-2)', border: `2px dashed ${BORDER}`,
+                                            borderRadius: '12px', textAlign: 'center', cursor: isUploading ? 'wait' : 'pointer',
+                                            transition: 'all 0.2s', color: 'var(--text-dim)', fontSize: '0.9rem', fontWeight: 600,
+                                        }}
+                                            onMouseEnter={e => e.currentTarget.style.borderColor = BLUE}
+                                            onMouseLeave={e => e.currentTarget.style.borderColor = BORDER}
+                                        >
+                                            {isUploading ? <span style={{ fontWeight: 700, color: BLUE }}>Uploading...</span> : <><Upload size={17} style={{ verticalAlign: 'middle', marginRight: '6px' }} />Upload New</>}
+                                            <input type="file" accept="image/*" hidden onChange={handleImageUpload} disabled={isUploading} />
+                                        </label>
+                                        {editImage && (
+                                            <div style={{ position: 'relative', width: '56px', height: '56px', borderRadius: '10px', overflow: 'hidden', border: `1px solid ${BORDER}`, flexShrink: 0 }}>
+                                                <img src={editImage} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                                <button onClick={() => setEditImage('')} style={{ position: 'absolute', top: 2, right: 2, background: 'rgba(239,68,68,0.9)', color: '#fff', border: 'none', borderRadius: '50%', width: '16px', height: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}><X size={9} /></button>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                                <div style={{ display: 'flex', gap: '0.75rem', paddingTop: '0.25rem' }}>
+                                    <button onClick={handleSave} disabled={isUploading} style={{
+                                        flex: 2, padding: '0.95rem', background: BLUE, color: '#fff', border: 'none', borderRadius: '14px',
+                                        fontWeight: 800, fontSize: '0.95rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
+                                        cursor: 'pointer', boxShadow: '0 6px 20px rgba(var(--primary-rgb),0.3)',
+                                    }}><Check size={17} strokeWidth={3} /> Save Details</button>
+                                    <button onClick={() => setIsEditing(false)} style={{
+                                        flex: 1, padding: '0.95rem', background: 'var(--surface-2)', color: 'var(--text-dim)', border: 'none', borderRadius: '14px',
+                                        fontWeight: 700, cursor: 'pointer', fontSize: '0.95rem', fontFamily: 'inherit',
+                                    }}>Cancel</button>
+                                </div>
+                            </div>
                         ) : (
-                            <div style={{ fontSize: '4.5rem', opacity: 0.25 }}>🛍️</div>
+                            <div style={{
+                                background: 'var(--surface)', borderRadius: '28px', padding: '1.5rem', boxShadow: '0 4px 20px rgba(0,0,0,0.03)'
+                            }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
+                                    <span style={{ display: 'inline-block', background: '#E6F4EA', color: '#137333', padding: '0.35rem 0.8rem', borderRadius: '8px', fontSize: '0.65rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                                        {categoryName}
+                                    </span>
+                                    <div style={{ textAlign: 'right' }}>
+                                        <p style={{ fontSize: '1.5rem', fontWeight: 900, color: BLUE, margin: 0 }}>
+                                            {price}
+                                        </p>
+                                    </div>
+                                </div>
+                                <h1 style={{ fontSize: '1.7rem', fontWeight: 900, color: 'var(--text)', margin: 0, lineHeight: 1.1 }}>
+                                    {item.name}
+                                </h1>
+                            </div>
+                        )}
+
+                        {!isEditing && (
+                            <>
+                                <a href={item.link || '#'} target={item.link ? '_blank' : '_self'} rel="noopener noreferrer"
+                                    onClick={e => { if (!item.link) e.preventDefault(); }}
+                                    style={{
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
+                                        padding: '1rem', background: item.link ? BLUE : 'var(--border)',
+                                        color: '#fff', borderRadius: '16px', fontWeight: 800, fontSize: '0.95rem',
+                                        textDecoration: 'none', cursor: item.link ? 'pointer' : 'default',
+                                        boxShadow: item.link ? '0 8px 25px rgba(var(--primary-rgb),0.25)' : 'none'
+                                    }}>
+                                    <ExternalLink size={18} /> {item.link ? 'Visit Product Page' : 'No link available'} {item.link && '→'}
+                                </a>
+
+                                {!item.is_purchased && (
+                                    <button onClick={handlePurchase} style={{
+                                        padding: '1rem', background: '#f0fdf4', color: '#16a34a', border: '1px solid #bbf7d0',
+                                        borderRadius: '16px', fontWeight: 800, fontSize: '0.95rem',
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', cursor: 'pointer',
+                                    }}>
+                                        <PackageCheck size={18} /> Mark as Purchased
+                                    </button>
+                                )}
+
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                                    <button
+                                        type="button"
+                                        onClick={(e) => { e.stopPropagation(); setIsEditing(true); }}
+                                        style={{
+                                            padding: '0.9rem', background: 'var(--surface-2)', color: 'var(--text-muted)', border: 'none',
+                                            borderRadius: '14px', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', cursor: 'pointer',
+                                            touchAction: 'manipulation'
+                                        }}
+                                    >
+                                        <Edit size={16} /> Edit
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={(e) => { e.stopPropagation(); handleDelete(); }}
+                                        style={{
+                                            padding: '0.9rem', background: '#fef2f2', color: '#ef4444', border: 'none',
+                                            borderRadius: '14px', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', cursor: 'pointer',
+                                            touchAction: 'manipulation'
+                                        }}
+                                    >
+                                        <Trash2 size={16} /> Delete
+                                    </button>
+                                </div>
+
+                                {item.link && (
+                                    <div style={{ background: 'var(--surface-2)', borderRadius: '14px', padding: '1rem', display: 'flex', alignItems: 'center', gap: '0.75rem', border: '1px solid var(--border)' }}>
+                                        <ExternalLink size={16} color="#9CA3AF" style={{ flexShrink: 0 }} />
+                                        <span style={{ fontSize: '0.85rem', color: 'var(--text-dim)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                            Source: {item.link.replace(/^https?:\/\//, '')}
+                                        </span>
+                                    </div>
+                                )}
+                            </>
                         )}
                     </div>
                 </div>
 
-                {/* ── Content Sheet ── */}
-                <div style={{
-                    flex: 1,
-                    background: BG,
-                    borderRadius: '32px 32px 0 0',
-                    padding: '1.5rem',
-                    paddingBottom: 'calc(var(--bottom-nav) + 4rem)',
-                    marginTop: '-32px',
-                    zIndex: 10,
-                    position: 'relative',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '1.5rem'
-                }}>
-                    {isEditing ? (
-                        <div style={{ background: 'var(--surface)', borderRadius: '24px', padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.25rem', boxShadow: '0 4px 20px rgba(0,0,0,0.03)' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.25rem' }}>
-                                <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: `rgba(var(--primary-rgb),0.07)`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: BLUE }}>
-                                    <Edit size={19} />
-                                </div>
-                                <h3 style={{ fontWeight: 900, fontSize: '1.2rem', color: 'var(--text)', margin: 0 }}>Edit Details</h3>
-                            </div>
-                            <div>
-                                <label style={LABEL_ST}>Product Name</label>
-                                <input style={INPUT_ST} value={editName} onChange={e => setEditName(e.target.value)} onFocus={focus} onBlur={blur} />
-                            </div>
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                                <div>
-                                    <label style={LABEL_ST}>Price (₹)</label>
-                                    <input style={INPUT_ST} type="number" step="0.01" value={editPrice} onChange={e => setEditPrice(e.target.value)} onFocus={focus} onBlur={blur} />
-                                </div>
-                                <div>
-                                    <label style={LABEL_ST}>Category</label>
-                                    <select style={{ ...INPUT_ST, appearance: 'none' }} value={editCategoryId} onChange={e => setEditCategoryId(e.target.value)} onFocus={focus} onBlur={blur}>
-                                        <option value="">Select Category</option>
-                                        {availableCategories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                                    </select>
-                                </div>
-                            </div>
-                            <div>
-                                <label style={LABEL_ST}>Product Link</label>
-                                <input style={INPUT_ST} type="url" placeholder="https://..." value={editLink} onChange={e => setEditLink(e.target.value)} onFocus={focus} onBlur={blur} />
-                            </div>
-                            <div>
-                                <label style={LABEL_ST}>Change Image</label>
-                                <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-                                    <label style={{
-                                        flex: 1, padding: '0.9rem', background: 'var(--surface-2)', border: `2px dashed ${BORDER}`,
-                                        borderRadius: '12px', textAlign: 'center', cursor: isUploading ? 'wait' : 'pointer',
-                                        transition: 'all 0.2s', color: 'var(--text-dim)', fontSize: '0.9rem', fontWeight: 600,
-                                    }}
-                                        onMouseEnter={e => e.currentTarget.style.borderColor = BLUE}
-                                        onMouseLeave={e => e.currentTarget.style.borderColor = BORDER}
-                                    >
-                                        {isUploading ? <span style={{ fontWeight: 700, color: BLUE }}>Uploading...</span> : <><Upload size={17} style={{ verticalAlign: 'middle', marginRight: '6px' }} />Upload New</>}
-                                        <input type="file" accept="image/*" hidden onChange={handleImageUpload} disabled={isUploading} />
-                                    </label>
-                                    {editImage && (
-                                        <div style={{ position: 'relative', width: '56px', height: '56px', borderRadius: '10px', overflow: 'hidden', border: `1px solid ${BORDER}`, flexShrink: 0 }}>
-                                            <img src={editImage} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                            <button onClick={() => setEditImage('')} style={{ position: 'absolute', top: 2, right: 2, background: 'rgba(239,68,68,0.9)', color: '#fff', border: 'none', borderRadius: '50%', width: '16px', height: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}><X size={9} /></button>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                            <div style={{ display: 'flex', gap: '0.75rem', paddingTop: '0.25rem' }}>
-                                <button onClick={handleSave} disabled={isUploading} style={{
-                                    flex: 2, padding: '0.95rem', background: BLUE, color: '#fff', border: 'none', borderRadius: '14px',
-                                    fontWeight: 800, fontSize: '0.95rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
-                                    cursor: 'pointer', boxShadow: '0 6px 20px rgba(var(--primary-rgb),0.3)',
-                                }}><Check size={17} strokeWidth={3} /> Save Details</button>
-                                <button onClick={() => setIsEditing(false)} style={{
-                                    flex: 1, padding: '0.95rem', background: 'var(--surface-2)', color: 'var(--text-dim)', border: 'none', borderRadius: '14px',
-                                    fontWeight: 700, cursor: 'pointer', fontSize: '0.95rem', fontFamily: 'inherit',
-                                }}>Cancel</button>
-                            </div>
-                        </div>
-                    ) : (
-                        <div style={{
-                            background: 'var(--surface)', borderRadius: '28px', padding: '1.5rem', boxShadow: '0 4px 20px rgba(0,0,0,0.03)'
-                        }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
-                                <span style={{ display: 'inline-block', background: '#E6F4EA', color: '#137333', padding: '0.35rem 0.8rem', borderRadius: '8px', fontSize: '0.65rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                                    {categoryName}
-                                </span>
-                                <div style={{ textAlign: 'right' }}>
-                                    <p style={{ fontSize: '1.5rem', fontWeight: 900, color: BLUE, margin: 0 }}>
-                                        {price}
-                                    </p>
-                                </div>
-                            </div>
-                            <h1 style={{ fontSize: '1.7rem', fontWeight: 900, color: 'var(--text)', margin: 0, lineHeight: 1.1 }}>
-                                {item.name}
-                            </h1>
-                        </div>
-                    )}
-
-                    {!isEditing && (
-                        <>
-                            <a href={item.link || '#'} target={item.link ? '_blank' : '_self'} rel="noopener noreferrer"
-                                onClick={e => { if (!item.link) e.preventDefault(); }}
-                                style={{
-                                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
-                                    padding: '1rem', background: item.link ? BLUE : 'var(--border)',
-                                    color: '#fff', borderRadius: '16px', fontWeight: 800, fontSize: '0.95rem',
-                                    textDecoration: 'none', cursor: item.link ? 'pointer' : 'default',
-                                    boxShadow: item.link ? '0 8px 25px rgba(var(--primary-rgb),0.25)' : 'none'
-                                }}>
-                                <ExternalLink size={18} /> {item.link ? 'Visit Product Page' : 'No link available'} {item.link && '→'}
-                            </a>
-
-                            {!item.is_purchased && (
-                                <button onClick={handlePurchase} style={{
-                                    padding: '1rem', background: '#f0fdf4', color: '#16a34a', border: '1px solid #bbf7d0',
-                                    borderRadius: '16px', fontWeight: 800, fontSize: '0.95rem',
-                                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', cursor: 'pointer',
-                                }}>
-                                    <PackageCheck size={18} /> Mark as Purchased
-                                </button>
-                            )}
-
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-                                <button
-                                    type="button"
-                                    onClick={(e) => { e.stopPropagation(); setIsEditing(true); }}
-                                    style={{
-                                        padding: '0.9rem', background: 'var(--surface-2)', color: 'var(--text-muted)', border: 'none',
-                                        borderRadius: '14px', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', cursor: 'pointer',
-                                        touchAction: 'manipulation'
-                                    }}
-                                >
-                                    <Edit size={16} /> Edit
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={(e) => { e.stopPropagation(); handleDelete(); }}
-                                    style={{
-                                        padding: '0.9rem', background: '#fef2f2', color: '#ef4444', border: 'none',
-                                        borderRadius: '14px', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', cursor: 'pointer',
-                                        touchAction: 'manipulation'
-                                    }}
-                                >
-                                    <Trash2 size={16} /> Delete
-                                </button>
-                            </div>
-
-                            {item.link && (
-                                <div style={{ background: 'var(--surface-2)', borderRadius: '14px', padding: '1rem', display: 'flex', alignItems: 'center', gap: '0.75rem', border: '1px solid var(--border)' }}>
-                                    <ExternalLink size={16} color="#9CA3AF" style={{ flexShrink: 0 }} />
-                                    <span style={{ fontSize: '0.85rem', color: 'var(--text-dim)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                        Source: {item.link.replace(/^https?:\/\//, '')}
-                                    </span>
-                                </div>
-                            )}
-                        </>
-                    )}
-                </div>
-            </div>
-
-            <AlertModal
-                isOpen={showDeleteConfirm}
-                title="wishflowlist.vercel.app says"
-                message="Delete this item from your WishFlow?"
-                cancelText="Cancel"
-                confirmText="OK"
-                onCancel={() => setShowDeleteConfirm(false)}
-                onConfirm={confirmDelete}
-            />
-        </>
+                <AlertModal
+                    isOpen={showDeleteConfirm}
+                    title="wishflowlist.vercel.app says"
+                    message="Delete this item from your WishFlow?"
+                    cancelText="Cancel"
+                    confirmText="OK"
+                    onCancel={() => setShowDeleteConfirm(false)}
+                    onConfirm={confirmDelete}
+                />
+            </>
         );
     }
 
@@ -422,7 +425,7 @@ export default function ProductDetails() {
 
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                                 <div>
-                                    <label style={LABEL_ST}>Price (₹)</label>
+                                    <label style={LABEL_ST}>Price ({new Intl.NumberFormat(undefined, { style: 'currency', currency: currency || 'INR' }).formatToParts(0).find(x => x.type === 'currency').value})</label>
                                     <input style={INPUT_ST} type="number" step="0.01" value={editPrice} onChange={e => setEditPrice(e.target.value)} onFocus={focus} onBlur={blur} />
                                 </div>
                                 <div>

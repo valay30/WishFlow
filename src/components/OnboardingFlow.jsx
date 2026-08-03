@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { ShoppingBag, Star, Sparkles, ArrowRight } from 'lucide-react';
+import { useSettings } from '../context/SettingsContext';
 
 const SLIDES = [
     {
@@ -29,15 +30,22 @@ const SLIDES = [
 ];
 
 export default function OnboardingFlow({ onComplete }) {
+    const { currency } = useSettings();
     const [step, setStep] = useState(0);
     const [isAnimating, setIsAnimating] = useState(false);
     const [mounted, setMounted] = useState(false);
+
+    // Override body text for the premium slide with dynamic currency
+    const slide = { ...SLIDES[step] };
+    if (slide.id === 'premium') {
+        slide.body = `Upgrade to Premium for just ${new Intl.NumberFormat(undefined, { style: 'currency', currency: currency || 'INR', maximumFractionDigits: 0 }).format(100)}. Unlock unlimited items, dark mode, and priority support.`;
+    }
 
     useEffect(() => {
         setMounted(true);
     }, []);
 
-    const slide = SLIDES[step];
+
     const isLast = step === SLIDES.length - 1;
     const Icon = slide.icon;
 

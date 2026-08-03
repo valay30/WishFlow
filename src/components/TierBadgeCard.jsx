@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { Crown, ChevronDown, ChevronUp } from 'lucide-react';
 import PricingBanner from './PricingBanner';
+import { useSettings } from '../context/SettingsContext';
 
 export default function TierBadgeCard({ user, onUpgrade }) {
+    const { currency } = useSettings();
     const [isExpanded, setIsExpanded] = useState(false);
 
     return (
@@ -92,7 +94,7 @@ export default function TierBadgeCard({ user, onUpgrade }) {
                                 e.currentTarget.style.transform = 'translateY(0)';
                             }}
                         >
-                            Upgrade - ₹100
+                            Upgrade - {new Intl.NumberFormat(undefined, { style: 'currency', currency: currency || 'INR', maximumFractionDigits: 0 }).format(100)}
                         </button>
                     )}
                 </div>

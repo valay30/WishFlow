@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { X, Upload, Sparkles } from 'lucide-react';
 import { uploadToImageKit } from '../utils/imagekit';
 import { db } from '../db';
+import { useSettings } from '../context/SettingsContext';
 
 const ORANGE = 'var(--primary)';
 const SURFACE2 = 'var(--surface-2)';
@@ -24,6 +25,7 @@ const INPUT_ST = {
 
 export default function AddProductModal({ categories, onAdd, onClose }) {
     const [name, setName] = useState('');
+    const { currency } = useSettings();
     const [price, setPrice] = useState('');
     const [link, setLink] = useState('');
     const [image, setImage] = useState('');
@@ -87,7 +89,7 @@ export default function AddProductModal({ categories, onAdd, onClose }) {
                         </div>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
                             <div>
-                                <label style={LABEL_ST}>Price (₹)</label>
+                                <label style={LABEL_ST}>Price ({new Intl.NumberFormat(undefined, { style: 'currency', currency: currency || 'INR' }).formatToParts(0).find(x => x.type === 'currency').value})</label>
                                 <input style={INPUT_ST} type="number" step="0.01" required placeholder="0.00" value={price} onChange={e => setPrice(e.target.value)} onFocus={focus} onBlur={blur} />
                             </div>
                             <div>

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Search, Check, Sparkles } from 'lucide-react';
+import { useSettings } from '../context/SettingsContext';
 
 const ORANGE = 'var(--primary)';
 const BORDER = 'var(--border)';
@@ -8,6 +9,7 @@ const SURFACE2 = 'var(--surface-2)';
 
 export default function AddExistingItemsModal({ allItems, activeCollectionId, onAddItems, onClose }) {
     const [search, setSearch] = useState('');
+    const { currency } = useSettings();
     const [selectedIds, setSelectedIds] = useState(new Set());
     const [saving, setSaving] = useState(false);
 
@@ -128,7 +130,7 @@ export default function AddExistingItemsModal({ allItems, activeCollectionId, on
                                                 {item.name}
                                             </div>
                                             <div style={{ fontSize: '0.75rem', color: ORANGE, fontWeight: 700 }}>
-                                                ₹{item.price}
+                                                {new Intl.NumberFormat(undefined, { style: 'currency', currency: currency || 'INR', maximumFractionDigits: 2 }).format(item.price)}
                                             </div>
                                         </div>
                                     );

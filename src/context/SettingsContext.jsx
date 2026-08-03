@@ -15,6 +15,10 @@ export function SettingsProvider({ children }) {
         return localStorage.getItem('wishflow_dark_mode') === 'true';
     });
 
+    const [currency, setCurrencyState] = useState(() => {
+        return localStorage.getItem('wishflow_currency') || 'INR';
+    });
+
     const setColorTheme = (theme) => {
         setColorThemeState(theme);
         localStorage.setItem('wishflow_color_theme', theme);
@@ -23,6 +27,11 @@ export function SettingsProvider({ children }) {
     const setDarkMode = (isDark) => {
         setDarkModeState(isDark);
         localStorage.setItem('wishflow_dark_mode', isDark);
+    };
+
+    const setCurrency = (curr) => {
+        setCurrencyState(curr);
+        localStorage.setItem('wishflow_currency', curr);
     };
 
     useEffect(() => {
@@ -53,7 +62,7 @@ export function SettingsProvider({ children }) {
     }, []);
 
     return (
-        <SettingsContext.Provider value={{ viewMode, setViewMode, colorTheme, setColorTheme, darkMode, setDarkMode }}>
+        <SettingsContext.Provider value={{ viewMode, setViewMode, colorTheme, setColorTheme, darkMode, setDarkMode, currency, setCurrency }}>
             {children}
         </SettingsContext.Provider>
     );

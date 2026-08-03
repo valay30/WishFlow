@@ -1,6 +1,10 @@
 import { Check } from 'lucide-react';
+import { useSettings } from '../context/SettingsContext';
 
 export default function PricingBanner({ onUpgrade }) {
+    const { settings } = useSettings();
+    const currency = settings?.currency || '₹';
+
     return (
         <div style={{
             display: 'grid',
@@ -45,7 +49,7 @@ export default function PricingBanner({ onUpgrade }) {
 
                     <div style={{ display: 'flex', alignItems: 'baseline', flexWrap: 'nowrap' }}>
                         <span style={{ fontSize: '1.60rem', fontWeight: 800, color: '#0f172a', lineHeight: 1 }}>
-                            ₹0
+                            {new Intl.NumberFormat(undefined, { style: 'currency', currency: currency || 'INR', maximumFractionDigits: 0 }).format(0)}
                         </span>
                         <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#0f172a', marginLeft: '2px', whiteSpace: 'nowrap' }}>
                             /lifetime
@@ -126,7 +130,7 @@ export default function PricingBanner({ onUpgrade }) {
 
                     <div style={{ display: 'flex', alignItems: 'baseline', flexWrap: 'nowrap' }}>
                         <span style={{ fontSize: '1.60rem', fontWeight: 800, color: '#0f172a', lineHeight: 1 }}>
-                            ₹100
+                            {new Intl.NumberFormat(undefined, { style: 'currency', currency: currency || 'INR', maximumFractionDigits: 0 }).format(100)}
                         </span>
                         <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#0f172a', marginLeft: '2px', whiteSpace: 'nowrap' }}>
                             /lifetime

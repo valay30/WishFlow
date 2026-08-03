@@ -33,8 +33,9 @@ const GetCategoryIcon = ({ name, size = 16, color, className }) => {
 ══════════════════════════════════════ */
 export default function Home() {
     const { user } = useAuth();
-    const { viewMode } = useSettings();
+    const { viewMode, currency } = useSettings();
     const [searchParams, setSearchParams] = useSearchParams();
+    const navigate = useNavigate();
 
     const showAddModal = searchParams.get('add') === 'true';
     const selectedCategory = searchParams.get('category') ? parseInt(searchParams.get('category')) : null;
@@ -265,7 +266,7 @@ export default function Home() {
                         {[
                             { label: 'Items', val: items.filter(i => !i.is_purchased).length },
                             { label: 'Categories', val: categories.length },
-                            { label: 'Total', val: new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(items.filter(i => !i.is_purchased).reduce((s, i) => s + (i.price || 0), 0)) },
+                            { label: 'Total', val: new Intl.NumberFormat(undefined, { style: 'currency', currency: currency || 'INR', maximumFractionDigits: 0 }).format(items.filter(i => !i.is_purchased).reduce((s, i) => s + (i.price || 0), 0)) },
                         ].map(s => (
                             <div key={s.label} style={{ flex: 1, minWidth: 0, background: 'rgba(255,255,255,0.15)', borderRadius: '14px', padding: '0.65rem 0.65rem' }}>
                                 <p style={{ fontWeight: 900, fontSize: '1rem', color: '#fff', lineHeight: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.val}</p>
@@ -404,7 +405,7 @@ export default function Home() {
 
                         <h2 style={{ fontSize: '1.8rem', fontWeight: 900, marginBottom: '0.5rem', color: 'var(--text)' }}>Unlock Limitless</h2>
                         <p style={{ color: 'var(--text-dim)', marginBottom: '2rem', lineHeight: '1.5' }}>
-                            You have reached the free tier limit of 5 items. Upgrade to WishFlow Premium for ₹100 and add unlimited wishes forever!
+                            You have reached the free tier limit of 5 items. Upgrade to WishFlow Premium for {new Intl.NumberFormat(undefined, { style: 'currency', currency: currency || 'INR', maximumFractionDigits: 0 }).format(100)} and add unlimited wishes forever!
                         </p>
 
                         <button
@@ -417,7 +418,7 @@ export default function Home() {
                             onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
                             onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
                         >
-                            Upgrade for ₹100
+                            Upgrade for {new Intl.NumberFormat(undefined, { style: 'currency', currency: currency || 'INR', maximumFractionDigits: 0 }).format(100)}
                         </button>
 
                         <p style={{ marginTop: '1rem', fontSize: '0.8rem', color: 'var(--text-dim)' }}>One-time payment. Lifetime access.</p>

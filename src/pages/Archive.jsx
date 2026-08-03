@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { db } from '../db';
 import { Package, ArrowLeft, Trash2, RotateCcw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/useAuth';
+import { useSettings } from '../context/SettingsContext';
 import AlertModal from '../components/AlertModal';
 
 const ORANGE = 'var(--primary)';
@@ -10,6 +12,8 @@ const BORDER = 'var(--border)';
 const BG = 'var(--bg)';
 
 export default function Archive() {
+    const { user } = useAuth();
+    const { currency } = useSettings();
     const [purchasedItems, setPurchasedItems] = useState([]);
     const [categories, setCategories] = useState([]);
     const [deleteTargetId, setDeleteTargetId] = useState(null);
@@ -155,7 +159,7 @@ export default function Archive() {
                                                     {categories.find(c => c.id === item.category_id)?.name || 'Misc'}
                                                 </span>
                                                 <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-dim)' }}>
-                                                    ₹{item.price?.toLocaleString('en-IN')}
+                                                    {new Intl.NumberFormat(undefined, { style: 'currency', currency: currency || 'INR', maximumFractionDigits: 0 }).format(item.price)}
                                                 </span>
                                             </div>
                                         </div>

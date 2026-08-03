@@ -6,9 +6,11 @@ import { useAuth } from '../context/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { API_URL } from '../config';
 import AlertModal from '../components/AlertModal';
+import { useSettings } from '../context/SettingsContext';
 
 export default function AddProduct() {
     const navigate = useNavigate();
+    const { currency } = useSettings();
     const [name, setName] = useState('');
     const [price, setPrice] = useState('');
     const [link, setLink] = useState('');
@@ -168,7 +170,7 @@ export default function AddProduct() {
 
                     {/* Price */}
                     <div>
-                        <label style={labelSt}>Price ($)</label>
+                        <label style={labelSt}>Price ({new Intl.NumberFormat(undefined, { style: 'currency', currency: currency || 'INR' }).formatToParts(0).find(x => x.type === 'currency').value})</label>
                         <input className="input" type="number" step="0.01" value={price} onChange={e => setPrice(e.target.value)} required placeholder="0.00" />
                     </div>
 
@@ -257,30 +259,29 @@ export default function AddProduct() {
                             <X size={24} color="#666" />
                         </button>
 
-                        <div style={{
-                            width: '64px', height: '64px', background: 'linear-gradient(135deg, var(--primary), var(--primary-dk))',
-                            borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            margin: '0 auto 1.5rem', color: '#fff', boxShadow: '0 6px 20px rgba(var(--primary-rgb),0.3)'
-                        }}>
-                            <Crown size={32} />
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '48px', height: '48px', borderRadius: '16px', background: 'rgba(217,119,6,0.1)', color: '#d97706', marginBottom: '1rem', flexShrink: 0, margin: '0 auto 1.5rem' }}>
+                            <Crown size={24} />
                         </div>
 
-                        <h2 style={{ fontSize: '1.8rem', fontWeight: 900, marginBottom: '0.5rem', color: 'var(--text)' }}>Unlock Limitless</h2>
-                        <p style={{ color: 'var(--text-dim)', marginBottom: '2rem', lineHeight: '1.5' }}>
-                            You have reached the free tier limit of 5 items. Upgrade to WishFlow Premium for ₹100 and add unlimited wishes forever!
+                        <h3 style={{ margin: '0 0 0.5rem', fontWeight: 800, fontSize: '1.25rem', color: 'var(--text)' }}>Unlock Limitless Wishes</h3>
+                        <p style={{ margin: '0 0 1.25rem', color: 'var(--text-dim)', fontSize: '0.9rem', lineHeight: 1.5 }}>
+                            You have reached the free tier limit of 5 items. Upgrade to WishFlow Premium for {new Intl.NumberFormat(undefined, { style: 'currency', currency: currency || 'INR', maximumFractionDigits: 0 }).format(100)} and add unlimited wishes forever!
                         </p>
 
                         <button
                             onClick={handleUpgradeToPremium}
                             style={{
-                                width: '100%', padding: '1rem', background: 'linear-gradient(135deg, var(--primary), var(--primary-dk))',
-                                color: '#fff', border: 'none', borderRadius: '14px', fontWeight: 800, fontSize: '1.1rem',
-                                cursor: 'pointer', boxShadow: '0 8px 24px rgba(var(--primary-rgb),0.35)', transition: 'all 0.2s'
+                                width: '100%', padding: '0.85rem', borderRadius: '14px', border: 'none',
+                                background: 'linear-gradient(135deg, #f59e0b, #d97706)',
+                                color: '#fff', fontWeight: 700, fontSize: '0.95rem',
+                                cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
+                                boxShadow: '0 4px 12px rgba(217,119,6,0.3)', transition: 'all 0.2s'
                             }}
                             onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
                             onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
                         >
-                            Upgrade for ₹100
+                            <Crown size={18} />
+                            Upgrade for {new Intl.NumberFormat(undefined, { style: 'currency', currency: currency || 'INR', maximumFractionDigits: 0 }).format(100)}
                         </button>
 
                         <p style={{ marginTop: '1rem', fontSize: '0.8rem', color: 'var(--text-dim)' }}>One-time payment. Lifetime access.</p>
@@ -288,7 +289,7 @@ export default function AddProduct() {
                 </div>,
                 document.body
             )}
-            
+
             <AlertModal
                 isOpen={paymentStatus.isOpen}
                 title={paymentStatus.title}

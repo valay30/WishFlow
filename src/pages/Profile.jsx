@@ -25,9 +25,9 @@ const THEMES = [
 
 export default function Profile() {
     const { user, logout } = useAuth();
-    const { viewMode, setViewMode, colorTheme, setColorTheme, darkMode, setDarkMode } = useSettings();
+    const { viewMode, setViewMode, colorTheme, setColorTheme, darkMode, setDarkMode, currency, setCurrency } = useSettings();
     const navigate = useNavigate();
-    const [showGeneral, setShowGeneral] = useState(false);
+    const [showGeneral, setShowGeneral] = useState(() => typeof window !== 'undefined' ? window.innerWidth >= 768 : false);
     const [paymentStatus, setPaymentStatus] = useState({ isOpen: false, success: false, title: '', message: '' });
 
     const handleLogout = () => {
@@ -175,12 +175,12 @@ export default function Profile() {
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem', marginBottom: '2rem' }}>
                         {[
                             ...(user?.isAdmin ? [{ icon: ShieldCheck, label: 'Admin Panel', id: 'admin' }] : []),
-                            { icon: ListIcon, label: 'Categories Lists', id: 'lists' },
-                            { icon: FolderHeart, label: 'My Collections', id: 'collections' },
+                            { icon: ListIcon, label: 'Categories Lists', id: 'lists', hideOnDesktop: true },
+                            { icon: FolderHeart, label: 'My Collections', id: 'collections', hideOnDesktop: true },
                             //{ icon: User, label: 'Account Details', id: 'account' },
                             { icon: Settings, label: 'General Settings', id: 'general' },
                         ].map((item, i) => (
-                            <div key={item.id} style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem', animation: `fadeInUp 0.4s ease-out ${i * 0.05}s backwards` }}>
+                            <div key={item.id} className={item.hideOnDesktop ? 'hide-on-desktop' : ''} style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem', animation: `fadeInUp 0.4s ease-out ${i * 0.05}s backwards` }}>
                                 <button
                                     onClick={() => {
                                         if (item.id === 'admin') navigate('/admin');
@@ -283,6 +283,38 @@ export default function Profile() {
                                                 >
                                                     <ListIcon size={16} /> List
                                                 </button>
+                                            </div>
+                                        </div>
+
+                                        {/* Currency Selection */}
+                                        <div style={{ borderTop: `1px solid ${BORDER}`, paddingTop: '1rem' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                                <div>
+                                                    <p style={{ margin: 0, fontWeight: 800, fontSize: '0.95rem', color: 'var(--text)' }}>Currency</p>
+                                                    <p style={{ margin: '0.1rem 0 0', fontSize: '0.82rem', color: 'var(--text-dim)' }}>Default currency for your items</p>
+                                                </div>
+                                                <select
+                                                    value={currency}
+                                                    onChange={(e) => setCurrency(e.target.value)}
+                                                    style={{
+                                                        padding: '0.5rem 1rem',
+                                                        borderRadius: '12px',
+                                                        background: 'var(--surface-2)',
+                                                        border: '1px solid var(--border)',
+                                                        color: 'var(--text)',
+                                                        fontWeight: 700,
+                                                        fontSize: '0.9rem',
+                                                        outline: 'none',
+                                                        cursor: 'pointer'
+                                                    }}
+                                                >
+                                                    <option value="INR">₹ INR</option>
+                                                    <option value="USD">$ USD</option>
+                                                    <option value="EUR">€ EUR</option>
+                                                    <option value="GBP">£ GBP</option>
+                                                    <option value="AUD">A$ AUD</option>
+                                                    <option value="CAD">C$ CAD</option>
+                                                </select>
                                             </div>
                                         </div>
 
@@ -437,6 +469,9 @@ export default function Profile() {
                 @keyframes fadeInUp {
                     from { opacity: 0; transform: translateY(24px); }
                     to { opacity: 1; transform: translateY(0); }
+                }
+                @media (min-width: 768px) {
+                    .hide-on-desktop { display: none !important; }
                 }
             `}</style>
             <AlertModal

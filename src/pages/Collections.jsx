@@ -33,9 +33,11 @@ const fmt = (n) => new Intl.NumberFormat('en-IN', { style: 'currency', currency:
 ══════════════════════════════════════ */
 export default function Collections() {
     const navigate = useNavigate();
-    const { user } = useAuth();
-    const { viewMode } = useSettings();
+    const { user, isPremium } = useAuth();
+    const { viewMode, currency } = useSettings();
 
+    const fmt = (n) => new Intl.NumberFormat(undefined, { style: 'currency', currency: currency || 'INR', maximumFractionDigits: 0 }).format(n);
+    
     const [collections, setCollections] = useState([]);
     const [items, setItems] = useState([]);
     const [categories, setCategories] = useState([]);
@@ -335,17 +337,13 @@ export default function Collections() {
                                 <X size={24} color="#666" />
                             </button>
 
-                            <div style={{
-                                width: '64px', height: '64px', background: 'linear-gradient(135deg, var(--primary), var(--primary-dk))',
-                                borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                margin: '0 auto 1.5rem', color: '#fff', boxShadow: '0 6px 20px rgba(var(--primary-rgb),0.3)'
-                            }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '48px', height: '48px', borderRadius: '16px', background: 'rgba(217,119,6,0.1)', color: '#d97706', marginBottom: '1rem', flexShrink: 0, margin: '0 auto 1.5rem' }}>
                                 <Crown size={32} />
                             </div>
 
-                            <h2 style={{ fontSize: '1.8rem', fontWeight: 900, marginBottom: '0.5rem', color: 'var(--text)' }}>Unlock Limitless</h2>
+                            <h2 style={{ fontSize: '1.8rem', fontWeight: 900, marginBottom: '0.5rem', color: 'var(--text)' }}>Unlock Limitless Collections</h2>
                             <p style={{ color: 'var(--text-dim)', marginBottom: '2rem', lineHeight: '1.5' }}>
-                                You have reached the free tier limit of 5 items. Upgrade to WishFlow Premium for ₹100 and add unlimited wishes forever!
+                                You have reached the free tier limit of 5 items. Upgrade to WishFlow Premium for {fmt(100)} and add unlimited wishes forever!
                             </p>
 
                             <button
@@ -579,7 +577,7 @@ export default function Collections() {
                                                         {colItems.length} {colItems.length === 1 ? 'item' : 'items'}
                                                     </span>
                                                     <span style={{ fontSize: '0.9rem', color: ORANGE, fontWeight: 900 }}>
-                                                        {colItems.length > 0 ? fmt(totalValue) : '₹0'}
+                                                        {colItems.length > 0 ? fmt(totalValue) : fmt(0)}
                                                     </span>
                                                 </div>
                                             </div>

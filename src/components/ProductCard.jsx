@@ -1,12 +1,14 @@
 import { useNavigate } from 'react-router-dom';
 import { ChevronRight, ExternalLink, Check } from 'lucide-react';
+import { useSettings } from '../context/SettingsContext';
 
 const ORANGE = 'var(--primary)';
 
 /* Used on non-home pages (search results etc.) — horizontal list style */
 export default function ProductCard({ item, categoryName, onTogglePurchased }) {
     const navigate = useNavigate();
-    const price = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 2 }).format(item.price);
+    const { currency } = useSettings();
+    const price = new Intl.NumberFormat(undefined, { style: 'currency', currency: currency || 'INR', maximumFractionDigits: 2 }).format(item.price);
 
     return (
         <div

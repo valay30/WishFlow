@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, Check } from 'lucide-react';
+import { useSettings } from '../context/SettingsContext';
 
 const ORANGE = 'var(--primary)';
 const SURFACE = 'var(--surface)';
@@ -7,7 +8,8 @@ const BORDER = 'var(--border)';
 
 export default function ItemCard({ item, categoryName, onRemove, onTogglePurchased }) {
     const navigate = useNavigate();
-    const price = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 2 }).format(item.price);
+    const { currency } = useSettings();
+    const price = new Intl.NumberFormat(undefined, { style: 'currency', currency: currency || 'INR', maximumFractionDigits: 2 }).format(item.price);
 
     return (
         <div
