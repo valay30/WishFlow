@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Crown, ChevronDown, ChevronUp } from 'lucide-react';
-import PremiumComparison from './PremiumComparison';
+import PricingBanner from './PricingBanner';
 
 export default function TierBadgeCard({ user, onUpgrade }) {
     const [isExpanded, setIsExpanded] = useState(false);
@@ -130,7 +130,7 @@ export default function TierBadgeCard({ user, onUpgrade }) {
                     overflow: 'hidden'
                 }}>
                     <div style={{ padding: '0 1rem' }}>
-                        <PremiumComparison inline={true} />
+                        <PricingBanner onUpgrade={onUpgrade} />
                     </div>
                 </div>
             )}
