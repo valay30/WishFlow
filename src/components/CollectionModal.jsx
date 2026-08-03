@@ -125,7 +125,7 @@ export default function CollectionModal({ existing = null, onSave, onDelete, onC
                                             border: `1px solid ${BORDER}`,
                                             padding: '0.75rem',
                                             display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)',
-                                            gap: '0.35rem', width: '220px',
+                                            gap: '0.35rem', width: '250px',
                                         }}>
                                             {EMOJI_PRESETS.map(e => (
                                                 <button

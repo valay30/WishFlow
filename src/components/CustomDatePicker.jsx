@@ -124,21 +124,31 @@ export default function CustomDatePicker({ value, onChange, placeholder = "Selec
         year: 'numeric'
     }) : '';
 
+    const isMobile = typeof window !== 'undefined' && window.innerWidth <= 480;
+
     const popupContent = isOpen && (
         <div
             ref={popupRef}
             style={{
-                position: 'absolute',
-                top: containerRef.current ? containerRef.current.getBoundingClientRect().top + window.scrollY - 8 : 0,
-                transform: 'translateY(-100%)',
-                left: containerRef.current ? containerRef.current.getBoundingClientRect().left + window.scrollX : 0,
+                position: 'fixed',
+                ...(isMobile ? {
+                    top: '50%',
+                    left: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    width: 'calc(100vw - 32px)',
+                    maxWidth: '320px',
+                } : {
+                    top: containerRef.current ? containerRef.current.getBoundingClientRect().top + window.scrollY - 8 : 0,
+                    transform: 'translateY(-100%)',
+                    left: containerRef.current ? containerRef.current.getBoundingClientRect().left + window.scrollX : 0,
+                    width: '280px',
+                }),
                 background: '#FFFFFF',
-                borderRadius: '16px',
+                borderRadius: '20px',
                 padding: '1.25rem',
-                boxShadow: '0 10px 40px rgba(0,0,0,0.12)',
+                boxShadow: '0 20px 50px rgba(0,0,0,0.25)',
                 border: `1px solid ${BORDER}`,
-                zIndex: 10001,
-                width: '280px',
+                zIndex: 100001,
                 fontFamily: 'inherit'
             }}
         >
