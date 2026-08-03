@@ -99,14 +99,13 @@ export default function TierBadgeCard({ user, onUpgrade }) {
 
                 {!user?.isPremium && (
                     <div style={{
-                        background: 'rgba(255, 255, 255, 0.12)',
-                        backdropFilter: 'blur(4px)',
+                        background: 'rgba(0, 0, 0, 0.15)',
                         padding: '0.4rem 0',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
                         width: '100%',
-                        borderTop: '1px solid rgba(255, 255, 255, 0.2)',
+                        borderTop: '1px solid rgba(255, 255, 255, 0.15)',
                         transition: 'background 0.2s'
                     }}>
                         {isExpanded ? <ChevronUp size={20} color="rgba(255,255,255,0.9)" /> : <ChevronDown size={20} color="rgba(255,255,255,0.9)" />}

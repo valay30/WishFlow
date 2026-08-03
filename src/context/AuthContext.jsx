@@ -6,6 +6,7 @@ export const AuthContext = createContext(null);
 export function AuthProvider({ children }) {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [isNewSignup, setIsNewSignup] = useState(false);
     const [recoveryMode, setRecoveryMode] = useState(() => {
         return window.location.hash.includes('type=recovery') || window.location.search.includes('type=recovery');
     });
@@ -57,7 +58,10 @@ export function AuthProvider({ children }) {
 
     const signup = async (data) => {
         const result = await auth.signup(data);
-        if (result.success) setUser(result.user);
+        if (result.success) {
+            setUser(result.user);
+            setIsNewSignup(true);
+        }
         return result;
     };
 
@@ -85,7 +89,7 @@ export function AuthProvider({ children }) {
     }
 
     return (
-        <AuthContext.Provider value={{ user, login, signup, logout, resetPassword, updatePassword, recoveryMode, setRecoveryMode }}>
+        <AuthContext.Provider value={{ user, login, signup, logout, resetPassword, updatePassword, recoveryMode, setRecoveryMode, isNewSignup, clearNewSignup: () => setIsNewSignup(false) }}>
             {children}
         </AuthContext.Provider>
     );
