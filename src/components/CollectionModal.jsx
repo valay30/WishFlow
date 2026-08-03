@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Trash2, Calendar, Sparkles } from 'lucide-react';
 import AlertModal from './AlertModal';
+import CustomDatePicker from './CustomDatePicker';
 
 const ORANGE = 'var(--primary)';
 const BORDER = 'var(--border)';
@@ -158,12 +159,10 @@ export default function CollectionModal({ existing = null, onSave, onDelete, onC
                                 <Calendar size={12} style={{ display: 'inline', marginRight: '0.3rem' }} />
                                 Target Date (optional)
                             </label>
-                            <input
-                                type="date"
-                                style={INPUT_ST}
+                            <CustomDatePicker
                                 value={targetDate}
-                                onChange={e => setTargetDate(e.target.value)}
-                                onFocus={focus} onBlur={blur}
+                                onChange={val => setTargetDate(val)}
+                                placeholder="Select target date..."
                             />
                             <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.3rem' }}>
                                 A countdown will appear on the collection card.
