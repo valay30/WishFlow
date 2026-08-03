@@ -44,7 +44,7 @@ export default function PricingBanner({ onUpgrade }) {
                     </div>
 
                     <div style={{ display: 'flex', alignItems: 'baseline', flexWrap: 'nowrap' }}>
-                        <span style={{ fontSize: '1.85rem', fontWeight: 800, color: '#0f172a', lineHeight: 1 }}>
+                        <span style={{ fontSize: '1.60rem', fontWeight: 800, color: '#0f172a', lineHeight: 1 }}>
                             ₹0
                         </span>
                         <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#0f172a', marginLeft: '2px', whiteSpace: 'nowrap' }}>
@@ -125,7 +125,7 @@ export default function PricingBanner({ onUpgrade }) {
                     </div>
 
                     <div style={{ display: 'flex', alignItems: 'baseline', flexWrap: 'nowrap' }}>
-                        <span style={{ fontSize: '1.85rem', fontWeight: 800, color: '#0f172a', lineHeight: 1 }}>
+                        <span style={{ fontSize: '1.60rem', fontWeight: 800, color: '#0f172a', lineHeight: 1 }}>
                             ₹100
                         </span>
                         <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#0f172a', marginLeft: '2px', whiteSpace: 'nowrap' }}>
