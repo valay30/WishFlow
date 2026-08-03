@@ -37,7 +37,7 @@ export default function Collections() {
     const { viewMode, currency } = useSettings();
 
     const fmt = (n) => new Intl.NumberFormat(undefined, { style: 'currency', currency: currency || 'INR', maximumFractionDigits: 0 }).format(n);
-    
+
     const [collections, setCollections] = useState([]);
     const [items, setItems] = useState([]);
     const [categories, setCategories] = useState([]);
