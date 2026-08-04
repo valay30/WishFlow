@@ -41,10 +41,13 @@ export function AuthProvider({ children }) {
                     isPremium: session.user.user_metadata?.is_premium || false,
                     isAdmin: session.user.user_metadata?.is_admin || false,
                 });
+                if (sessionStorage.getItem('isGoogleLoginRedirect') === 'true') {
+                    sessionStorage.removeItem('isGoogleLoginRedirect');
+                    window.location.reload();
+                }
+
                 if (window.location.hash && (window.location.hash.includes('access_token=') || window.location.hash.includes('error='))) {
                     window.history.replaceState(null, '', window.location.pathname + window.location.search);
-                    // Force a full reload to fix Android WebView viewport zoom bug after OAuth redirect
-                    window.location.reload();
                 }
             } else {
                 setUser(null);
@@ -56,6 +59,7 @@ export function AuthProvider({ children }) {
     }, []);
 
     const signInWithGoogle = async () => {
+        sessionStorage.setItem('isGoogleLoginRedirect', 'true');
         return await auth.signInWithGoogle();
     };
 
