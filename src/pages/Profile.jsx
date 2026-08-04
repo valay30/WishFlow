@@ -77,7 +77,14 @@ export default function Profile() {
                         });
                     }
                 },
-                theme: { color: "#10367D" }
+                theme: { color: "#10367D" },
+                modal: {
+                    ondismiss: function() {
+                        document.body.style.overflow = '';
+                        const rzpContainers = document.querySelectorAll('.razorpay-container');
+                        rzpContainers.forEach(container => container.remove());
+                    }
+                }
             };
 
             const rzp = new window.Razorpay(options);

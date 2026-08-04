@@ -96,7 +96,14 @@ export default function Collections() {
                         });
                     }
                 },
-                theme: { color: 'var(--primary)' }
+                theme: { color: 'var(--primary)' },
+                modal: {
+                    ondismiss: function() {
+                        document.body.style.overflow = '';
+                        const rzpContainers = document.querySelectorAll('.razorpay-container');
+                        rzpContainers.forEach(container => container.remove());
+                    }
+                }
             };
 
             const rzp = new window.Razorpay(options);
