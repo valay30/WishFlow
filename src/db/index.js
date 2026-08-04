@@ -397,8 +397,8 @@ export const db = {
       const id = await getUserId();
       if (!id) return;
 
-      // Delete from collectionItems first to prevent foreign key constraint errors
-      await supabase.from('collectionItems').delete().eq('item_id', itemId);
+      // Delete from collection_items first to prevent foreign key constraint errors
+      await supabase.from('collection_items').delete().eq('item_id', itemId);
 
       const { error } = await supabase.from('items').delete().eq('id', itemId).eq('user_id', id);
       if (error) throw error;
