@@ -43,6 +43,8 @@ export function AuthProvider({ children }) {
                 });
                 if (window.location.hash && (window.location.hash.includes('access_token=') || window.location.hash.includes('error='))) {
                     window.history.replaceState(null, '', window.location.pathname + window.location.search);
+                    // Force a full reload to fix Android WebView viewport zoom bug after OAuth redirect
+                    window.location.reload();
                 }
             } else {
                 setUser(null);
