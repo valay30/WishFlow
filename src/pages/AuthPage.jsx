@@ -212,7 +212,7 @@ export default function AuthPage() {
             {screen === 'login' || screen === 'signup' ? (
                 <>
                     <GoogleButton />
-                    <div style={{ textAlign: 'center', color: '#6B7280', fontSize: '0.85rem', margin: '1.5rem 0' }}>or</div>
+                    <div style={{ textAlign: 'center', color: '#6B7280', fontSize: '0.85rem', margin: '1rem 0' }}>or</div>
                 </>
             ) : null}
 
@@ -291,7 +291,7 @@ export default function AuthPage() {
 
             {/* Footer Links */}
             {screen === 'login' && (
-                <div style={{ marginTop: '1.5rem', textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                <div style={{ marginTop: '1.25rem', textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                     <div style={{ fontSize: '0.85rem', color: '#88909D' }}>
                         <button onClick={() => go('forgot')} style={{ background: 'none', border: 'none', padding: 0, color: '#4B5563', fontWeight: 500, textDecoration: 'underline', cursor: 'pointer', fontFamily: 'inherit' }}>Forgot password?</button>
                     </div>
@@ -302,7 +302,7 @@ export default function AuthPage() {
             )}
 
             {screen === 'signup' && (
-                <div style={{ marginTop: '1.5rem', textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                <div style={{ marginTop: '1.25rem', textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                     <div style={{ fontSize: '0.8rem', color: '#88909D', lineHeight: 1.5 }}>
                         Signing up for a WishFlow account means you<br />agree to the <a href="#" style={{ color: '#4B5563', fontWeight: 600, textDecoration: 'underline' }}>Privacy Policy</a> and <a href="#" style={{ color: '#4B5563', fontWeight: 600, textDecoration: 'underline' }}>Terms of Service</a>.
                     </div>
@@ -313,7 +313,7 @@ export default function AuthPage() {
             )}
 
             {screen === 'forgot' && (
-                <div style={{ marginTop: '1.5rem', textAlign: 'center' }}>
+                <div style={{ marginTop: '1.25rem', textAlign: 'center' }}>
                     <div style={{ fontSize: '0.9rem', color: '#111', fontWeight: 600 }}>
                         Remembered it? <button onClick={() => go('login')} style={{ background: 'none', border: 'none', padding: 0, color: '#111', fontWeight: 600, textDecoration: 'underline', cursor: 'pointer', fontFamily: 'inherit' }}>Log in here</button>
                     </div>
@@ -370,13 +370,13 @@ export default function AuthPage() {
         }}>
             <div style={{
                 position: 'relative',
-                height: '280px',
+                height: '220px',
                 background: '#E97451',
                 overflow: 'hidden',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                paddingBottom: '30px'
+                paddingBottom: '20px'
             }}>
                 <div style={{ position: 'absolute', inset: 0, opacity: 0.2, backgroundImage: NOISE_SVG, mixBlendMode: 'overlay', pointerEvents: 'none' }} />
 
@@ -416,14 +416,14 @@ export default function AuthPage() {
             <div style={{
                 flex: 1,
                 background: '#FFFFFF',
-                borderRadius: '36px 36px 0 0',
-                marginTop: '-36px',
+                borderRadius: '32px 32px 0 0',
+                marginTop: '-32px',
                 position: 'relative',
                 zIndex: 2,
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
-                padding: '3rem 2rem 2rem',
+                padding: '2rem 1.5rem 1.5rem',
             }}>
                 {renderForm()}
             </div>
