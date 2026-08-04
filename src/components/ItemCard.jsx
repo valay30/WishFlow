@@ -38,25 +38,12 @@ export default function ItemCard({ item, categoryName, onRemove, onTogglePurchas
                 e.currentTarget.style.transform = 'translateY(0)';
             }}
         >
-            {onRemove && (
-                <button
-                    onClick={(e) => { e.stopPropagation(); onRemove(); }}
-                    style={{
-                        position: 'absolute', top: '0.5rem', right: '0.5rem',
-                        width: '26px', height: '26px', borderRadius: '50%',
-                        background: 'rgba(239,68,68,0.1)', color: '#ef4444',
-                        border: 'none', cursor: 'pointer', zIndex: 10,
-                        display: 'flex', alignItems: 'center', justifyContent: 'center'
-                    }}
-                >
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>
-                </button>
-            )}
+
 
             {/* ── Inset image box (padded, rounded inner corners) ── */}
             <div style={{ padding: '0.8rem 0.8rem 0.4rem', position: 'relative' }}>
                 <div style={{
-                    background: 'var(--surface)',
+                    background: 'var(--surface-2)',
                     borderRadius: '16px',
                     aspectRatio: '1 / 1',
                     overflow: 'hidden',
@@ -65,12 +52,31 @@ export default function ItemCard({ item, categoryName, onRemove, onTogglePurchas
                     justifyContent: 'center',
                     width: '100%',
                     boxShadow: '0 6px 16px rgba(0, 0, 0, 0.08)',
-                    border: '1px solid var(--border)'
+                    border: '1px solid var(--border)',
+                    position: 'relative'
                 }}>
                     {item.image ? (
                         <img src={item.image} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     ) : (
                         <span style={{ fontSize: '2.5rem', color: 'var(--text-muted)' }}>📦</span>
+                    )}
+                    {onRemove && (
+                        <button
+                            onClick={(e) => { e.stopPropagation(); onRemove(); }}
+                            style={{
+                                position: 'absolute', top: '0.5rem', right: '0.5rem',
+                                width: '28px', height: '28px', borderRadius: '50%',
+                                background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(8px)',
+                                color: '#fff', border: '1px solid rgba(255,255,255,0.2)',
+                                cursor: 'pointer', zIndex: 10,
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                transition: 'all 0.2s', padding: 0
+                            }}
+                            onMouseEnter={e => { e.currentTarget.style.background = '#ef4444'; e.currentTarget.style.borderColor = '#ef4444'; e.currentTarget.style.transform = 'scale(1.1)'; }}
+                            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(0,0,0,0.5)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)'; e.currentTarget.style.transform = 'scale(1)'; }}
+                        >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>
+                        </button>
                     )}
                     {onTogglePurchased && (
                         <div
@@ -78,16 +84,19 @@ export default function ItemCard({ item, categoryName, onRemove, onTogglePurchas
                             style={{
                                 position: 'absolute', bottom: '0.5rem', right: '0.5rem',
                                 width: '28px', height: '28px', borderRadius: '50%',
-                                background: item.is_purchased ? '#059669' : 'rgba(255,255,255,0.95)',
-                                color: item.is_purchased ? '#fff' : '#aaa',
-                                border: `2px solid ${item.is_purchased ? '#059669' : 'var(--border)'}`,
+                                background: item.is_purchased ? '#059669' : 'rgba(0,0,0,0.5)',
+                                backdropFilter: 'blur(8px)',
+                                color: '#fff',
+                                border: `1.5px solid ${item.is_purchased ? '#059669' : 'rgba(255,255,255,0.3)'}`,
                                 cursor: 'pointer', zIndex: 10,
                                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                                boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
                                 transition: 'all 0.2s'
                             }}
+                            onMouseEnter={e => { if (!item.is_purchased) e.currentTarget.style.transform = 'scale(1.1)'; }}
+                            onMouseLeave={e => { if (!item.is_purchased) e.currentTarget.style.transform = 'scale(1)'; }}
                         >
-                            <Check size={16} strokeWidth={item.is_purchased ? 3 : 2} style={{ opacity: item.is_purchased ? 1 : 0.3 }} />
+                            <Check size={16} strokeWidth={item.is_purchased ? 3 : 2} style={{ opacity: item.is_purchased ? 1 : 0.7 }} />
                         </div>
                     )}
                 </div>

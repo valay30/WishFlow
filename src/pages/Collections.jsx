@@ -98,7 +98,7 @@ export default function Collections() {
                 },
                 theme: { color: 'var(--primary)' },
                 modal: {
-                    ondismiss: function() {
+                    ondismiss: function () {
                         document.body.style.overflow = '';
                         const rzpContainers = document.querySelectorAll('.razorpay-container');
                         rzpContainers.forEach(container => container.remove());
@@ -284,7 +284,7 @@ export default function Collections() {
                             <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '0.5rem' }}>Add items and assign them to this collection.</p>
                         </div>
                     ) : (
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '1rem' }}>
+                        <div className="category-grid">
                             {activeItems.map(item => (
                                 <ItemCard
                                     key={item.id}
@@ -681,18 +681,19 @@ export default function Collections() {
                             <div
                                 onClick={openCreate}
                                 style={viewMode === 'card' ? {
-                                    background: 'linear-gradient(180deg, #F8FAFC 0%, #F1F5F9 100%)',
-                                    border: '2px dashed #94A3B8',
+                                    background: SURFACE,
+                                    border: `1.5px dashed ${BORDER}`,
                                     borderRadius: '28px',
                                     padding: '1.75rem 1.25rem',
                                     display: 'flex', flexDirection: 'column',
                                     alignItems: 'center', justifyContent: 'center',
                                     gap: '0.85rem', cursor: 'pointer',
-                                    transition: 'all 0.25s ease',
+                                    transition: 'all 0.25s cubic-bezier(0.4,0,0.2,1)',
+                                    boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
                                     minHeight: '250px', boxSizing: 'border-box'
                                 } : {
                                     width: '100%', padding: '1rem', background: 'transparent',
-                                    border: `2px dashed ${BORDER}`, borderRadius: '24px',
+                                    border: `1.5px dashed ${BORDER}`, borderRadius: '24px',
                                     color: 'var(--text-muted)', fontWeight: 600, fontSize: '0.95rem', cursor: 'pointer',
                                     fontFamily: 'inherit', display: 'flex', alignItems: 'center',
                                     justifyContent: 'center', gap: '0.5rem', transition: 'all 0.2s',
@@ -700,19 +701,19 @@ export default function Collections() {
                                 onMouseEnter={e => {
                                     e.currentTarget.style.borderColor = ORANGE;
                                     if (viewMode === 'card') {
-                                        e.currentTarget.style.background = 'rgba(var(--primary-rgb),0.04)';
                                         e.currentTarget.style.transform = 'translateY(-4px)';
+                                        e.currentTarget.style.boxShadow = '0 12px 32px rgba(var(--primary-rgb),0.14)';
                                     } else {
                                         e.currentTarget.style.color = ORANGE;
                                     }
                                 }}
                                 onMouseLeave={e => {
-                                    e.currentTarget.style.borderColor = viewMode === 'card' ? '#94A3B8' : BORDER;
+                                    e.currentTarget.style.borderColor = BORDER;
                                     if (viewMode === 'card') {
-                                        e.currentTarget.style.background = 'linear-gradient(180deg, #F8FAFC 0%, #F1F5F9 100%)';
                                         e.currentTarget.style.transform = 'translateY(0)';
+                                        e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.05)';
                                     } else {
-                                        e.currentTarget.style.color = '#888';
+                                        e.currentTarget.style.color = 'var(--text-muted)';
                                     }
                                 }}
                             >
@@ -728,7 +729,7 @@ export default function Collections() {
                                         </div>
                                         <div style={{ textAlign: 'center' }}>
                                             <span style={{ display: 'block', fontWeight: 800, color: 'var(--primary)', fontSize: '1rem' }}>Add Collection</span>
-                                            <span style={{ display: 'block', fontSize: '0.78rem', color: '#64748B', fontWeight: 600, marginTop: '0.2rem' }}>Create a new group</span>
+                                            <span style={{ display: 'block', fontSize: '0.78rem', color: 'var(--text-muted)', fontWeight: 600, marginTop: '0.2rem' }}>Create a new group</span>
                                         </div>
                                     </>
                                 ) : (

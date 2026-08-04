@@ -132,7 +132,7 @@ export default function CustomDatePicker({ value, onChange, placeholder = "Selec
             style={{
                 position: 'fixed',
                 ...(isMobile ? {
-                    top: '40%',
+                    top: '36%',
                     left: '50%',
                     transform: 'translate(-50%, -50%)',
                     width: 'calc(100vw - 32px)',
