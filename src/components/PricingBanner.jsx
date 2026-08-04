@@ -2,8 +2,7 @@ import { Check } from 'lucide-react';
 import { useSettings } from '../context/SettingsContext';
 
 export default function PricingBanner({ onUpgrade }) {
-    const { settings } = useSettings();
-    const currency = settings?.currency || '₹';
+    const { currency } = useSettings();
 
     return (
         <div style={{
