@@ -37,19 +37,39 @@ export default function ProductCard({ item, categoryName, onTogglePurchased, onR
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 border: '1px solid var(--border)',
                 boxShadow: '0 4px 10px rgba(0,0,0,0.06)',
-                position: 'relative' // Critical for placing the checkmark over the image!
+                position: 'relative'
             }}>
                 {item.image
                     ? <img src={item.image} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     : <span style={{ fontSize: '1.8rem' }}>🛍️</span>
                 }
+                {onTogglePurchased && (
+                    <div
+                        onClick={(e) => { e.stopPropagation(); onTogglePurchased(item.id, !item.is_purchased); }}
+                        style={{
+                            position: 'absolute', bottom: '0.2rem', right: '0.2rem',
+                            width: '22px', height: '22px', borderRadius: '50%',
+                            background: item.is_purchased ? '#059669' : 'rgba(0,0,0,0.5)',
+                            backdropFilter: 'blur(4px)',
+                            color: '#fff',
+                            border: `1.5px solid ${item.is_purchased ? '#059669' : 'rgba(255,255,255,0.3)'}`,
+                            cursor: 'pointer', zIndex: 10,
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                            transition: 'all 0.2s'
+                        }}
+                    >
+                        <Check size={12} strokeWidth={item.is_purchased ? 3 : 2} style={{ opacity: item.is_purchased ? 1 : 0.7 }} />
+                    </div>
+                )}
             </div>
 
             {/* Info */}
             <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
                 <p style={{
                     fontWeight: 700, color: 'var(--text)', fontSize: '1rem',
-                    whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', margin: 0
+                    display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
+                    overflow: 'hidden', margin: 0, lineHeight: 1.2
                 }}>
                     {item.name}
                 </p>
@@ -70,8 +90,8 @@ export default function ProductCard({ item, categoryName, onTogglePurchased, onR
 
             {/* Price + Action */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexShrink: 0 }}>
-                <span style={{ color: 'var(--text)', fontWeight: 800, fontSize: '1.05rem', marginRight: '0.5rem' }}>{price}</span>
-                {onRemove && (
+                <span style={{ color: 'var(--text)', fontWeight: 800, fontSize: '1.05rem', marginRight: '0.2rem' }}>{price}</span>
+                {onRemove ? (
                     <button
                         onClick={(e) => { e.stopPropagation(); onRemove(); }}
                         style={{
@@ -85,27 +105,7 @@ export default function ProductCard({ item, categoryName, onTogglePurchased, onR
                     >
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>
                     </button>
-                )}
-                {onTogglePurchased && (
-                    <div
-                        onClick={(e) => { e.stopPropagation(); onTogglePurchased(item.id, !item.is_purchased); }}
-                        style={{
-                            width: '32px', height: '32px', borderRadius: '10px',
-                            background: item.is_purchased ? '#059669' : 'var(--surface-2)',
-                            border: `1px solid ${item.is_purchased ? '#059669' : 'var(--border)'}`,
-                            cursor: 'pointer',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            color: item.is_purchased ? '#fff' : 'var(--text-muted)',
-                            transition: 'all 0.2s'
-                        }}
-                        onMouseEnter={e => { if (!item.is_purchased) { e.currentTarget.style.borderColor = '#059669'; e.currentTarget.style.color = '#059669'; } }}
-                        onMouseLeave={e => { if (!item.is_purchased) { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--text-muted)'; } }}
-                        title={item.is_purchased ? "Mark as unpurchased" : "Mark as purchased"}
-                    >
-                        <Check size={16} strokeWidth={2.5} />
-                    </div>
-                )}
-                {!onRemove && !onTogglePurchased && (
+                ) : (
                     <div style={{
                         width: '32px', height: '32px', borderRadius: '10px',
                         background: 'var(--surface-2)', border: '1px solid var(--border)',
