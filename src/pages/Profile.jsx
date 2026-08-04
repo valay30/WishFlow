@@ -477,7 +477,7 @@ export default function Profile() {
                     from { opacity: 0; transform: translateY(24px); }
                     to { opacity: 1; transform: translateY(0); }
                 }
-                @media (min-width: 768px) {
+                @media (min-width: 1024px) {
                     .hide-on-desktop { display: none !important; }
                 }
             `}</style>
