@@ -5,6 +5,7 @@ import { db } from '../db';
 import { Plus, FolderHeart, Calendar, Package, ChevronRight, ArrowLeft, Pencil, Crown, X } from 'lucide-react';
 import CollectionModal from '../components/CollectionModal';
 import ItemCard from '../components/ItemCard';
+import ProductCard from '../components/ProductCard';
 import AddExistingItemsModal from '../components/AddExistingItemsModal';
 import AddProductModal from '../components/AddProductModal';
 import AlertModal from '../components/AlertModal';
@@ -284,21 +285,37 @@ export default function Collections() {
                             <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '0.5rem' }}>Add items and assign them to this collection.</p>
                         </div>
                     ) : (
-                        <div className="category-grid">
+                        <div className={viewMode === 'card' ? "category-grid" : "list-view-container"} style={viewMode === 'list' ? { display: 'flex', flexDirection: 'column', gap: '0.75rem' } : {}}>
                             {activeItems.map(item => (
-                                <ItemCard
-                                    key={item.id}
-                                    item={item}
-                                    categoryName={categoryName(item.category_id)}
-                                    onRemove={async () => {
-                                        await db.collectionItems.remove(activeCollection.id, item.id);
-                                        await reload();
-                                    }}
-                                    onTogglePurchased={async (id, val) => {
-                                        await db.items.update(id, { is_purchased: val });
-                                        await reload();
-                                    }}
-                                />
+                                viewMode === 'card' ? (
+                                    <ItemCard
+                                        key={item.id}
+                                        item={item}
+                                        categoryName={categoryName(item.category_id)}
+                                        onRemove={async () => {
+                                            await db.collectionItems.remove(activeCollection.id, item.id);
+                                            await reload();
+                                        }}
+                                        onTogglePurchased={async (id, val) => {
+                                            await db.items.update(id, { is_purchased: val });
+                                            await reload();
+                                        }}
+                                    />
+                                ) : (
+                                    <ProductCard
+                                        key={item.id}
+                                        item={item}
+                                        categoryName={categoryName(item.category_id)}
+                                        onRemove={async () => {
+                                            await db.collectionItems.remove(activeCollection.id, item.id);
+                                            await reload();
+                                        }}
+                                        onTogglePurchased={async (id, val) => {
+                                            await db.items.update(id, { is_purchased: val });
+                                            await reload();
+                                        }}
+                                    />
+                                )
                             ))}
                         </div>
                     )}

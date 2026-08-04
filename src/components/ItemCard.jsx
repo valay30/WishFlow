@@ -150,7 +150,8 @@ export default function ItemCard({ item, categoryName, onRemove, onTogglePurchas
                         {price}
                     </p>
 
-                    {/* Arrow button — opens external product link or details */}
+                {/* Arrow button — opens external product link or details */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                     <a
                         href={item.link || '#'}
                         target={item.link ? '_blank' : '_self'}
@@ -184,6 +185,7 @@ export default function ItemCard({ item, categoryName, onRemove, onTogglePurchas
                     >
                         <ArrowRight size={17} color="#fff" strokeWidth={2.5} />
                     </a>
+                </div>
                 </div>
             </div>
 
