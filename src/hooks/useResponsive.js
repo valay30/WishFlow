@@ -8,7 +8,19 @@ export function useResponsive() {
     useEffect(() => {
         const handle = () => setWidth(window.innerWidth);
         window.addEventListener('resize', handle);
-        return () => window.removeEventListener('resize', handle);
+        
+        // Polling to fix Android OAuth redirect viewport race condition
+        // The browser sometimes processes the viewport meta tag AFTER React evaluates window.innerWidth
+        const t1 = setTimeout(handle, 50);
+        const t2 = setTimeout(handle, 250);
+        const t3 = setTimeout(handle, 750);
+
+        return () => {
+            window.removeEventListener('resize', handle);
+            clearTimeout(t1);
+            clearTimeout(t2);
+            clearTimeout(t3);
+        };
     }, []);
 
     return {
