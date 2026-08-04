@@ -41,6 +41,9 @@ export function AuthProvider({ children }) {
                     isPremium: session.user.user_metadata?.is_premium || false,
                     isAdmin: session.user.user_metadata?.is_admin || false,
                 });
+                if (window.location.hash && (window.location.hash.includes('access_token=') || window.location.hash.includes('error='))) {
+                    window.history.replaceState(null, '', window.location.pathname + window.location.search);
+                }
             } else {
                 setUser(null);
             }
