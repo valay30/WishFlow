@@ -24,14 +24,14 @@ export default function CustomDatePicker({ value, onChange, placeholder = "Selec
     const [currentDate, setCurrentDate] = useState(() => {
         return value ? new Date(value) : new Date();
     });
-    
+
     const containerRef = useRef(null);
     const popupRef = useRef(null);
 
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (
-                containerRef.current && 
+                containerRef.current &&
                 !containerRef.current.contains(event.target) &&
                 popupRef.current &&
                 !popupRef.current.contains(event.target)
@@ -58,12 +58,12 @@ export default function CustomDatePicker({ value, onChange, placeholder = "Selec
 
     const daysInMonth = getDaysInMonth(year, month);
     const firstDay = getFirstDayOfMonth(year, month);
-    
+
     const prevMonthDays = getDaysInMonth(year, month - 1);
-    
+
     const weeks = [];
     let currentWeek = [];
-    
+
     // Previous month days
     for (let i = 0; i < firstDay; i++) {
         currentWeek.unshift({
@@ -72,7 +72,7 @@ export default function CustomDatePicker({ value, onChange, placeholder = "Selec
             date: new Date(year, month - 1, prevMonthDays - i)
         });
     }
-    
+
     // Current month days
     for (let i = 1; i <= daysInMonth; i++) {
         currentWeek.push({
@@ -80,13 +80,13 @@ export default function CustomDatePicker({ value, onChange, placeholder = "Selec
             isCurrentMonth: true,
             date: new Date(year, month, i)
         });
-        
+
         if (currentWeek.length === 7) {
             weeks.push(currentWeek);
             currentWeek = [];
         }
     }
-    
+
     // Next month days
     if (currentWeek.length > 0) {
         let nextDay = 1;
@@ -132,7 +132,7 @@ export default function CustomDatePicker({ value, onChange, placeholder = "Selec
             style={{
                 position: 'fixed',
                 ...(isMobile ? {
-                    top: '50%',
+                    top: '40%',
                     left: '50%',
                     transform: 'translate(-50%, -50%)',
                     width: 'calc(100vw - 32px)',
@@ -177,10 +177,10 @@ export default function CustomDatePicker({ value, onChange, placeholder = "Selec
             {/* Days Grid */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                 {weeks.map((week, wIndex) => (
-                    <div key={wIndex} style={{ 
-                        display: 'grid', 
-                        gridTemplateColumns: 'repeat(7, 1fr)', 
-                        gap: '0', 
+                    <div key={wIndex} style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(7, 1fr)',
+                        gap: '0',
                         background: wIndex % 2 === 0 ? 'transparent' : '#F3F4F6',
                         borderRadius: '99px',
                         padding: '2px 0'
@@ -227,7 +227,7 @@ export default function CustomDatePicker({ value, onChange, placeholder = "Selec
 
     return (
         <>
-            <div 
+            <div
                 ref={containerRef}
                 onClick={() => setIsOpen(!isOpen)}
                 style={{
