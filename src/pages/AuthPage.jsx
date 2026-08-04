@@ -89,8 +89,8 @@ const PrimaryButton = ({ children, loading, ...props }) => (
     </button>
 );
 
-const GoogleButton = () => (
-    <button type="button" style={{
+const GoogleButton = ({ onClick }) => (
+    <button type="button" onClick={onClick} style={{
         width: '100%',
         padding: '1rem',
         background: '#FFFFFF',
@@ -141,12 +141,21 @@ export default function AuthPage() {
     const [resetConfirm, setResetConfirm] = useState('');
     const [resetSuccess, setResetSuccess] = useState(false);
 
-    const { login, signup, resetPassword, updatePassword, recoveryMode } = useAuth();
+    const { login, signup, resetPassword, updatePassword, recoveryMode, signInWithGoogle } = useAuth();
     const navigate = useNavigate();
 
     useEffect(() => {
         if (recoveryMode) setScreen('reset');
     }, [recoveryMode]);
+
+    const handleGoogleSignIn = async () => {
+        setLoading(true);
+        const result = await signInWithGoogle();
+        if (!result.success) {
+            setLoading(false);
+            setError(result.error);
+        }
+    };
 
     const go = (s) => {
         setError('');
@@ -211,7 +220,7 @@ export default function AuthPage() {
 
             {screen === 'login' || screen === 'signup' ? (
                 <>
-                    <GoogleButton />
+                    <GoogleButton onClick={handleGoogleSignIn} />
                     <div style={{ textAlign: 'center', color: '#6B7280', fontSize: '0.85rem', margin: '1rem 0' }}>or</div>
                 </>
             ) : null}

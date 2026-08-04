@@ -50,6 +50,10 @@ export function AuthProvider({ children }) {
         return () => subscription.unsubscribe();
     }, []);
 
+    const signInWithGoogle = async () => {
+        return await auth.signInWithGoogle();
+    };
+
     const login = async (credentials) => {
         const result = await auth.login(credentials);
         if (result.success) setUser(result.user);
@@ -89,7 +93,7 @@ export function AuthProvider({ children }) {
     }
 
     return (
-        <AuthContext.Provider value={{ user, login, signup, logout, resetPassword, updatePassword, recoveryMode, setRecoveryMode, isNewSignup, clearNewSignup: () => setIsNewSignup(false) }}>
+        <AuthContext.Provider value={{ user, login, signup, logout, signInWithGoogle, resetPassword, updatePassword, recoveryMode, setRecoveryMode, isNewSignup, clearNewSignup: () => setIsNewSignup(false) }}>
             {children}
         </AuthContext.Provider>
     );

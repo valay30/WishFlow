@@ -30,6 +30,18 @@ export const clearDbCache = () => {
 
 // ─── Auth helpers ─────────────────────────────────────────────────────────────
 export const auth = {
+  signInWithGoogle: async () => {
+    clearDbCache();
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: window.location.origin,
+      }
+    });
+    if (error) return { success: false, error: error.message };
+    return { success: true };
+  },
+
   getCurrentUser: async () => {
     try {
       const { data, error } = await supabase.auth.getSession();
