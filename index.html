@@ -42,6 +42,26 @@
   <!-- Icons -->
   <link rel="icon" type="image/svg+xml" href="/vite.svg" />
   <link rel="apple-touch-icon" href="/vite.svg" />
+  <script>
+    // Aggressive workaround for Android PWA / Custom Tab viewport zoom bug
+    (function() {
+      function fixViewport() {
+        var meta = document.querySelector('meta[name="viewport"]');
+        if (meta) {
+          var original = meta.content;
+          meta.content = 'width=320, initial-scale=1';
+          setTimeout(function() {
+            meta.content = original;
+          }, 50);
+        }
+      }
+      window.addEventListener('pageshow', fixViewport);
+      window.addEventListener('visibilitychange', function() {
+        if (!document.hidden) fixViewport();
+      });
+      setTimeout(fixViewport, 500); // safety net
+    })();
+  </script>
 </head>
 
 <body>
