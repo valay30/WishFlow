@@ -82,7 +82,7 @@ export default function Profile() {
                 },
                 theme: { color: "#10367D" },
                 modal: {
-                    ondismiss: function() {
+                    ondismiss: function () {
                         document.body.style.overflow = '';
                         const rzpContainers = document.querySelectorAll('.razorpay-container');
                         rzpContainers.forEach(container => container.remove());
