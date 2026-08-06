@@ -38,16 +38,16 @@
 }
 
 :root.dark {
-  --bg: #0A0A0A;
-  --surface: #171717;
-  --surface-2: #262626;
-  --surface-3: #404040;
+  --bg: #000000;
+  --surface: #0A0A0A;
+  --surface-2: #1C1C1E;
+  --surface-3: #2C2C2E;
 
-  --text: #EDEDED;
-  --text-muted: #A1A1AA;
-  --text-dim: #71717A;
+  --text: #FFFFFF;
+  --text-muted: #98989D;
+  --text-dim: #636366;
 
-  --border: #27272A;
+  --border: #2C2C2E;
 }
 
 /* ══════════════════════════════════════
@@ -721,11 +721,11 @@ ins.adsbygoogle {
   width: 100%;
   padding: 0.9rem 1rem;
   background: var(--surface-2);
-  border: 1.5px solid var(--border);
-  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  border-radius: 12px;
   color: var(--text);
   font-family: var(--font-main);
-  font-size: 1rem;
+  font-size: 0.95rem;
   transition: var(--transition);
 }
 

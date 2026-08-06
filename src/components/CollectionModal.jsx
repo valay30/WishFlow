@@ -72,7 +72,7 @@ export default function CollectionModal({ existing = null, onSave, onDelete, onC
                     onClick={e => e.stopPropagation()}
                     className="modal-card"
                     style={{
-                        background: '#FFFFFF', borderRadius: '28px 28px 0 0',
+                        background: 'var(--surface)', borderRadius: '28px 28px 0 0',
                         width: '100%', maxWidth: '560px', maxHeight: '92vh',
                         overflowY: 'auto', boxShadow: '0 -8px 40px rgba(0,0,0,0.7)',
                         animation: 'slideUp 0.28s cubic-bezier(0.2,0.8,0.4,1)',

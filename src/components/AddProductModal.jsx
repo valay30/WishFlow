@@ -67,7 +67,7 @@ export default function AddProductModal({ categories, onAdd, onClose }) {
         <>
             <div onClick={onClose} className="modal-backdrop" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.82)', backdropFilter: 'blur(10px)', zIndex: 1998, animation: 'fadeIn 0.2s ease-out' }} />
             <div className="modal-wrapper" style={{ zIndex: 1999 }}>
-                <div onClick={e => e.stopPropagation()} className="modal-card" style={{ background: '#FFFFFF', borderRadius: '28px 28px 0 0', width: '100%', maxWidth: '560px', maxHeight: '92vh', overflowY: 'auto', boxShadow: '0 -8px 40px rgba(0,0,0,0.7)', animation: 'slideUp 0.28s cubic-bezier(0.2,0.8,0.4,1)', border: `1px solid ${BORDER}`, borderBottom: 'none', position: 'relative' }}>
+                <div onClick={e => e.stopPropagation()} className="modal-card" style={{ background: 'var(--surface)', borderRadius: '28px 28px 0 0', width: '100%', maxWidth: '560px', maxHeight: '92vh', overflowY: 'auto', boxShadow: '0 -8px 40px rgba(0,0,0,0.7)', animation: 'slideUp 0.28s cubic-bezier(0.2,0.8,0.4,1)', border: `1px solid ${BORDER}`, borderBottom: 'none', position: 'relative' }}>
                     {/* Drag handle */}
                     <div style={{ display: 'flex', justifyContent: 'center', padding: '0.85rem 0 0' }}>
                         <div style={{ width: '40px', height: '4px', borderRadius: '99px', background: 'var(--border)' }} />

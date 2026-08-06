@@ -136,8 +136,8 @@ export default function AddProduct() {
     const BLUE = '#4963E8';
     const labelSt = {
         display: 'block', marginBottom: '0.4rem',
-        fontSize: '0.78rem', fontWeight: 700,
-        color: BLUE, letterSpacing: '0.04em', textTransform: 'uppercase',
+        fontSize: '0.9rem', fontWeight: 500,
+        color: 'var(--text-muted)',
     };
 
     return (
@@ -162,91 +162,96 @@ export default function AddProduct() {
             </div>
 
             <div style={{
-                background: 'var(--surface)', borderRadius: '20px',
-                border: '1px solid #E8ECF4',
-                boxShadow: '0 4px 24px rgba(var(--primary-rgb),0.09)',
-                padding: 'clamp(1.25rem, 3vw, 2rem)',
+                padding: 'clamp(0.5rem, 3vw, 1rem)',
             }}>
-                <form onSubmit={handleSubmit} style={{ display: 'grid', gap: '1.25rem', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))' }}>
+                <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
 
                     {/* Name */}
-                    <div>
-                        <label style={labelSt}>Product Name</label>
-                        <input className="input" value={name} onChange={e => setName(e.target.value)} required placeholder="e.g. Wireless Headphones" />
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+                        <label style={{ flex: '0 0 90px', color: 'var(--text-muted)', fontSize: '0.95rem', textAlign: 'left' }}>Name</label>
+                        <input className="input" style={{ flex: 1 }} value={name} onChange={e => setName(e.target.value)} required placeholder="e.g. Wireless Headphones" />
                     </div>
 
                     {/* Price */}
-                    <div>
-                        <label style={labelSt}>Price ({new Intl.NumberFormat(undefined, { style: 'currency', currency: currency || 'INR' }).formatToParts(0).find(x => x.type === 'currency').value})</label>
-                        <input className="input" type="number" step="0.01" value={price} onChange={e => setPrice(e.target.value)} required placeholder="0.00" />
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+                        <label style={{ flex: '0 0 90px', color: 'var(--text-muted)', fontSize: '0.95rem', textAlign: 'left' }}>Price</label>
+                        <input className="input" style={{ flex: 1 }} type="number" step="0.01" value={price} onChange={e => setPrice(e.target.value)} required placeholder="0.00" />
                     </div>
 
                     {/* Link */}
-                    <div style={{ gridColumn: '1 / -1' }}>
-                        <label style={labelSt}>Product Link</label>
-                        <input className="input" type="url" value={link} onChange={e => setLink(e.target.value)} placeholder="https://example.com/product" />
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+                        <label style={{ flex: '0 0 90px', color: 'var(--text-muted)', fontSize: '0.95rem', textAlign: 'left' }}>Link</label>
+                        <input className="input" style={{ flex: 1 }} type="url" value={link} onChange={e => setLink(e.target.value)} placeholder="https://example.com/product" />
                     </div>
 
                     {/* Category */}
-                    <div>
-                        <label style={labelSt}>Category</label>
-                        <select className="select" value={categoryId} onChange={e => setCategoryId(e.target.value)} required>
-                            <option value="">Select Category</option>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+                        <label style={{ flex: '0 0 90px', color: 'var(--text-muted)', fontSize: '0.95rem', textAlign: 'left' }}>Folder</label>
+                        <select className="select" style={{ flex: 1 }} value={categoryId} onChange={e => setCategoryId(e.target.value)} required>
+                            <option value="">Select Folder</option>
                             {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                         </select>
                     </div>
 
                     {/* Image */}
-                    <div>
-                        <label style={labelSt}>Image</label>
-                        <div style={{ display: 'flex', gap: '0.5rem' }}>
-                            <input
-                                className="input"
-                                placeholder="Paste Image URL..."
-                                value={image.startsWith('data:') ? '' : image}
-                                onChange={e => setImage(e.target.value)}
-                                style={{ flex: 1 }}
-                            />
-                            <label style={{
-                                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                minWidth: '3rem', background: '#EEF1FD', color: BLUE,
-                                borderRadius: '14px', cursor: 'pointer',
-                                border: '1.5px dashed #a5b4fc', transition: 'background 0.2s',
-                            }}>
-                                <Upload size={18} />
-                                <input type="file" accept="image/*" hidden onChange={handleImageUpload} />
-                            </label>
+                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1.5rem' }}>
+                        <label style={{ flex: '0 0 90px', color: 'var(--text-muted)', fontSize: '0.95rem', textAlign: 'left', marginTop: '0.8rem' }}>Image</label>
+                        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                            <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                <input
+                                    className="input"
+                                    placeholder="Paste Image URL..."
+                                    value={image.startsWith('data:') ? '' : image}
+                                    onChange={e => setImage(e.target.value)}
+                                    style={{ flex: 1 }}
+                                />
+                                <label style={{
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    minWidth: '3.2rem', background: 'var(--surface-3)', color: 'var(--text)',
+                                    borderRadius: '12px', cursor: 'pointer',
+                                    border: '1px solid var(--border)', transition: 'all 0.2s',
+                                }}>
+                                    <Upload size={18} />
+                                    <input type="file" accept="image/*" hidden onChange={handleImageUpload} />
+                                </label>
+                            </div>
+                            {image && (
+                                <div style={{ position: 'relative', borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--border)', maxHeight: '220px' }}>
+                                    <img src={image} alt="Preview" style={{ width: '100%', objectFit: 'cover', maxHeight: '220px', display: 'block' }} />
+                                    <button
+                                        type="button" onClick={() => setImage('')}
+                                        style={{
+                                            position: 'absolute', top: '0.5rem', right: '0.5rem',
+                                            background: 'rgba(0,0,0,0.6)', color: '#fff', backdropFilter: 'blur(4px)',
+                                            borderRadius: '50%', border: 'none',
+                                            width: '28px', height: '28px',
+                                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                            cursor: 'pointer',
+                                        }}
+                                    >
+                                        <X size={14} />
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     </div>
 
-                    {/* Image preview */}
-                    {image && (
-                        <div style={{ gridColumn: '1 / -1', position: 'relative', borderRadius: '12px', overflow: 'hidden', border: '1.5px solid #a5b4fc', maxHeight: '220px' }}>
-                            <img src={image} alt="Preview" style={{ width: '100%', objectFit: 'cover', maxHeight: '220px', display: 'block' }} />
-                            <button
-                                type="button" onClick={() => setImage('')}
-                                style={{
-                                    position: 'absolute', top: '0.5rem', right: '0.5rem',
-                                    background: 'rgba(255,255,255,0.9)', color: '#ef4444',
-                                    borderRadius: '50%', border: 'none',
-                                    width: '28px', height: '28px',
-                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                    cursor: 'pointer', boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
-                                }}
-                            >
-                                <X size={14} />
-                            </button>
-                        </div>
-                    )}
-
                     {/* Submit */}
-                    <button
-                        type="submit"
-                        className="btn btn-primary"
-                        style={{ gridColumn: '1 / -1', padding: '1rem', fontSize: '1rem' }}
-                    >
-                        <Sparkles size={18} /> Save Product
-                    </button>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', marginTop: '0.5rem' }}>
+                        <div style={{ flex: '0 0 90px' }}></div>
+                        <button
+                            type="submit"
+                            style={{ 
+                                flex: 1, padding: '1rem', fontSize: '1rem', 
+                                background: 'var(--text)', color: 'var(--bg)',
+                                border: 'none', borderRadius: '12px', fontWeight: 600,
+                                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
+                                cursor: 'pointer'
+                            }}
+                        >
+                            <Sparkles size={18} /> Save Product
+                        </button>
+                    </div>
                 </form>
             </div>
 
