@@ -29,6 +29,7 @@ export default function Profile() {
     const navigate = useNavigate();
     const [showGeneral, setShowGeneral] = useState(() => typeof window !== 'undefined' ? window.innerWidth >= 768 : false);
     const [paymentStatus, setPaymentStatus] = useState({ isOpen: false, success: false, title: '', message: '' });
+    const [isUpgrading, setIsUpgrading] = useState(false);
 
     const handleLogout = () => {
         logout();
@@ -37,6 +38,8 @@ export default function Profile() {
 
 
     const handleUpgradeToPremium = async () => {
+        if (isUpgrading) return;
+        setIsUpgrading(true);
         try {
             const orderRes = await fetch(`${API_URL}/api/payment/create-order`, { method: 'POST' });
             const orderData = await orderRes.json();
@@ -105,6 +108,8 @@ export default function Profile() {
                 title: 'Error',
                 message: 'Payment initiation failed. Please check your backend.'
             });
+        } finally {
+            setIsUpgrading(false);
         }
     };
 
@@ -176,7 +181,7 @@ export default function Profile() {
                 <div style={{ maxWidth: '600px', margin: '0 auto' }}>
 
                     {/* ── Tier Badge Card ── */}
-                    <TierBadgeCard user={user} onUpgrade={handleUpgradeToPremium} />
+                    <TierBadgeCard user={user} onUpgrade={handleUpgradeToPremium} isUpgrading={isUpgrading} />
 
                     {/* Options List */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem', marginBottom: '2rem' }}>

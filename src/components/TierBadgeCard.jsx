@@ -3,7 +3,7 @@ import { Crown, ChevronDown, ChevronUp } from 'lucide-react';
 import PricingBanner from './PricingBanner';
 import { useSettings } from '../context/SettingsContext';
 
-export default function TierBadgeCard({ user, onUpgrade }) {
+export default function TierBadgeCard({ user, onUpgrade, isUpgrading }) {
     const { currency } = useSettings();
     const [isExpanded, setIsExpanded] = useState(false);
 
@@ -69,9 +69,10 @@ export default function TierBadgeCard({ user, onUpgrade }) {
                     </div>
                     {!user?.isPremium && (
                         <button
+                            disabled={isUpgrading}
                             onClick={(e) => {
                                 e.stopPropagation();
-                                onUpgrade();
+                                if (!isUpgrading) onUpgrade();
                             }}
                             style={{
                                 background: 'rgba(255,255,255,0.2)',
@@ -79,22 +80,34 @@ export default function TierBadgeCard({ user, onUpgrade }) {
                                 color: '#fff', fontSize: '0.75rem', fontWeight: 800,
                                 padding: '0.5rem 1rem', borderRadius: '99px',
                                 whiteSpace: 'nowrap', flexShrink: 0,
-                                cursor: 'pointer', outline: 'none',
+                                cursor: isUpgrading ? 'wait' : 'pointer', outline: 'none',
                                 transition: 'all 0.2s', fontFamily: 'inherit',
-                                boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+                                boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                                opacity: isUpgrading ? 0.8 : 1
                             }}
                             onMouseEnter={e => {
-                                e.currentTarget.style.background = '#fff';
-                                e.currentTarget.style.color = 'var(--primary)';
-                                e.currentTarget.style.transform = 'translateY(-1px)';
+                                if (!isUpgrading) {
+                                    e.currentTarget.style.background = '#fff';
+                                    e.currentTarget.style.color = 'var(--primary)';
+                                    e.currentTarget.style.transform = 'translateY(-1px)';
+                                }
                             }}
                             onMouseLeave={e => {
-                                e.currentTarget.style.background = 'rgba(255,255,255,0.2)';
-                                e.currentTarget.style.color = '#fff';
-                                e.currentTarget.style.transform = 'translateY(0)';
+                                if (!isUpgrading) {
+                                    e.currentTarget.style.background = 'rgba(255,255,255,0.2)';
+                                    e.currentTarget.style.color = '#fff';
+                                    e.currentTarget.style.transform = 'translateY(0)';
+                                }
                             }}
                         >
-                            Upgrade - {new Intl.NumberFormat(undefined, { style: 'currency', currency: currency || 'INR', maximumFractionDigits: 0 }).format(100)}
+                            {isUpgrading ? (
+                                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+                                    <span style={{ width: '13px', height: '13px', border: '2px solid rgba(255,255,255,0.4)', borderTopColor: '#fff', borderRadius: '50%', animation: 'spin 0.7s linear infinite', display: 'inline-block' }} />
+                                    Opening Payment...
+                                </span>
+                            ) : (
+                                `Upgrade - ${new Intl.NumberFormat(undefined, { style: 'currency', currency: currency || 'INR', maximumFractionDigits: 0 }).format(100)}`
+                            )}
                         </button>
                     )}
                 </div>
