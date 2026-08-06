@@ -130,16 +130,23 @@ export default function Archive() {
                                         style={{
                                             display: 'flex', flexDirection: 'column',
                                             background: 'var(--surface)',
+                                            border: '1px solid var(--border)',
                                             borderRadius: '20px',
                                             overflow: 'hidden',
                                             animation: `fadeInUp 0.4s ease-out ${idx * 0.05}s backwards`,
-                                            transition: 'transform 0.2s',
-                                            boxShadow: '0 8px 30px rgba(0,0,0,0.06)',
+                                            transition: 'transform 0.2s, box-shadow 0.2s',
+                                            boxShadow: '0 10px 30px rgba(0, 0, 0, 0.18), 0 4px 12px rgba(0, 0, 0, 0.08)',
                                             cursor: 'pointer'
                                         }}
                                         onClick={() => navigate(`/product/${item.id}`)}
-                                        onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-4px)'}
-                                        onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
+                                        onMouseEnter={e => {
+                                            e.currentTarget.style.transform = 'translateY(-4px)';
+                                            e.currentTarget.style.boxShadow = '0 16px 36px rgba(0, 0, 0, 0.28)';
+                                        }}
+                                        onMouseLeave={e => {
+                                            e.currentTarget.style.transform = 'translateY(0)';
+                                            e.currentTarget.style.boxShadow = '0 10px 30px rgba(0, 0, 0, 0.18), 0 4px 12px rgba(0, 0, 0, 0.08)';
+                                        }}
                                     >
                                         {/* Top Color Band */}
                                         <div style={{

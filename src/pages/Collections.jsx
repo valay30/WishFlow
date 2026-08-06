@@ -597,7 +597,7 @@ export default function Collections() {
                                                     display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                                                     width: '100%', boxSizing: 'border-box'
                                                 }}>
-                                                    <span style={{ fontSize: '0.82rem', color: '#475569', fontWeight: 700 }}>
+                                                    <span style={{ fontSize: '0.85rem', color: ORANGE, opacity: 0.75, fontWeight: 700 }}>
                                                         {colItems.length} {colItems.length === 1 ? 'item' : 'items'}
                                                     </span>
                                                     <span style={{ fontSize: '0.9rem', color: ORANGE, fontWeight: 900 }}>
