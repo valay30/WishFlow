@@ -106,16 +106,30 @@ export default function AddProductModal({ categories, onAdd, onClose }) {
                         </div>
                         <div>
                             <label style={LABEL_ST}>Image</label>
-                            <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                <input style={{ ...INPUT_ST, flex: 1 }} placeholder="Paste image URL..." value={image.startsWith('data:') ? '' : image} onChange={e => setImage(e.target.value)} onFocus={focus} onBlur={blur} />
-                                <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: '2.8rem', background: 'var(--surface-2)', color: ORANGE, borderRadius: '14px', cursor: isUploading ? 'wait' : 'pointer', border: `1.5px dashed ${ORANGE}`, opacity: isUploading ? 0.7 : 1 }}>
-                                    {isUploading ? <span style={{ width: '16px', height: '16px', border: '2px solid rgba(var(--primary-rgb),0.4)', borderTopColor: ORANGE, borderRadius: '50%', animation: 'spin 0.7s linear infinite', display: 'inline-block' }} /> : <Upload size={17} />}
+                            {!image ? (
+                                <label style={{
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.6rem',
+                                    width: '100%', padding: '0.85rem 1rem',
+                                    background: 'var(--surface-2)', color: ORANGE,
+                                    borderRadius: '14px', cursor: isUploading ? 'wait' : 'pointer',
+                                    border: `1.5px dashed ${ORANGE}`, opacity: isUploading ? 0.7 : 1,
+                                    fontWeight: 700, fontSize: '0.9rem', transition: 'all 0.2s'
+                                }}>
+                                    {isUploading ? (
+                                        <>
+                                            <span style={{ width: '16px', height: '16px', border: '2px solid rgba(var(--primary-rgb),0.4)', borderTopColor: ORANGE, borderRadius: '50%', animation: 'spin 0.7s linear infinite', display: 'inline-block' }} />
+                                            Uploading Image...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Upload size={18} /> Upload Image
+                                        </>
+                                    )}
                                     <input type="file" accept="image/*" hidden onChange={handleImageUpload} disabled={isUploading} />
                                 </label>
-                            </div>
-                            {image && (
-                                <div style={{ position: 'relative', marginTop: '0.6rem', borderRadius: '12px', overflow: 'hidden', border: `1.5px solid ${ORANGE}`, maxHeight: '130px' }}>
-                                    <img src={image} alt="Preview" style={{ width: '100%', objectFit: 'cover', maxHeight: '130px', display: 'block' }} />
+                            ) : (
+                                <div style={{ position: 'relative', borderRadius: '14px', overflow: 'hidden', border: `1.5px solid ${ORANGE}`, maxHeight: '140px' }}>
+                                    <img src={image} alt="Preview" style={{ width: '100%', objectFit: 'cover', maxHeight: '140px', display: 'block' }} />
                                     <button type="button" onClick={() => setImage('')} style={{ position: 'absolute', top: '0.4rem', right: '0.4rem', background: 'rgba(0,0,0,0.7)', color: '#ef4444', border: 'none', borderRadius: '50%', width: '26px', height: '26px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
                                         <X size={13} />
                                     </button>

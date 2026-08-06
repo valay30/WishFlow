@@ -197,25 +197,28 @@ export default function AddProduct() {
                     <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1.5rem' }}>
                         <label style={{ flex: '0 0 90px', color: 'var(--text-muted)', fontSize: '0.95rem', textAlign: 'left', marginTop: '0.8rem' }}>Image</label>
                         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                            <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                <input
-                                    className="input"
-                                    placeholder="Paste Image URL..."
-                                    value={image.startsWith('data:') ? '' : image}
-                                    onChange={e => setImage(e.target.value)}
-                                    style={{ flex: 1 }}
-                                />
+                            {!image ? (
                                 <label style={{
-                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                    minWidth: '3.2rem', background: 'var(--surface-3)', color: 'var(--text)',
-                                    borderRadius: '12px', cursor: 'pointer',
-                                    border: '1px solid var(--border)', transition: 'all 0.2s',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.6rem',
+                                    width: '100%', padding: '0.85rem 1rem',
+                                    background: 'var(--surface-2)', color: 'var(--primary)',
+                                    borderRadius: '14px', cursor: isUploading ? 'wait' : 'pointer',
+                                    border: '1.5px dashed var(--primary)', opacity: isUploading ? 0.7 : 1,
+                                    fontWeight: 700, fontSize: '0.9rem', transition: 'all 0.2s'
                                 }}>
-                                    <Upload size={18} />
-                                    <input type="file" accept="image/*" hidden onChange={handleImageUpload} />
+                                    {isUploading ? (
+                                        <>
+                                            <span style={{ width: '16px', height: '16px', border: '2px solid rgba(var(--primary-rgb),0.4)', borderTopColor: 'var(--primary)', borderRadius: '50%', animation: 'spin 0.7s linear infinite', display: 'inline-block' }} />
+                                            Uploading Image...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Upload size={18} /> Upload Image
+                                        </>
+                                    )}
+                                    <input type="file" accept="image/*" hidden onChange={handleImageUpload} disabled={isUploading} />
                                 </label>
-                            </div>
-                            {image && (
+                            ) : (
                                 <div style={{ position: 'relative', borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--border)', maxHeight: '220px' }}>
                                     <img src={image} alt="Preview" style={{ width: '100%', objectFit: 'cover', maxHeight: '220px', display: 'block' }} />
                                     <button
