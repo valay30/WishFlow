@@ -110,89 +110,123 @@ export default function Archive() {
             }}>
                 <div style={{ maxWidth: '600px', margin: '0 auto' }}>
                     {purchasedItems.length > 0 ? (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
-                            {purchasedItems.map((item, idx) => (
-                                <div
-                                    key={item.id}
-                                    style={{
-                                        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                                        padding: '1rem', background: SURFACE,
-                                        borderRadius: '24px', border: `1px solid ${BORDER}`,
-                                        animation: `fadeInUp 0.4s ease-out ${idx * 0.05}s backwards`,
-                                        transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
-                                        cursor: 'pointer',
-                                        boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
-                                    }}
-                                    onClick={() => navigate(`/product/${item.id}`)}
-                                    onMouseEnter={e => {
-                                        e.currentTarget.style.transform = 'translateY(-3px)';
-                                        e.currentTarget.style.borderColor = ORANGE;
-                                        e.currentTarget.style.boxShadow = '0 12px 24px rgba(0,0,0,0.08)';
-                                    }}
-                                    onMouseLeave={e => {
-                                        e.currentTarget.style.transform = 'translateY(0)';
-                                        e.currentTarget.style.borderColor = BORDER;
-                                        e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.04)';
-                                    }}
-                                >
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flex: 1, minWidth: 0 }}>
+                        <div style={{
+                            display: 'grid',
+                            gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+                            gap: '1.5rem'
+                        }}>
+                            {purchasedItems.map((item, idx) => {
+                                const cardColors = [
+                                    { bg: '#7C83F3', text: '#FFFFFF' }, // Blue
+                                    { bg: '#85EBAE', text: '#0F172A' }, // Green
+                                    { bg: '#F6F676', text: '#0F172A' }, // Yellow
+                                    { bg: '#F4AFDD', text: '#0F172A' }  // Pink
+                                ];
+                                const theme = cardColors[idx % cardColors.length];
+
+                                return (
+                                    <div
+                                        key={item.id}
+                                        style={{
+                                            display: 'flex', flexDirection: 'column',
+                                            background: 'var(--surface)',
+                                            borderRadius: '20px',
+                                            overflow: 'hidden',
+                                            animation: `fadeInUp 0.4s ease-out ${idx * 0.05}s backwards`,
+                                            transition: 'transform 0.2s',
+                                            boxShadow: '0 8px 30px rgba(0,0,0,0.06)',
+                                            cursor: 'pointer'
+                                        }}
+                                        onClick={() => navigate(`/product/${item.id}`)}
+                                        onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-4px)'}
+                                        onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
+                                    >
+                                        {/* Top Color Band */}
                                         <div style={{
-                                            width: '56px', height: '56px', borderRadius: '16px', background: '#F8F9FA',
-                                            overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                            flexShrink: 0, border: `1px solid ${BORDER}`
+                                            background: theme.bg,
+                                            padding: '1.2rem 1.25rem',
+                                            display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                                            color: theme.text,
+                                            fontWeight: 500, fontSize: '1.0rem', letterSpacing: '0.02em'
                                         }}>
-                                            {item.image ? (
-                                                <img src={item.image} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                            ) : (
-                                                <Package size={22} color="#999" />
-                                            )}
-                                        </div>
-                                        <div style={{ minWidth: 0 }}>
-                                            <h3 style={{
-                                                fontWeight: 800, fontSize: '0.98rem', color: 'var(--text)', margin: 0,
-                                                whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'
+                                            <span style={{
+                                                whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '60%'
                                             }}>
-                                                {item.name}
-                                            </h3>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginTop: '0.15rem' }}>
-                                                <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#059669', background: '#E1FCEF', padding: '0.1rem 0.6rem', borderRadius: '99px', textTransform: 'uppercase' }}>
-                                                    {categories.find(c => c.id === item.category_id)?.name || 'Misc'}
-                                                </span>
-                                                <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-dim)' }}>
-                                                    {new Intl.NumberFormat(undefined, { style: 'currency', currency: currency || 'INR', maximumFractionDigits: 0 }).format(item.price)}
-                                                </span>
+                                                {categories.find(c => c.id === item.category_id)?.name || 'Misc'}
+                                            </span>
+
+                                            {/* Action Button - Only Restore */}
+                                            <button
+                                                onClick={(e) => handleRestore(item.id, e)}
+                                                style={{
+                                                    background: 'rgba(0,0,0,0.15)', color: theme.text, border: 'none',
+                                                    borderRadius: '99px', padding: '0.4rem 0.8rem',
+                                                    display: 'flex', alignItems: 'center', gap: '0.3rem',
+                                                    fontWeight: 600, fontSize: '1.0rem', cursor: 'pointer',
+                                                    transition: 'all 0.2s'
+                                                }}
+                                                onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.05)'; e.currentTarget.style.background = 'rgba(0,0,0,0.25)' }}
+                                                onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.background = 'rgba(0,0,0,0.15)' }}
+                                                title="Restore to wishlist"
+                                            >
+                                                <RotateCcw size={14} /> Restore
+                                            </button>
+                                        </div>
+
+                                        {/* Lower Content Container (Two Columns) */}
+                                        <div style={{ display: 'flex', flex: 1 }}>
+                                            {/* Left Column (Text & Price) */}
+                                            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, justifyContent: 'center' }}>
+                                                {/* Title */}
+                                                <div style={{ padding: '1.25rem 1.25rem 0.8rem 1.25rem' }}>
+                                                    <h3 style={{
+                                                        margin: 0, fontSize: '1.5rem', fontWeight: 600, color: 'var(--text)',
+                                                        lineHeight: 1.0,
+                                                        display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden'
+                                                    }}>
+                                                        {item.name}
+                                                    </h3>
+                                                </div>
+
+                                                {/* Separator */}
+                                                <div style={{ width: '80%', borderTop: '2px dashed var(--border)', marginLeft: '1.25rem' }} />
+
+                                                {/* Price */}
+                                                <div style={{ padding: '0.8rem 1.25rem 1.25rem 1.25rem' }}>
+                                                    <span style={{ fontSize: '1.6rem', fontWeight: 700, color: 'var(--text)' }}>
+                                                        {new Intl.NumberFormat(undefined, { style: 'currency', currency: currency || 'INR', maximumFractionDigits: 0 }).format(item.price)}
+                                                    </span>
+                                                </div>
+                                            </div>
+
+                                            {/* Right Column (Image Thumbnail) */}
+                                            <div style={{ padding: '1.25rem 1.25rem 1.25rem 0', display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+                                                {item.image ? (
+                                                    <div style={{
+                                                        width: '112px', height: '112px', borderRadius: '18px',
+                                                        background: 'var(--surface-2)', border: '1px solid var(--border)',
+                                                        boxShadow: '0 4px 14px rgba(0,0,0,0.06)',
+                                                        overflow: 'hidden', flexShrink: 0,
+                                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                        padding: '0.4rem'
+                                                    }}>
+                                                        <img src={item.image} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                                                    </div>
+                                                ) : (
+                                                    <div style={{
+                                                        width: '112px', height: '112px', borderRadius: '18px',
+                                                        background: 'var(--surface-2)', border: '1px dashed var(--border)',
+                                                        overflow: 'hidden', flexShrink: 0,
+                                                        display: 'flex', alignItems: 'center', justifyContent: 'center'
+                                                    }}>
+                                                        <Package size={38} color="var(--text-dim)" opacity={0.5} />
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
                                     </div>
-
-                                    <div style={{ display: 'flex', gap: '0.5rem', flexShrink: 0, marginLeft: '1rem' }} onClick={e => e.stopPropagation()}>
-                                        <button
-                                            onClick={(e) => handleRestore(item.id, e)}
-                                            style={{
-                                                background: 'var(--surface-2)', color: 'var(--text-dim)', border: 'none',
-                                                borderRadius: '12px', width: '38px', height: '38px', cursor: 'pointer',
-                                                display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s'
-                                            }}
-                                            onMouseEnter={e => { e.currentTarget.style.background = ORANGE; e.currentTarget.style.color = '#fff'; }}
-                                            onMouseLeave={e => { e.currentTarget.style.background = 'var(--surface-2)'; e.currentTarget.style.color = '#555'; }}
-                                        >
-                                            <RotateCcw size={18} />
-                                        </button>
-                                        <button
-                                            onClick={(e) => handleDelete(item.id, e)}
-                                            style={{
-                                                background: 'rgba(239,68,68,0.08)', color: '#ef4444', border: 'none',
-                                                borderRadius: '12px', width: '38px', height: '38px', cursor: 'pointer',
-                                                display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s'
-                                            }}
-                                            onMouseEnter={e => { e.currentTarget.style.background = '#ef4444'; e.currentTarget.style.color = '#fff'; }}
-                                            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(239,68,68,0.08)'; e.currentTarget.style.color = '#ef4444'; }}
-                                        >
-                                            <Trash2 size={18} />
-                                        </button>
-                                    </div>
-                                </div>
-                            ))}
+                                );
+                            })}
                         </div>
                     ) : (
                         <div style={{
