@@ -1,6 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'YOUR_SUPABASE_URL_HERE';
+import { addToSyncQueue } from './syncQueue';const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'YOUR_SUPABASE_URL_HERE';
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'YOUR_SUPABASE_ANON_KEY_HERE';
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
@@ -361,6 +360,29 @@ export const db = {
         link: item.link,
         image: item.image,
       };
+
+      if (!navigator.onLine) {
+        // Offline: Add to Dexie sync queue and optimistic cache
+        const tempItem = {
+          ...newItem,
+          id: 'temp_' + Date.now(),
+          created_at: new Date().toISOString()
+        };
+        await addToSyncQueue('ADD_ITEM', { item: newItem, targetCollectionId: finalCollectionId });
+        
+        if (__itemCache) {
+          __itemCache = [tempItem, ...__itemCache];
+        }
+        
+        if (finalCollectionId) {
+          try {
+            await db.collectionItems.add(finalCollectionId, tempItem.id);
+          } catch (e) {
+             console.error("Failed optimistic collection assign:", e);
+          }
+        }
+        return tempItem;
+      }
 
       const { data, error } = await supabase.from('items').insert([newItem]).select();
       if (error) throw error;

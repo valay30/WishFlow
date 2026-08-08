@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { processSyncQueue } from './db/syncQueue';
 import { Analytics } from '@vercel/analytics/react';
 import { AuthProvider } from './context/AuthContext';
 import { useAuth } from './context/useAuth';
@@ -31,6 +32,15 @@ function ScrollToTop() {
 
 function AppRoutes() {
   const { user, recoveryMode, isNewSignup, clearNewSignup } = useAuth();
+
+  useEffect(() => {
+    // Process sync queue when online
+    if (navigator.onLine) {
+      processSyncQueue();
+    }
+    window.addEventListener('online', processSyncQueue);
+    return () => window.removeEventListener('online', processSyncQueue);
+  }, []);
 
   return (
     <>

@@ -28,10 +28,12 @@ export default function HoldToDeleteButton({
 
         if (isComplete) return;
         setIsHolding(true);
+        navigator.vibrate?.(10); // subtle tap on start
 
         timeoutRef.current = setTimeout(() => {
             setIsComplete(true);
             setIsHolding(false);
+            navigator.vibrate?.(40); // distinct tap on complete
             if (onDelete) onDelete();
             
             // Optional: Reset after a short delay so the button can be reused

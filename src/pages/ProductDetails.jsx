@@ -137,6 +137,7 @@ export default function ProductDetails() {
             const updated = await db.items.update(item.id, { is_purchased: true });
             if (updated) {
                 setItem(updated);
+                navigator.vibrate?.([20, 50, 20]); // double tap success
                 navigate('/?celebrate=true');
             }
         } catch (err) {
