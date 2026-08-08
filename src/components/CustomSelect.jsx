@@ -53,17 +53,15 @@ export default function CustomSelect({
         }
     }, [isOpen]);
 
-    // Close on click outside
+    // Close on click outside (desktop & fallback)
     useEffect(() => {
         const handleClickOutside = (e) => {
             if (containerRef.current && !containerRef.current.contains(e.target)) {
                 setIsOpen(false);
             }
         };
-        document.addEventListener('touchstart', handleClickOutside);
         document.addEventListener('mousedown', handleClickOutside);
         return () => {
-            document.removeEventListener('touchstart', handleClickOutside);
             document.removeEventListener('mousedown', handleClickOutside);
         };
     }, []);
@@ -94,7 +92,10 @@ export default function CustomSelect({
             <button
                 type="button"
                 disabled={disabled}
-                onClick={() => setIsOpen(prev => !prev)}
+                onClick={(e) => {
+                    e.stopPropagation();
+                    setIsOpen(prev => !prev);
+                }}
                 style={{
                     width: '100%',
                     padding: '0.85rem 1rem',
@@ -140,9 +141,11 @@ export default function CustomSelect({
             {isOpen && createPortal(
                 <>
                     <div
-                        onClick={() => setIsOpen(false)}
-                        onTouchStart={() => setIsOpen(false)}
-                        style={{ position: 'fixed', inset: 0, zIndex: 9998 }}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            setIsOpen(false);
+                        }}
+                        style={{ position: 'fixed', inset: 0, zIndex: 9998, background: 'transparent' }}
                     />
                     <div
                         className="custom-select-menu"
@@ -176,7 +179,8 @@ export default function CustomSelect({
                                 <button
                                     key={String(opt.value)}
                                     type="button"
-                                    onClick={() => {
+                                    onClick={(e) => {
+                                        e.stopPropagation();
                                         onChange(opt.value);
                                         setIsOpen(false);
                                     }}
