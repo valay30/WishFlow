@@ -424,8 +424,16 @@ export const db = {
     },
 
     getById: async (itemId) => {
+      if (!itemId) return null;
+
+      const normalizedId = String(itemId);
+      if (__itemCache) {
+        const cached = __itemCache.find(i => String(i.id) === normalizedId);
+        if (cached) return cached;
+      }
+
       const id = await getUserId();
-      if (!id || !itemId) return null;
+      if (!id) return null;
 
       const { data, error } = await supabase
         .from('items')
@@ -434,7 +442,7 @@ export const db = {
         .eq('user_id', id)
         .single();
 
-      if (error) throw error;
+      if (error) return null;
       return data;
     },
   },

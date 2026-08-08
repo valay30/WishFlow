@@ -33,6 +33,7 @@ export default function ProductDetails() {
     const navigate = useNavigate();
     const { currency } = useSettings();
     const [item, setItem] = useState(null);
+    const [loading, setLoading] = useState(true);
     const [availableCategories, setAvailableCategories] = useState([]);
     const [isEditing, setIsEditing] = useState(false);
 
@@ -84,6 +85,7 @@ export default function ProductDetails() {
     useEffect(() => {
         window.scrollTo(0, 0);
         const load = async () => {
+            setLoading(true);
             const found = await db.items.getById(id);
             if (found) {
                 setItem(found);
@@ -94,6 +96,7 @@ export default function ProductDetails() {
                 setEditImage(found.image || '');
                 setEditCategoryId(found.category_id);
             }
+            setLoading(false);
         };
         load();
     }, [id]);
@@ -143,6 +146,12 @@ export default function ProductDetails() {
 
     const focus = e => { e.target.style.borderColor = BLUE; e.target.style.boxShadow = `0 0 0 3px rgba(var(--primary-rgb),0.1)`; };
     const blur = e => { e.target.style.borderColor = BORDER; e.target.style.boxShadow = 'none'; };
+
+    if (loading) return (
+        <div style={{ minHeight: '100vh', background: `linear-gradient(160deg, var(--primary-dk) 0%, var(--primary-dk) 45%, var(--primary) 100%)`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ width: '32px', height: '32px', border: '3px solid rgba(255,255,255,0.2)', borderTopColor: '#fff', borderRadius: '50%', animation: 'spin 0.6s linear infinite' }} />
+        </div>
+    );
 
     if (!item) return (
         <div style={{ minHeight: '100vh', background: `linear-gradient(160deg, var(--primary-dk) 0%, var(--primary-dk) 45%, var(--primary) 100%)`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
