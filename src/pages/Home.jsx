@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { db, supabase } from '../db';
-import { Search, X, Upload, ArrowRight, Sparkles, ShoppingBag, Crown, Monitor, Shirt, Watch, Tag, Footprints } from 'lucide-react';
+import { Search, X, Upload, ArrowRight, Sparkles, ShoppingBag, Crown, Monitor, Shirt, Watch, Tag, Footprints, SlidersHorizontal, ChevronDown } from 'lucide-react';
 import { useAuth } from '../context/useAuth';
 import { useSettings } from '../context/SettingsContext';
 import ProductCard from '../components/ProductCard';
@@ -43,6 +43,7 @@ export default function Home() {
     const [items, setItems] = useState([]);
     const [categories, setCats] = useState([]);
     const [search, setSearch] = useState('');
+    const [sortBy, setSortBy] = useState('default');
     const [showPremiumModal, setShowPremiumModal] = useState(false);
     const [paymentStatus, setPaymentStatus] = useState({ isOpen: false, success: false, title: '', message: '' });
 
@@ -214,6 +215,12 @@ export default function Home() {
         if (selectedCategory && i.category_id !== selectedCategory) return false;
         if (search && !i.name.toLowerCase().includes(search.toLowerCase())) return false;
         return true;
+    }).sort((a, b) => {
+        if (sortBy === 'price_asc') return (a.price || 0) - (b.price || 0);
+        if (sortBy === 'price_desc') return (b.price || 0) - (a.price || 0);
+        if (sortBy === 'name_asc') return (a.name || '').localeCompare(b.name || '');
+        if (sortBy === 'name_desc') return (b.name || '').localeCompare(a.name || '');
+        return 0;
     });
 
     const firstName = user?.name?.split(' ')[0] || 'there';
@@ -322,23 +329,72 @@ export default function Home() {
                         })}
                     </div>
 
-                    {/* ── Search bar ── */}
-                    <div style={{ position: 'relative', marginBottom: '1.25rem' }}>
-                        <Search size={17} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-dim)', pointerEvents: 'none' }} />
-                        <input
-                            type="text"
-                            placeholder="Search products..."
-                            value={search}
-                            onChange={e => setSearch(e.target.value)}
-                            style={{ width: '100%', padding: '0.85rem 1rem 0.85rem 2.75rem', background: SURFACE, border: `1.5px solid ${BORDER}`, borderRadius: '99px', color: 'var(--text)', fontFamily: 'inherit', fontSize: '0.95rem', outline: 'none', transition: 'border-color 0.2s' }}
-                            onFocus={e => e.target.style.borderColor = ORANGE}
-                            onBlur={e => e.target.style.borderColor = BORDER}
-                        />
-                        {search && (
-                            <button onClick={() => setSearch('')} style={{ position: 'absolute', right: '0.85rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'var(--text-dim)', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
-                                <X size={16} />
-                            </button>
-                        )}
+                    {/* ── Search bar + Inline Filter/Sort ── */}
+                    <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'center', marginBottom: '1.25rem' }}>
+                        <div style={{ flex: 1, position: 'relative' }}>
+                            <Search size={17} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-dim)', pointerEvents: 'none' }} />
+                            <input
+                                type="text"
+                                placeholder="Search products..."
+                                value={search}
+                                onChange={e => setSearch(e.target.value)}
+                                style={{ width: '100%', padding: search ? '0.85rem 2.4rem 0.85rem 2.75rem' : '0.85rem 1rem 0.85rem 2.75rem', background: SURFACE, border: `1.5px solid ${BORDER}`, borderRadius: '99px', color: 'var(--text)', fontFamily: 'inherit', fontSize: '0.95rem', outline: 'none', transition: 'border-color 0.2s', boxSizing: 'border-box' }}
+                                onFocus={e => e.target.style.borderColor = ORANGE}
+                                onBlur={e => e.target.style.borderColor = BORDER}
+                            />
+                            {search && (
+                                <button onClick={() => setSearch('')} style={{ position: 'absolute', right: '0.85rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'var(--text-dim)', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+                                    <X size={16} />
+                                </button>
+                            )}
+                        </div>
+
+                        {/* Inline Filter / Sort Dropdown */}
+                        <div style={{ position: 'relative', flexShrink: 0 }}>
+                            {/* Visual pill button — always displays "Sort" */}
+                            <div style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.35rem',
+                                background: sortBy !== 'default' ? ORANGE : SURFACE,
+                                color: sortBy !== 'default' ? '#fff' : 'var(--text)',
+                                border: `1.5px solid ${sortBy !== 'default' ? ORANGE : BORDER}`,
+                                borderRadius: '99px',
+                                padding: '0.75rem 0.95rem',
+                                fontSize: '0.85rem',
+                                fontWeight: 700,
+                                fontFamily: 'inherit',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s ease',
+                                boxShadow: sortBy !== 'default' ? '0 4px 14px rgba(var(--primary-rgb),0.35)' : 'none',
+                                whiteSpace: 'nowrap',
+                            }}>
+                                <SlidersHorizontal size={14} style={{ color: sortBy !== 'default' ? '#fff' : ORANGE }} />
+                                <span>Sort</span>
+                                <ChevronDown size={13} style={{ color: sortBy !== 'default' ? '#fff' : 'var(--text-dim)' }} />
+                            </div>
+
+                            {/* Transparent native select over the button */}
+                            <select
+                                value={sortBy}
+                                onChange={e => setSortBy(e.target.value)}
+                                style={{
+                                    position: 'absolute',
+                                    inset: 0,
+                                    width: '100%',
+                                    height: '100%',
+                                    opacity: 0,
+                                    cursor: 'pointer',
+                                    WebkitAppearance: 'none',
+                                }}
+                            >
+                                <option value="default" style={{ background: 'var(--surface)', color: 'var(--text)' }}>Default</option>
+                                <option value="price_asc" style={{ background: 'var(--surface)', color: 'var(--text)' }}>Price: Low → High</option>
+                                <option value="price_desc" style={{ background: 'var(--surface)', color: 'var(--text)' }}>Price: High → Low</option>
+                                <option value="name_asc" style={{ background: 'var(--surface)', color: 'var(--text)' }}>Name: A → Z</option>
+                                <option value="name_desc" style={{ background: 'var(--surface)', color: 'var(--text)' }}>Name: Z → A</option>
+                            </select>
+                        </div>
                     </div>
 
                     {/* ── Items list ── */}

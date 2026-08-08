@@ -12,6 +12,7 @@ export const uploadToImageKit = async (file) => {
     const formData = new FormData();
     formData.append("file", file);
     formData.append("fileName", file.name || "wishflow_image_" + Date.now());
+    formData.append("folder", "/wishflow");
 
     const encodedKey = btoa(privateKey + ":");
 
