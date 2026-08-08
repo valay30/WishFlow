@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { ChevronDown } from 'lucide-react';
 
 export default function CustomSelect({
@@ -12,6 +13,7 @@ export default function CustomSelect({
 }) {
     const [isOpen, setIsOpen] = useState(false);
     const containerRef = useRef(null);
+    const [coords, setCoords] = useState({ top: 0, left: 0, width: 0 });
 
     // Normalize options format: array of { value, label, icon } or simple strings/numbers
     const normalizedOptions = options.map(opt => {
@@ -27,6 +29,30 @@ export default function CustomSelect({
 
     const selectedOption = normalizedOptions.find(o => String(o.value) === String(value));
 
+    // Update position on open or scroll
+    const updatePosition = () => {
+        if (containerRef.current) {
+            const rect = containerRef.current.getBoundingClientRect();
+            setCoords({
+                top: rect.bottom + 6,
+                left: rect.left,
+                width: rect.width,
+            });
+        }
+    };
+
+    useEffect(() => {
+        if (isOpen) {
+            updatePosition();
+            window.addEventListener('scroll', updatePosition, true);
+            window.addEventListener('resize', updatePosition);
+            return () => {
+                window.removeEventListener('scroll', updatePosition, true);
+                window.removeEventListener('resize', updatePosition);
+            };
+        }
+    }, [isOpen]);
+
     // Close on click outside
     useEffect(() => {
         const handleClickOutside = (e) => {
@@ -34,8 +60,12 @@ export default function CustomSelect({
                 setIsOpen(false);
             }
         };
+        document.addEventListener('touchstart', handleClickOutside);
         document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('touchstart', handleClickOutside);
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
     }, []);
 
     const ORANGE = 'var(--primary)';
@@ -48,7 +78,7 @@ export default function CustomSelect({
             <input
                 type="text"
                 value={value || ''}
-                onChange={() => {}}
+                onChange={() => { }}
                 required={required}
                 tabIndex={-1}
                 style={{
@@ -84,6 +114,7 @@ export default function CustomSelect({
                     boxShadow: isOpen ? '0 0 0 4px rgba(var(--primary-rgb),0.12)' : 'none',
                     opacity: disabled ? 0.6 : 1,
                     boxSizing: 'border-box',
+                    touchAction: 'manipulation',
                     ...style,
                 }}
             >
@@ -105,75 +136,95 @@ export default function CustomSelect({
                 />
             </button>
 
-            {/* Custom Floating Card Dropdown Menu */}
-            {isOpen && (
-                <div
-                    style={{
-                        position: 'absolute',
-                        top: 'calc(100% + 6px)',
-                        left: 0,
-                        right: 0,
-                        zIndex: 2500,
-                        maxHeight: '220px',
-                        overflowY: 'auto',
-                        background: 'var(--surface)',
-                        border: `1.5px solid ${BORDER}`,
-                        borderRadius: '20px',
-                        padding: '0.45rem',
-                        boxShadow: '0 12px 36px rgba(0,0,0,0.22)',
-                        animation: 'fadeIn 0.15s ease-out',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '0.2rem',
-                    }}
-                >
-                    {normalizedOptions.map((opt) => {
-                        const isActive = String(opt.value) === String(value);
-                        const IconComp = typeof opt.icon !== 'string' ? opt.icon : null;
+            {/* Custom Floating Card Dropdown Menu via Portal to document.body */}
+            {isOpen && createPortal(
+                <>
+                    <div
+                        onClick={() => setIsOpen(false)}
+                        onTouchStart={() => setIsOpen(false)}
+                        style={{ position: 'fixed', inset: 0, zIndex: 9998 }}
+                    />
+                    <div
+                        className="custom-select-menu"
+                        style={{
+                            position: 'fixed',
+                            top: coords.top,
+                            left: coords.left,
+                            width: coords.width,
+                            zIndex: 9999,
+                            maxHeight: '260px',
+                            overflowY: 'auto',
+                            scrollbarWidth: 'none',
+                            msOverflowStyle: 'none',
+                            background: 'var(--surface)',
+                            border: `1.5px solid ${BORDER}`,
+                            borderRadius: '20px',
+                            padding: '0.45rem',
+                            boxShadow: '0 12px 36px rgba(0,0,0,0.25)',
+                            animation: 'fadeIn 0.15s ease-out',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '0.2rem',
+                            boxSizing: 'border-box',
+                        }}
+                    >
+                        {normalizedOptions.map((opt) => {
+                            const isActive = String(opt.value) === String(value);
+                            const IconComp = typeof opt.icon !== 'string' ? opt.icon : null;
 
-                        return (
-                            <button
-                                key={String(opt.value)}
-                                type="button"
-                                onClick={() => {
-                                    onChange(opt.value);
-                                    setIsOpen(false);
-                                }}
-                                style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justify: 'space-between',
-                                    width: '100%',
-                                    padding: '0.65rem 0.85rem',
-                                    borderRadius: '14px',
-                                    border: 'none',
-                                    background: isActive ? 'rgba(var(--primary-rgb),0.12)' : 'transparent',
-                                    color: isActive ? ORANGE : 'var(--text)',
-                                    fontWeight: isActive ? 700 : 500,
-                                    fontSize: '0.9rem',
-                                    fontFamily: 'inherit',
-                                    cursor: 'pointer',
-                                    textAlign: 'left',
-                                    transition: 'all 0.15s ease',
-                                }}
-                                onMouseEnter={e => {
-                                    if (!isActive) e.currentTarget.style.background = 'var(--surface-2)';
-                                }}
-                                onMouseLeave={e => {
-                                    if (!isActive) e.currentTarget.style.background = 'transparent';
-                                }}
-                            >
-                                <span style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                                    {opt.icon && (
-                                        IconComp ? <IconComp size={16} color={isActive ? ORANGE : 'var(--text-muted)'} /> : <span>{opt.icon}</span>
-                                    )}
-                                    {opt.label}
-                                </span>
-                            </button>
-                        );
-                    })}
-                </div>
+                            return (
+                                <button
+                                    key={String(opt.value)}
+                                    type="button"
+                                    onClick={() => {
+                                        onChange(opt.value);
+                                        setIsOpen(false);
+                                    }}
+                                    style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justify: 'space-between',
+                                        width: '100%',
+                                        padding: '0.7rem 0.85rem',
+                                        borderRadius: '14px',
+                                        border: 'none',
+                                        background: isActive ? 'rgba(var(--primary-rgb),0.12)' : 'transparent',
+                                        color: isActive ? ORANGE : 'var(--text)',
+                                        fontWeight: isActive ? 700 : 500,
+                                        fontSize: '0.9rem',
+                                        fontFamily: 'inherit',
+                                        cursor: 'pointer',
+                                        textAlign: 'left',
+                                        transition: 'all 0.15s ease',
+                                        touchAction: 'manipulation',
+                                    }}
+                                    onMouseEnter={e => {
+                                        if (!isActive) e.currentTarget.style.background = 'var(--surface-2)';
+                                    }}
+                                    onMouseLeave={e => {
+                                        if (!isActive) e.currentTarget.style.background = 'transparent';
+                                    }}
+                                >
+                                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                                        {opt.icon && (
+                                            IconComp ? <IconComp size={16} color={isActive ? ORANGE : 'var(--text-muted)'} /> : <span>{opt.icon}</span>
+                                        )}
+                                        {opt.label}
+                                    </span>
+                                </button>
+                            );
+                        })}
+                    </div>
+                </>,
+                document.body
             )}
+            <style>{`
+                .custom-select-menu::-webkit-scrollbar {
+                    display: none !important;
+                    width: 0 !important;
+                    height: 0 !important;
+                }
+            `}</style>
         </div>
     );
 }
