@@ -13,21 +13,25 @@ export default function CustomSelect({
 }) {
     const [isOpen, setIsOpen] = useState(false);
     const containerRef = useRef(null);
+    const menuRef = useRef(null);
     const [coords, setCoords] = useState({ top: 0, left: 0, width: 0 });
+
+    // Robust value normalization for matching numbers, strings, null, undefined
+    const normalizeVal = (v) => (v === null || v === undefined) ? '' : String(v);
 
     // Normalize options format: array of { value, label, icon } or simple strings/numbers
     const normalizedOptions = options.map(opt => {
         if (typeof opt === 'object' && opt !== null) {
             return {
-                value: opt.value ?? opt.id,
-                label: opt.label ?? opt.name,
+                value: opt.value !== undefined ? opt.value : (opt.id !== undefined ? opt.id : opt),
+                label: opt.label !== undefined ? opt.label : (opt.name !== undefined ? opt.name : String(opt)),
                 icon: opt.icon || opt.emoji,
             };
         }
         return { value: opt, label: String(opt), icon: null };
     });
 
-    const selectedOption = normalizedOptions.find(o => String(o.value) === String(value));
+    const selectedOption = normalizedOptions.find(o => normalizeVal(o.value) === normalizeVal(value));
 
     // Update position on open or scroll
     const updatePosition = () => {
@@ -56,7 +60,12 @@ export default function CustomSelect({
     // Close on click outside (desktop & fallback)
     useEffect(() => {
         const handleClickOutside = (e) => {
-            if (containerRef.current && !containerRef.current.contains(e.target)) {
+            if (
+                containerRef.current &&
+                !containerRef.current.contains(e.target) &&
+                menuRef.current &&
+                !menuRef.current.contains(e.target)
+            ) {
                 setIsOpen(false);
             }
         };
@@ -65,6 +74,15 @@ export default function CustomSelect({
             document.removeEventListener('mousedown', handleClickOutside);
         };
     }, []);
+
+    const handleSelectOption = (optVal, e) => {
+        if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        onChange(optVal);
+        setIsOpen(false);
+    };
 
     const ORANGE = 'var(--primary)';
     const SURFACE2 = 'var(--surface-2)';
@@ -148,6 +166,7 @@ export default function CustomSelect({
                         style={{ position: 'fixed', inset: 0, zIndex: 9998, background: 'transparent' }}
                     />
                     <div
+                        ref={menuRef}
                         className="custom-select-menu"
                         style={{
                             position: 'fixed',
@@ -167,23 +186,20 @@ export default function CustomSelect({
                             animation: 'fadeIn 0.15s ease-out',
                             display: 'flex',
                             flexDirection: 'column',
-                            gap: '0.2rem',
+                            gap: '0.25rem',
                             boxSizing: 'border-box',
                         }}
                     >
                         {normalizedOptions.map((opt) => {
-                            const isActive = String(opt.value) === String(value);
+                            const isActive = normalizeVal(opt.value) === normalizeVal(value);
                             const IconComp = typeof opt.icon !== 'string' ? opt.icon : null;
 
                             return (
                                 <button
-                                    key={String(opt.value)}
+                                    key={normalizeVal(opt.value) || opt.label}
                                     type="button"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        onChange(opt.value);
-                                        setIsOpen(false);
-                                    }}
+                                    onMouseDown={(e) => handleSelectOption(opt.value, e)}
+                                    onClick={(e) => handleSelectOption(opt.value, e)}
                                     style={{
                                         display: 'flex',
                                         alignItems: 'center',
@@ -191,16 +207,17 @@ export default function CustomSelect({
                                         width: '100%',
                                         padding: '0.7rem 0.85rem',
                                         borderRadius: '14px',
-                                        border: 'none',
-                                        background: isActive ? 'rgba(var(--primary-rgb),0.12)' : 'transparent',
+                                        border: isActive ? `1.5px solid rgba(var(--primary-rgb), 0.3)` : '1.5px solid transparent',
+                                        background: isActive ? 'rgba(var(--primary-rgb), 0.12)' : 'transparent',
                                         color: isActive ? ORANGE : 'var(--text)',
-                                        fontWeight: isActive ? 700 : 500,
+                                        fontWeight: isActive ? 800 : 500,
                                         fontSize: '0.9rem',
                                         fontFamily: 'inherit',
                                         cursor: 'pointer',
                                         textAlign: 'left',
                                         transition: 'all 0.15s ease',
                                         touchAction: 'manipulation',
+                                        boxSizing: 'border-box',
                                     }}
                                     onMouseEnter={e => {
                                         if (!isActive) e.currentTarget.style.background = 'var(--surface-2)';
