@@ -13,7 +13,7 @@ import { Trash2 } from 'lucide-react';
  */
 export default function HoldToDeleteButton({
     onDelete,
-    duration = 2000,
+    duration = 1500,
     style = {},
 }) {
     const [isHolding, setIsHolding] = useState(false);
@@ -109,14 +109,14 @@ export default function HoldToDeleteButton({
                     alignItems: 'center',
                     justifyContent: 'center',
                     gap: '0.5rem',
-                    color: isComplete ? '#e11d48' : 'var(--text-muted)', // Dark red on complete, text-muted by default to match Edit button
+                    color: 'var(--text-muted)',
                     fontWeight: 700,
                     fontSize: '0.95rem',
                     transition: 'color 0.2s ease',
                 }}
             >
                 <Trash2 size={17} />
-                <span>{isComplete ? 'Deleted' : 'Hold to Delete'}</span>
+                <span>Hold to Delete</span>
             </div>
         </button>
     );

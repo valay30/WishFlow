@@ -99,7 +99,7 @@ export default function AddProductModal({ categories, onAdd, onClose }) {
                                     value={catId}
                                     onChange={val => setCatId(val)}
                                     options={categories.map(c => ({ value: c.id, label: c.name }))}
-                                    placeholder="Select category"
+                                    placeholder="Category"
                                     required
                                 />
                             </div>

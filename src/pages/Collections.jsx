@@ -338,9 +338,17 @@ export default function Collections() {
                 {showAddProductModal && !(user?.isPremium !== true && items.length >= 5) && (
                     <AddProductModal
                         categories={categories}
-                        onAdd={async (itemData) => {
-                            await db.items.add(itemData, activeCollection.id);
-                            await reload();
+                        onAdd={(itemData) => {
+                            // Optimistic UI updates
+                            const tempItem = { ...itemData, id: 'temp_' + Date.now(), created_at: new Date().toISOString() };
+                            setItems(prev => [tempItem, ...prev]);
+                            setCollectionItems(prev => [...prev, { collection_id: activeCollection.id, item_id: tempItem.id }]);
+
+                            // Background save
+                            db.items.add(itemData, activeCollection.id).then(() => {
+                                reload();
+                            });
+                            return true;
                         }}
                         onClose={() => setShowAddProductModal(false)}
                     />

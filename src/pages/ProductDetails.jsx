@@ -113,8 +113,10 @@ export default function ProductDetails() {
         }
     };
 
-    const handleDelete = async () => {
-        await db.items.delete(item.id);
+    const handleDelete = () => {
+        db.items.delete(item.id).catch(err => {
+            console.error("Failed to delete item in background:", err);
+        });
         navigate('/');
     };
 

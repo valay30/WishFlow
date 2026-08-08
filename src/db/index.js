@@ -359,7 +359,7 @@ export const db = {
 
       if (data?.[0]) {
         if (__itemCache) {
-          __itemCache = [...__itemCache, data[0]];
+          __itemCache = [data[0], ...__itemCache];
         }
 
         // If a target collection is provided, insert into junction table
@@ -394,16 +394,24 @@ export const db = {
     },
 
     delete: async (itemId) => {
+      // Optimistically remove from cache so UI updates immediately
+      if (__itemCache) {
+        __itemCache = __itemCache.filter(i => i.id !== itemId);
+      }
+
       const id = await getUserId();
       if (!id) return;
 
-      // Delete from collection_items first to prevent foreign key constraint errors
-      await supabase.from('collection_items').delete().eq('item_id', itemId);
+      try {
+        // Delete from collection_items first to prevent foreign key constraint errors
+        await supabase.from('collection_items').delete().eq('item_id', itemId);
 
-      const { error } = await supabase.from('items').delete().eq('id', itemId).eq('user_id', id);
-      if (error) throw error;
-      if (__itemCache) {
-        __itemCache = __itemCache.filter(i => i.id !== itemId);
+        const { error } = await supabase.from('items').delete().eq('id', itemId).eq('user_id', id);
+        if (error) throw error;
+      } catch (err) {
+        // Rollback cache on error
+        __itemCache = null;
+        throw err;
       }
     },
 

@@ -123,19 +123,43 @@ export default function Home() {
         setSearchParams(n);
     };
 
-    const handleAdd = async (data) => {
-        // Bypass cache — directly query Supabase for the real count
-        const { count, error: countError } = await supabase
-            .from('items')
-            .select('*', { count: 'exact', head: true })
-            .eq('user_id', user?.id);
+    const handleAdd = (data) => {
+        // 1. Optimistic Update
+        const tempItem = { ...data, id: 'temp_' + Date.now(), created_at: new Date().toISOString() };
+        setItems(prev => [tempItem, ...prev]);
 
-        if (!countError && count >= 5 && user?.isPremium !== true) {
-            setShowPremiumModal(true);
-            return false;
-        }
-        await db.items.add(data);
-        setItems(await db.items.getAll());
+        // 2. Background processing
+        (async () => {
+            try {
+                // Check limit
+                const { count, error: countError } = await supabase
+                    .from('items')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('user_id', user?.id);
+
+                if (!countError && count >= 5 && user?.isPremium !== true) {
+                    // Limit exceeded: Revert optimistic update & show modal
+                    setItems(prev => prev.filter(i => i.id !== tempItem.id));
+                    setShowPremiumModal(true);
+                    return;
+                }
+
+                // Actually add to DB
+                const realItem = await db.items.add(data);
+                if (realItem) {
+                    // Replace temp item with real item
+                    setItems(prev => prev.map(i => i.id === tempItem.id ? realItem : i));
+                    // Also refresh __itemCache globally in background just to be safe
+                    db.items.getAll().then(all => setItems(all));
+                }
+            } catch (err) {
+                console.error("Add failed:", err);
+                setItems(prev => prev.filter(i => i.id !== tempItem.id));
+                alert("Failed to add item. Please try again.");
+            }
+        })();
+
+        // Return immediately so the modal closes instantly
         return true;
     };
 
