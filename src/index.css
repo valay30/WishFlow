@@ -126,7 +126,7 @@ input[type="password"]::-ms-clear {
 html,
 body {
   height: 100%;
-  scroll-behavior: smooth;
+  scroll-behavior: auto;
   overflow-x: hidden;
 }
 

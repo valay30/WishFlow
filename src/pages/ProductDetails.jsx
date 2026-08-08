@@ -83,7 +83,7 @@ export default function ProductDetails() {
     }, [isMobile]);
 
     useEffect(() => {
-        window.scrollTo(0, 0);
+        window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
         const load = async () => {
             setLoading(true);
             const found = await db.items.getById(id);
