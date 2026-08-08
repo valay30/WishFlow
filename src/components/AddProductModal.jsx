@@ -4,6 +4,7 @@ import { X, Upload, Sparkles } from 'lucide-react';
 import { uploadToImageKit } from '../utils/imagekit';
 import { db } from '../db';
 import { useSettings } from '../context/SettingsContext';
+import CustomSelect from './CustomSelect';
 
 const ORANGE = 'var(--primary)';
 const SURFACE2 = 'var(--surface-2)';
@@ -94,10 +95,13 @@ export default function AddProductModal({ categories, onAdd, onClose }) {
                             </div>
                             <div>
                                 <label style={LABEL_ST}>Category</label>
-                                <select style={{ ...INPUT_ST, appearance: 'none' }} required value={catId} onChange={e => setCatId(e.target.value)} onFocus={focus} onBlur={blur}>
-                                    <option value="">Select...</option>
-                                    {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                                </select>
+                                <CustomSelect
+                                    value={catId}
+                                    onChange={val => setCatId(val)}
+                                    options={categories.map(c => ({ value: c.id, label: c.name }))}
+                                    placeholder="Select category"
+                                    required
+                                />
                             </div>
                         </div>
                         <div>
@@ -140,10 +144,12 @@ export default function AddProductModal({ categories, onAdd, onClose }) {
                         {collections.length > 0 && (
                             <div>
                                 <label style={LABEL_ST}>Add to Collection (optional)</label>
-                                <select style={{ ...INPUT_ST, appearance: 'none' }} value={colId} onChange={e => setColId(e.target.value)} onFocus={focus} onBlur={blur}>
-                                    <option value="">None</option>
-                                    {collections.map(c => <option key={c.id} value={c.id}>{c.emoji} {c.name}</option>)}
-                                </select>
+                                <CustomSelect
+                                    value={colId}
+                                    onChange={val => setColId(val)}
+                                    options={[{ value: '', label: 'None' }, ...collections.map(c => ({ value: c.id, label: `${c.emoji || ''} ${c.name}` }))]}
+                                    placeholder="None"
+                                />
                             </div>
                         )}
                         <div style={{ display: 'flex', gap: '0.75rem', paddingTop: '0.25rem' }}>

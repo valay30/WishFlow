@@ -4,6 +4,7 @@ import { db } from '../db';
 import { Trash2, Edit, ArrowLeft, ExternalLink, Upload, X, Check, PackageCheck } from 'lucide-react';
 import { uploadToImageKit } from '../utils/imagekit';
 import AlertModal from '../components/AlertModal';
+import CustomSelect from '../components/CustomSelect';
 import { useSettings } from '../context/SettingsContext';
 
 const BLUE = 'var(--primary)';
@@ -235,10 +236,12 @@ export default function ProductDetails() {
                                     </div>
                                     <div>
                                         <label style={LABEL_ST}>Category</label>
-                                        <select style={{ ...INPUT_ST, appearance: 'none' }} value={editCategoryId} onChange={e => setEditCategoryId(e.target.value)} onFocus={focus} onBlur={blur}>
-                                            <option value="">Select Category</option>
-                                            {availableCategories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                                        </select>
+                                        <CustomSelect
+                                            value={editCategoryId}
+                                            onChange={val => setEditCategoryId(val)}
+                                            options={availableCategories.map(c => ({ value: c.id, label: c.name }))}
+                                            placeholder="Select Category"
+                                        />
                                     </div>
                                 </div>
                                 <div>
@@ -430,10 +433,12 @@ export default function ProductDetails() {
                                 </div>
                                 <div>
                                     <label style={LABEL_ST}>Category</label>
-                                    <select style={{ ...INPUT_ST, appearance: 'none' }} value={editCategoryId} onChange={e => setEditCategoryId(e.target.value)} onFocus={focus} onBlur={blur}>
-                                        <option value="">Select Category</option>
-                                        {availableCategories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                                    </select>
+                                    <CustomSelect
+                                        value={editCategoryId}
+                                        onChange={val => setEditCategoryId(val)}
+                                        options={availableCategories.map(c => ({ value: c.id, label: c.name }))}
+                                        placeholder="Select Category"
+                                    />
                                 </div>
                             </div>
 

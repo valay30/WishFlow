@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import { API_URL } from '../config';
 import AlertModal from '../components/AlertModal';
 import { useSettings } from '../context/SettingsContext';
+import CustomSelect from '../components/CustomSelect';
 
 export default function AddProduct() {
     const navigate = useNavigate();
@@ -187,10 +188,15 @@ export default function AddProduct() {
                     {/* Category */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
                         <label style={{ flex: '0 0 90px', color: 'var(--text-muted)', fontSize: '0.95rem', textAlign: 'left' }}>Folder</label>
-                        <select className="select" style={{ flex: 1 }} value={categoryId} onChange={e => setCategoryId(e.target.value)} required>
-                            <option value="">Select Folder</option>
-                            {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                        </select>
+                        <div style={{ flex: 1 }}>
+                            <CustomSelect
+                                value={categoryId}
+                                onChange={val => setCategoryId(val)}
+                                options={categories.map(c => ({ value: c.id, label: c.name }))}
+                                placeholder="Select Folder"
+                                required
+                            />
+                        </div>
                     </div>
 
                     {/* Image */}

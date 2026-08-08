@@ -6,6 +6,7 @@ import { useSettings } from '../context/SettingsContext';
 import { db } from '../db';
 import TierBadgeCard from '../components/TierBadgeCard';
 import AlertModal from '../components/AlertModal';
+import CustomSelect from '../components/CustomSelect';
 import { API_URL } from '../config';
 
 const ORANGE = 'var(--primary)';
@@ -305,28 +306,20 @@ export default function Profile() {
                                                     <p style={{ margin: 0, fontWeight: 800, fontSize: '0.95rem', color: 'var(--text)' }}>Currency</p>
                                                     <p style={{ margin: '0.1rem 0 0', fontSize: '0.82rem', color: 'var(--text-dim)' }}>Default currency for your items</p>
                                                 </div>
-                                                <select
-                                                    value={currency}
-                                                    onChange={(e) => setCurrency(e.target.value)}
-                                                    style={{
-                                                        padding: '0.5rem 1rem',
-                                                        borderRadius: '12px',
-                                                        background: 'var(--surface-2)',
-                                                        border: '1px solid var(--border)',
-                                                        color: 'var(--text)',
-                                                        fontWeight: 700,
-                                                        fontSize: '0.9rem',
-                                                        outline: 'none',
-                                                        cursor: 'pointer'
-                                                    }}
-                                                >
-                                                    <option value="INR">₹ INR</option>
-                                                    <option value="USD">$ USD</option>
-                                                    <option value="EUR">€ EUR</option>
-                                                    <option value="GBP">£ GBP</option>
-                                                    <option value="AUD">A$ AUD</option>
-                                                    <option value="CAD">C$ CAD</option>
-                                                </select>
+                                                <div style={{ minWidth: '120px' }}>
+                                                    <CustomSelect
+                                                        value={currency}
+                                                        onChange={(val) => setCurrency(val)}
+                                                        options={[
+                                                            { value: 'INR', label: '₹ INR' },
+                                                            { value: 'USD', label: '$ USD' },
+                                                            { value: 'EUR', label: '€ EUR' },
+                                                            { value: 'GBP', label: '£ GBP' },
+                                                            { value: 'AUD', label: 'A$ AUD' },
+                                                            { value: 'CAD', label: 'C$ CAD' },
+                                                        ]}
+                                                    />
+                                                </div>
                                             </div>
                                         </div>
 

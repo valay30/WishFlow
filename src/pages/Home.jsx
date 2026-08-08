@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { db, supabase } from '../db';
-import { Search, X, Upload, ArrowRight, Sparkles, ShoppingBag, Crown, Monitor, Shirt, Watch, Tag, Footprints, SlidersHorizontal, ChevronDown } from 'lucide-react';
+import { Search, X, Upload, ArrowRight, Sparkles, ShoppingBag, Crown, Monitor, Shirt, Watch, Tag, Footprints, SlidersHorizontal, ChevronDown, Check, RotateCcw, TrendingUp, TrendingDown, SortAsc, SortDesc } from 'lucide-react';
 import { useAuth } from '../context/useAuth';
 import { useSettings } from '../context/SettingsContext';
 import ProductCard from '../components/ProductCard';
@@ -44,6 +44,7 @@ export default function Home() {
     const [categories, setCats] = useState([]);
     const [search, setSearch] = useState('');
     const [sortBy, setSortBy] = useState('default');
+    const [isSortOpen, setIsSortOpen] = useState(false);
     const [showPremiumModal, setShowPremiumModal] = useState(false);
     const [paymentStatus, setPaymentStatus] = useState({ isOpen: false, success: false, title: '', message: '' });
 
@@ -181,7 +182,7 @@ export default function Home() {
                 },
                 theme: { color: 'var(--primary)' },
                 modal: {
-                    ondismiss: function() {
+                    ondismiss: function () {
                         document.body.style.overflow = '';
                         const rzpContainers = document.querySelectorAll('.razorpay-container');
                         rzpContainers.forEach(container => container.remove());
@@ -349,51 +350,119 @@ export default function Home() {
                             )}
                         </div>
 
-                        {/* Inline Filter / Sort Dropdown */}
+                        {/* Custom Dropdown Sort Menu — Inspired by modern UI card design */}
                         <div style={{ position: 'relative', flexShrink: 0 }}>
-                            {/* Visual pill button — always displays "Sort" */}
-                            <div style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '0.35rem',
-                                background: sortBy !== 'default' ? ORANGE : SURFACE,
-                                color: sortBy !== 'default' ? '#fff' : 'var(--text)',
-                                border: `1.5px solid ${sortBy !== 'default' ? ORANGE : BORDER}`,
-                                borderRadius: '99px',
-                                padding: '0.75rem 0.95rem',
-                                fontSize: '0.85rem',
-                                fontWeight: 700,
-                                fontFamily: 'inherit',
-                                cursor: 'pointer',
-                                transition: 'all 0.2s ease',
-                                boxShadow: sortBy !== 'default' ? '0 4px 14px rgba(var(--primary-rgb),0.35)' : 'none',
-                                whiteSpace: 'nowrap',
-                            }}>
-                                <SlidersHorizontal size={14} style={{ color: sortBy !== 'default' ? '#fff' : ORANGE }} />
-                                <span>Sort</span>
-                                <ChevronDown size={13} style={{ color: sortBy !== 'default' ? '#fff' : 'var(--text-dim)' }} />
-                            </div>
-
-                            {/* Transparent native select over the button */}
-                            <select
-                                value={sortBy}
-                                onChange={e => setSortBy(e.target.value)}
+                            {/* Visual Trigger Button */}
+                            <button
+                                type="button"
+                                onClick={() => setIsSortOpen(prev => !prev)}
                                 style={{
-                                    position: 'absolute',
-                                    inset: 0,
-                                    width: '100%',
-                                    height: '100%',
-                                    opacity: 0,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '0.35rem',
+                                    background: sortBy !== 'default' ? ORANGE : SURFACE,
+                                    color: sortBy !== 'default' ? '#fff' : 'var(--text)',
+                                    border: `1.5px solid ${sortBy !== 'default' ? ORANGE : BORDER}`,
+                                    borderRadius: '99px',
+                                    padding: '0.75rem 0.95rem',
+                                    fontSize: '0.85rem',
+                                    fontWeight: 700,
+                                    fontFamily: 'inherit',
                                     cursor: 'pointer',
-                                    WebkitAppearance: 'none',
+                                    transition: 'all 0.2s ease',
+                                    boxShadow: sortBy !== 'default' ? '0 4px 14px rgba(var(--primary-rgb),0.35)' : 'none',
+                                    whiteSpace: 'nowrap',
                                 }}
                             >
-                                <option value="default" style={{ background: 'var(--surface)', color: 'var(--text)' }}>Default</option>
-                                <option value="price_asc" style={{ background: 'var(--surface)', color: 'var(--text)' }}>Price: Low → High</option>
-                                <option value="price_desc" style={{ background: 'var(--surface)', color: 'var(--text)' }}>Price: High → Low</option>
-                                <option value="name_asc" style={{ background: 'var(--surface)', color: 'var(--text)' }}>Name: A → Z</option>
-                                <option value="name_desc" style={{ background: 'var(--surface)', color: 'var(--text)' }}>Name: Z → A</option>
-                            </select>
+                                <SlidersHorizontal size={14} style={{ color: sortBy !== 'default' ? '#fff' : ORANGE }} />
+                                <span>Sort</span>
+                                <ChevronDown
+                                    size={13}
+                                    style={{
+                                        color: sortBy !== 'default' ? '#fff' : 'var(--text-dim)',
+                                        transform: isSortOpen ? 'rotate(180deg)' : 'none',
+                                        transition: 'transform 0.2s ease'
+                                    }}
+                                />
+                            </button>
+
+                            {/* Outside click backdrop */}
+                            {isSortOpen && (
+                                <div
+                                    onClick={() => setIsSortOpen(false)}
+                                    style={{ position: 'fixed', inset: 0, zIndex: 1999 }}
+                                />
+                            )}
+
+                            {/* Floating Dropdown Card */}
+                            {isSortOpen && (
+                                <div style={{
+                                    position: 'absolute',
+                                    top: 'calc(100% + 8px)',
+                                    right: 0,
+                                    zIndex: 2000,
+                                    minWidth: '210px',
+                                    background: 'var(--surface)',
+                                    border: `1px solid ${BORDER}`,
+                                    borderRadius: '20px',
+                                    padding: '0.45rem',
+                                    boxShadow: '0 12px 36px rgba(0,0,0,0.18)',
+                                    animation: 'fadeIn 0.15s ease-out',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    gap: '0.2rem',
+                                }}>
+                                    {[
+                                        { id: 'default', label: 'Default', icon: RotateCcw },
+                                        { id: 'price_asc', label: 'Price: Low → High', icon: TrendingUp },
+                                        { id: 'price_desc', label: 'Price: High → Low', icon: TrendingDown },
+                                        { id: 'name_asc', label: 'Name: A → Z', icon: SortAsc },
+                                        { id: 'name_desc', label: 'Name: Z → A', icon: SortDesc },
+                                    ].map((opt, idx) => {
+                                        if (opt.id === 'divider') {
+                                            return <div key={'div-' + idx} style={{ height: '1px', background: 'var(--border)', margin: '0.3rem 0.5rem', opacity: 0.7 }} />;
+                                        }
+                                        const IconComponent = opt.icon;
+                                        const isActive = sortBy === opt.id;
+                                        return (
+                                            <button
+                                                key={opt.id}
+                                                type="button"
+                                                onClick={() => { setSortBy(opt.id); setIsSortOpen(false); }}
+                                                style={{
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justify: 'space-between',
+                                                    gap: '0.75rem',
+                                                    width: '100%',
+                                                    padding: '0.65rem 0.85rem',
+                                                    borderRadius: '14px',
+                                                    border: 'none',
+                                                    background: isActive ? 'rgba(var(--primary-rgb),0.12)' : 'transparent',
+                                                    color: isActive ? ORANGE : 'var(--text)',
+                                                    fontWeight: isActive ? 700 : 500,
+                                                    fontSize: '0.86rem',
+                                                    fontFamily: 'inherit',
+                                                    cursor: 'pointer',
+                                                    textAlign: 'left',
+                                                    transition: 'all 0.15s ease',
+                                                }}
+                                                onMouseEnter={e => {
+                                                    if (!isActive) e.currentTarget.style.background = 'var(--surface-2)';
+                                                }}
+                                                onMouseLeave={e => {
+                                                    if (!isActive) e.currentTarget.style.background = 'transparent';
+                                                }}
+                                            >
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+                                                    <IconComponent size={15} color={isActive ? ORANGE : 'var(--text-muted)'} />
+                                                    <span>{opt.label}</span>
+                                                </div>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            )}
                         </div>
                     </div>
 
