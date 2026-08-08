@@ -145,6 +145,8 @@ export const db = {
       const id = await getUserId();
       if (!id) return [];
 
+      if (__categoryCache !== null) return __categoryCache;
+
       if (!__fetchingCategories) {
         __fetchingCategories = supabase
           .from('categories')
@@ -202,6 +204,8 @@ export const db = {
     getAll: async () => {
       const id = await getUserId();
       if (!id) return [];
+
+      if (__collectionCache !== null) return __collectionCache;
 
       if (!__fetchingCollections) {
         __fetchingCollections = supabase
@@ -273,6 +277,8 @@ export const db = {
       const id = await getUserId();
       if (!id) return [];
 
+      if (__collectionItemsCache !== null) return __collectionItemsCache;
+
       if (!__fetchingCollectionItems) {
         __fetchingCollectionItems = supabase
           .from('collection_items')
@@ -324,6 +330,8 @@ export const db = {
     getAll: async () => {
       const id = await getUserId();
       if (!id) return [];
+
+      if (__itemCache !== null) return __itemCache;
 
       if (!__fetchingItems) {
         __fetchingItems = supabase
