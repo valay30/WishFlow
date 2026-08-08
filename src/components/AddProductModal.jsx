@@ -74,7 +74,7 @@ export default function AddProductModal({ categories, onAdd, onClose }) {
                     </div>
 
                     <div style={{ padding: '0.75rem 1.5rem 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: ORANGE }}>Add New Item ✨</h2>
+                        <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: ORANGE }}>Add New Item</h2>
                         <button onClick={onClose} style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'var(--surface-2)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}
                             onMouseEnter={e => e.currentTarget.style.background = 'rgba(239,68,68,0.15)'}
                             onMouseLeave={e => e.currentTarget.style.background = 'var(--surface-2)'}>
@@ -139,7 +139,7 @@ export default function AddProductModal({ categories, onAdd, onClose }) {
                         {/* Collection picker — only shown if user has collections */}
                         {collections.length > 0 && (
                             <div>
-                                <label style={LABEL_ST}>🎁 Add to Collection (optional)</label>
+                                <label style={LABEL_ST}>Add to Collection (optional)</label>
                                 <select style={{ ...INPUT_ST, appearance: 'none' }} value={colId} onChange={e => setColId(e.target.value)} onFocus={focus} onBlur={blur}>
                                     <option value="">None</option>
                                     {collections.map(c => <option key={c.id} value={c.id}>{c.emoji} {c.name}</option>)}
@@ -149,7 +149,7 @@ export default function AddProductModal({ categories, onAdd, onClose }) {
                         <div style={{ display: 'flex', gap: '0.75rem', paddingTop: '0.25rem' }}>
                             <button type="button" onClick={onClose} style={{ flex: 1, padding: '0.9rem', background: 'var(--surface-2)', color: 'var(--text-dim)', border: `1px solid ${BORDER}`, borderRadius: '14px', fontWeight: 600, fontSize: '0.95rem', cursor: 'pointer', fontFamily: 'inherit' }}>Cancel</button>
                             <button type="submit" disabled={isUploading} style={{ flex: 2, padding: '0.9rem', background: isUploading ? 'rgba(var(--primary-rgb),0.5)' : ORANGE, color: '#fff', border: 'none', borderRadius: '14px', fontWeight: 800, fontSize: '0.95rem', cursor: isUploading ? 'wait' : 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', boxShadow: '0 4px 16px rgba(var(--primary-rgb),0.4)' }}>
-                                <Sparkles size={17} /> Save Product
+                                Save Product
                             </button>
                         </div>
                     </form>

@@ -77,7 +77,7 @@ export default function AddProduct() {
                 },
                 theme: { color: 'var(--primary)' },
                 modal: {
-                    ondismiss: function() {
+                    ondismiss: function () {
                         document.body.style.overflow = '';
                         const rzpContainers = document.querySelectorAll('.razorpay-container');
                         rzpContainers.forEach(container => container.remove());
@@ -244,15 +244,15 @@ export default function AddProduct() {
                         <div style={{ flex: '0 0 90px' }}></div>
                         <button
                             type="submit"
-                            style={{ 
-                                flex: 1, padding: '1rem', fontSize: '1rem', 
+                            style={{
+                                flex: 1, padding: '1rem', fontSize: '1rem',
                                 background: 'var(--text)', color: 'var(--bg)',
                                 border: 'none', borderRadius: '12px', fontWeight: 600,
                                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
                                 cursor: 'pointer'
                             }}
                         >
-                            <Sparkles size={18} /> Save Product
+                            Save Product
                         </button>
                     </div>
                 </form>
