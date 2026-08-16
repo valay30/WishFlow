@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
 import { Eye, EyeOff } from 'lucide-react';
 import { useResponsive } from '../hooks/useResponsive';
@@ -313,7 +313,7 @@ export default function AuthPage() {
             {screen === 'signup' && (
                 <div style={{ marginTop: '1.25rem', textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                     <div style={{ fontSize: '0.8rem', color: '#88909D', lineHeight: 1.5 }}>
-                        Signing up for a WishFlow account means you<br />agree to the <a href="#" style={{ color: '#4B5563', fontWeight: 600, textDecoration: 'underline' }}>Privacy Policy</a> and <a href="#" style={{ color: '#4B5563', fontWeight: 600, textDecoration: 'underline' }}>Terms of Service</a>.
+                        Signing up for a WishFlow account means you<br />agree to the <Link to="/privacy" style={{ color: '#4B5563', fontWeight: 600, textDecoration: 'underline' }}>Privacy Policy</Link> and <Link to="/terms" style={{ color: '#4B5563', fontWeight: 600, textDecoration: 'underline' }}>Terms of Service</Link>.
                     </div>
                     <div style={{ fontSize: '0.9rem', color: '#111', fontWeight: 600 }}>
                         Have an account? <button onClick={() => go('login')} style={{ background: 'none', border: 'none', padding: 0, color: '#111', fontWeight: 600, textDecoration: 'underline', cursor: 'pointer', fontFamily: 'inherit' }}>Log in here</button>

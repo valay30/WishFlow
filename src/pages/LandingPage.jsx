@@ -175,9 +175,9 @@ function MobileView({ navigate }) {
             </div>
             {/* Bottom */}
             <div style={{ padding: '16px 28px max(40px, calc(32px + env(safe-area-inset-bottom, 0px)))', display: 'flex', flexDirection: 'column', alignItems: 'center', zIndex: 2, textAlign: 'center', animation: 'lp-fadeIn 0.4s ease 0.1s both', width: '100%', boxSizing: 'border-box' }}>
-                <h1 style={{ fontWeight: 900, fontSize: '1.85rem', color: '#fff', margin: 0, lineHeight: 1.2, letterSpacing: '-0.02em' }}>
+                <h1 style={{ fontWeight: 900, fontSize: '1.85rem', color: '#fff', margin: 0, lineHeight: 1.2, letterSpacing: '0.02em' }}>
                     Wishflow,<br />
-                    <div style={{ fontWeight: 900, fontSize: 'clamp(1.8rem, 3vw, 2.6rem)', lineHeight: 1.1, letterSpacing: '-0.04em', marginBottom: '12px' }}>
+                    <div style={{ fontWeight: 900, fontSize: 'clamp(1.8rem, 3vw, 2.6rem)', lineHeight: 1.1, letterSpacing: '0.03em', marginBottom: '12px' }}>
                         <span style={{ color: '#e879f9' }}>your </span>
                         <span style={{ color: '#c084fc' }}>wishlist </span>
                         <span style={{ color: '#60a5fa' }}>assistant</span>
@@ -232,10 +232,10 @@ function DesktopView({ navigate }) {
 
             {/* HEADLINE */}
             <div style={{ textAlign: 'center', marginBottom: '28px', position: 'relative', zIndex: 2, animation: 'lp-fadeIn 0.45s ease 0.06s both' }}>
-                <div style={{ fontWeight: 900, fontSize: 'clamp(1.8rem, 3vw, 2.6rem)', color: '#fff', lineHeight: 1.1, letterSpacing: '-0.04em', marginBottom: '4px' }}>
+                <div style={{ fontWeight: 900, fontSize: 'clamp(1.8rem, 3vw, 2.6rem)', color: '#fff', lineHeight: 1.1, letterSpacing: '0.03em', marginBottom: '4px' }}>
                     Wishflow,
                 </div>
-                <div style={{ fontWeight: 900, fontSize: 'clamp(1.8rem, 3vw, 2.6rem)', lineHeight: 1.1, letterSpacing: '-0.04em', marginBottom: '12px' }}>
+                <div style={{ fontWeight: 900, fontSize: 'clamp(1.8rem, 3vw, 2.6rem)', lineHeight: 1.1, letterSpacing: '0.03em', marginBottom: '12px' }}>
                     <span style={{ color: '#e879f9' }}>your </span>
                     <span style={{ color: '#c084fc' }}>wishlist </span>
                     <span style={{ color: '#60a5fa' }}>assistant</span>
@@ -245,7 +245,7 @@ function DesktopView({ navigate }) {
 
             {/* 3 CARDS */}
             <div style={{
-                display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '24px',
+                display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '48px',
                 width: '100%', maxWidth: '980px',
                 height: 'clamp(320px, 50vh, 500px)',
                 position: 'relative', zIndex: 2,

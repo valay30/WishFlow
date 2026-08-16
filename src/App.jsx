@@ -18,6 +18,9 @@ import AdminPanel from './pages/AdminPanel';
 import Collections from './pages/Collections';
 import OnboardingFlow from './components/OnboardingFlow';
 import LandingPage from './pages/LandingPage';
+import Privacy from './pages/Privacy';
+import Terms from './pages/Terms';
+import Refund from './pages/Refund';
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -49,6 +52,9 @@ function AppRoutes() {
         {/* ── Public routes ── */}
         <Route path="/" element={user ? <Navigate to="/home" replace /> : <LandingPage />} />
         <Route path="/auth" element={(user && !recoveryMode) ? <Navigate to="/home" replace /> : <AuthPage />} />
+        <Route path="/privacy" element={<Privacy />} />
+        <Route path="/terms" element={<Terms />} />
+        <Route path="/refund" element={<Refund />} />
 
         {/* ── Protected app routes (layout route — no path, uses Outlet) ── */}
         <Route element={<ProtectedRoute />}>
