@@ -6,7 +6,9 @@ export const AuthContext = createContext(null);
 export function AuthProvider({ children }) {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [isNewSignup, setIsNewSignup] = useState(false);
+    const [isNewSignup, setIsNewSignup] = useState(() => {
+        return sessionStorage.getItem('showOnboarding') === 'true';
+    });
     const [recoveryMode, setRecoveryMode] = useState(() => {
         return window.location.hash.includes('type=recovery') || window.location.search.includes('type=recovery');
     });
@@ -43,7 +45,15 @@ export function AuthProvider({ children }) {
                 });
                 if (sessionStorage.getItem('isGoogleLoginRedirect') === 'true') {
                     sessionStorage.removeItem('isGoogleLoginRedirect');
+                    if (session.user.created_at && (Date.now() - new Date(session.user.created_at).getTime() < 60000)) {
+                        sessionStorage.setItem('showOnboarding', 'true');
+                    }
                     window.location.reload();
+                    return;
+                }
+
+                if (sessionStorage.getItem('showOnboarding') === 'true') {
+                    setIsNewSignup(true);
                 }
 
                 if (window.location.hash && (window.location.hash.includes('access_token=') || window.location.hash.includes('error='))) {
@@ -73,9 +83,15 @@ export function AuthProvider({ children }) {
         const result = await auth.signup(data);
         if (result.success) {
             setUser(result.user);
+            sessionStorage.setItem('showOnboarding', 'true');
             setIsNewSignup(true);
         }
         return result;
+    };
+
+    const clearNewSignup = () => {
+        sessionStorage.removeItem('showOnboarding');
+        setIsNewSignup(false);
     };
 
     const logout = async () => {
@@ -102,7 +118,7 @@ export function AuthProvider({ children }) {
     }
 
     return (
-        <AuthContext.Provider value={{ user, login, signup, logout, signInWithGoogle, resetPassword, updatePassword, recoveryMode, setRecoveryMode, isNewSignup, clearNewSignup: () => setIsNewSignup(false) }}>
+        <AuthContext.Provider value={{ user, login, signup, logout, signInWithGoogle, resetPassword, updatePassword, recoveryMode, setRecoveryMode, isNewSignup, clearNewSignup }}>
             {children}
         </AuthContext.Provider>
     );
