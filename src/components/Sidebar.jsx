@@ -4,7 +4,7 @@ import { Home, List, Plus, Package, Crown, ShieldCheck, LogOut, ShoppingBag, Fol
 const ORANGE = 'var(--primary)';
 
 const NAV_LINKS = [
-    { to: '/', icon: Home, label: 'Home' },
+    { to: '/home', icon: Home, label: 'Home' },
     { to: '/categories', icon: List, label: 'Categories' },
     { to: '/collections', icon: FolderHeart, label: 'Collections' },
     { to: '/archive', icon: Package, label: 'Purchased' },
@@ -14,8 +14,8 @@ export default function Sidebar({ user, onLogout }) {
     const location = useLocation();
 
     const isActive = (path) => {
-        if (path === '/?add=true') return location.pathname === '/' && new URLSearchParams(location.search).get('add') === 'true';
-        if (path === '/') return location.pathname === '/' && !new URLSearchParams(location.search).get('add');
+        if (path === '/home?add=true') return location.pathname === '/home' && new URLSearchParams(location.search).get('add') === 'true';
+        if (path === '/home') return location.pathname === '/home' && !new URLSearchParams(location.search).get('add');
         return location.pathname.startsWith(path);
     };
 
@@ -40,7 +40,7 @@ export default function Sidebar({ user, onLogout }) {
                         <Icon size={20} /> {label}
                     </Link>
                 ))}
-                <Link to="/?add=true" className={`sidebar-nav-link${isActive('/?add=true') ? ' active' : ''}`}>
+                <Link to="/home?add=true" className={`sidebar-nav-link${isActive('/home?add=true') ? ' active' : ''}`}>
                     <Plus size={20} /> Add Product
                 </Link>
                 {user?.isAdmin && (

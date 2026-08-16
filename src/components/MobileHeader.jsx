@@ -11,14 +11,14 @@ export default function MobileHeader({ user, onLogout }) {
 
     return (
         <header className="mobile-header">
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', cursor: 'pointer' }} onClick={() => navigate('/')}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', cursor: 'pointer' }} onClick={() => navigate('/home')}>
                 <div style={{ width: '2rem', height: '2rem', borderRadius: '9px', background: ORANGE, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                     <ShoppingBag size={15} color="#fff" />
                 </div>
                 <h1 style={{ fontSize: '1.1rem', fontWeight: 900, color: 'var(--text)' }}>WishFlow</h1>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                <Link to="/" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '2.2rem', height: '2.2rem', borderRadius: '10px', background: isActive('/') ? 'rgba(var(--primary-rgb),0.1)' : 'transparent', color: isActive('/') ? ORANGE : 'var(--text-dim)', textDecoration: 'none', transition: 'all 0.2s' }}>
+                <Link to="/home" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '2.2rem', height: '2.2rem', borderRadius: '10px', background: isActive('/home') ? 'rgba(var(--primary-rgb),0.1)' : 'transparent', color: isActive('/home') ? ORANGE : 'var(--text-dim)', textDecoration: 'none', transition: 'all 0.2s' }}>
                     <Home size={20} />
                 </Link>
                 <Link to="/categories" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '2.2rem', height: '2.2rem', borderRadius: '10px', background: isActive('/categories') ? 'rgba(var(--primary-rgb),0.1)' : 'transparent', color: isActive('/categories') ? ORANGE : 'var(--text-dim)', textDecoration: 'none', transition: 'all 0.2s' }}>

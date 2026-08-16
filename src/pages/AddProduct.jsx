@@ -123,7 +123,7 @@ export default function AddProduct() {
 
         if (!name || !price || !categoryId) return;
         await db.items.add({ name, price: parseFloat(price), link, image, category_id: parseInt(categoryId) });
-        navigate('/');
+        navigate('/home');
     };
 
     const handleImageUpload = (e) => {

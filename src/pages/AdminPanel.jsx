@@ -145,7 +145,7 @@ export default function AdminPanel() {
             {/* Header */}
             <div className="admin-header-bar">
                 <button
-                    onClick={() => navigate('/')}
+                    onClick={() => navigate('/home')}
                     style={{
                         display: 'flex', alignItems: 'center', gap: '0.4rem',
                         background: 'rgba(255,255,255,0.08)', border: '1px solid #30363d',

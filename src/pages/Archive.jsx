@@ -263,7 +263,7 @@ export default function Archive() {
                                 </p>
                             </div>
                             <button
-                                onClick={() => navigate('/')}
+                                onClick={() => navigate('/home')}
                                 style={{
                                     marginTop: '0.5rem', padding: '0.85rem 2rem', background: ORANGE,
                                     color: '#fff', border: 'none', borderRadius: '18px',

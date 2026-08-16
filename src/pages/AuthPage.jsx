@@ -186,7 +186,7 @@ export default function AuthPage() {
             setLoading(false);
             if (res.success) {
                 setResetSuccess(true);
-                setTimeout(() => navigate('/'), 2500);
+                setTimeout(() => navigate('/home'), 2500);
             } else {
                 setError(res.error);
             }
@@ -206,7 +206,7 @@ export default function AuthPage() {
 
         setLoading(false);
 
-        if (result.success) navigate('/');
+        if (result.success) navigate('/home');
         else setError(result.error);
     };
 

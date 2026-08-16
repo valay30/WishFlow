@@ -120,7 +120,7 @@ export default function ProductDetails() {
         db.items.delete(item.id).catch(err => {
             console.error("Failed to delete item in background:", err);
         });
-        navigate('/');
+        navigate('/home');
     };
 
     const handleSave = async () => {
@@ -138,7 +138,7 @@ export default function ProductDetails() {
             if (updated) {
                 setItem(updated);
                 navigator.vibrate?.([20, 50, 20]); // double tap success
-                navigate('/?celebrate=true');
+                navigate('/home?celebrate=true');
             }
         } catch (err) {
             alert("Error marking as purchased: " + err.message + "\n\nDid you run the SQL snippet in Supabase to add the 'is_purchased' column?");
@@ -158,7 +158,7 @@ export default function ProductDetails() {
         <div style={{ minHeight: '100vh', background: `linear-gradient(160deg, var(--primary-dk) 0%, var(--primary-dk) 45%, var(--primary) 100%)`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <div style={{ textAlign: 'center' }}>
                 <p style={{ fontWeight: 700, color: 'rgba(255,255,255,0.7)', marginBottom: '1rem', fontSize: '1.1rem' }}>Item not found.</p>
-                <button onClick={() => navigate('/')} style={{ padding: '0.75rem 2rem', background: 'var(--surface)', color: BLUE, border: 'none', borderRadius: '99px', fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.95rem' }}>← Go Home</button>
+                <button onClick={() => navigate('/home')} style={{ padding: '0.75rem 2rem', background: 'var(--surface)', color: BLUE, border: 'none', borderRadius: '99px', fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.95rem' }}>← Go Home</button>
             </div>
         </div>
     );

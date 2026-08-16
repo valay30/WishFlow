@@ -17,6 +17,7 @@ import Archive from './pages/Archive';
 import AdminPanel from './pages/AdminPanel';
 import Collections from './pages/Collections';
 import OnboardingFlow from './components/OnboardingFlow';
+import LandingPage from './pages/LandingPage';
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -45,33 +46,24 @@ function AppRoutes() {
   return (
     <>
       <Routes>
-        {/* Public route — redirect to home if already logged in (unless in recovery mode) */}
-        <Route
-          path="/auth"
-          element={(user && !recoveryMode) ? <Navigate to="/" replace /> : <AuthPage />}
-        />
+        {/* ── Public routes ── */}
+        <Route path="/" element={user ? <Navigate to="/home" replace /> : <LandingPage />} />
+        <Route path="/auth" element={(user && !recoveryMode) ? <Navigate to="/home" replace /> : <AuthPage />} />
 
-        {/* Protected routes — wrapped in Layout */}
-        <Route
-          path="/*"
-          element={
-            <ProtectedRoute>
-              <Layout>
-                <Routes>
-                  <Route path="/" element={<Home />} />
-                  <Route path="/add" element={<AddProduct />} />
-                  <Route path="/categories" element={<Categories />} />
-                  <Route path="/collections" element={<Collections />} />
-                  <Route path="/product/:id" element={<ProductDetails />} />
-                  <Route path="/archive" element={<Archive />} />
-                  <Route path="/profile" element={<Profile />} />
-                </Routes>
-              </Layout>
-            </ProtectedRoute>
-          }
-        />
-        {/* Admin panel — own full-page layout, protected inside component */}
-        <Route path="/admin" element={<ProtectedRoute><AdminPanel /></ProtectedRoute>} />
+        {/* ── Protected app routes (layout route — no path, uses Outlet) ── */}
+        <Route element={<ProtectedRoute />}>
+          <Route element={<Layout />}>
+            <Route path="/home" element={<Home />} />
+            <Route path="/add" element={<AddProduct />} />
+            <Route path="/categories" element={<Categories />} />
+            <Route path="/collections" element={<Collections />} />
+            <Route path="/product/:id" element={<ProductDetails />} />
+            <Route path="/archive" element={<Archive />} />
+            <Route path="/profile" element={<Profile />} />
+          </Route>
+          {/* Admin — own full-page layout */}
+          <Route path="/admin" element={<AdminPanel />} />
+        </Route>
       </Routes>
 
       {/* Onboarding overlay — shown only once after first signup */}

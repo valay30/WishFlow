@@ -7,13 +7,13 @@ export default function BottomNav({ user }) {
     const location = useLocation();
 
     const isActive = (path) => {
-        if (path === '/') return location.pathname === '/' && !new URLSearchParams(location.search).get('add');
+        if (path === '/home') return location.pathname === '/home' && !new URLSearchParams(location.search).get('add');
         return location.pathname.startsWith(path);
     };
 
     return (
         <nav className="bottom-nav-container">
-            <Link to="/" className={`bottom-nav-item${isActive('/') ? ' active' : ''}`}>
+            <Link to="/home" className={`bottom-nav-item${isActive('/home') ? ' active' : ''}`}>
                 <Home size={22} />
                 <span>Home</span>
             </Link>
@@ -24,7 +24,7 @@ export default function BottomNav({ user }) {
             </Link>
 
             {/* Add Button */}
-            <Link to="/?add=true" className={`bottom-nav-add${new URLSearchParams(location.search).get('add') === 'true' ? ' active' : ''}`} aria-label="Add product">
+            <Link to="/home?add=true" className={`bottom-nav-add${new URLSearchParams(location.search).get('add') === 'true' ? ' active' : ''}`} aria-label="Add product">
                 <div className="bottom-nav-add-inner">
                     <div className="add-icon-wrapper">
                         <Plus size={24} />

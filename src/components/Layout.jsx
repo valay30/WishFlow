@@ -1,4 +1,4 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, Outlet } from 'react-router-dom';
 import { Plus } from 'lucide-react';
 import { useAuth } from '../context/useAuth';
 import Sidebar from './Sidebar';
@@ -19,12 +19,12 @@ export default function Layout({ children }) {
             <div className="main-content">
 
                 <main className="animate-fade-in" style={{ flex: 1 }}>
-                    {children}
+                    {children ?? <Outlet />}
                 </main>
             </div>
 
             {/* Tablet FAB */}
-            <Link to="/?add=true" className="fab" aria-label="Add Item">
+            <Link to="/home?add=true" className="fab" aria-label="Add Item">
                 <Plus size={26} />
             </Link>
 
