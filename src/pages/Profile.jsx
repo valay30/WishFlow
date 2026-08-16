@@ -69,8 +69,8 @@ export default function Profile() {
                         setPaymentStatus({
                             isOpen: true,
                             success: true,
-                            title: 'wishflowlist.vercel.app says',
-                            message: 'Payment Successful! Please relogin to activate your Premium features.'
+                            title: 'Payment Successful, Thank you for subscribing to Premium!',
+                            message: 'Welcome to Premium! Your features are now active.'
                         });
                     } else {
                         setPaymentStatus({
