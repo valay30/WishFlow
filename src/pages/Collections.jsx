@@ -250,8 +250,10 @@ export default function Collections() {
                         @media (max-width: 768px) {
                             .drill-down-header { flex-direction: column !important; text-align: center !important; justify-content: center !important; gap: 0.5rem !important; }
                             .drill-down-text { min-width: 100% !important; }
-                            .drill-down-actions { justify-content: center !important; width: 100% !important; margin-top: 0.5rem; }
-                            .drill-down-actions > button { flex: 1; justify-content: center; }
+                            .drill-down-actions { justify-content: center !important; width: 100% !important; margin-top: 0.5rem; flex-direction: row !important; }
+                            .drill-down-actions > button:nth-child(1),
+                            .drill-down-actions > button:nth-child(2) { flex: 1 1 calc(50% - 0.5rem); justify-content: center; padding: 0.75rem 0.5rem !important; }
+                            .drill-down-actions > button:nth-child(3) { flex: 1 1 100%; justify-content: center; padding: 0.85rem 1rem !important; margin-top: 0.25rem; }
                         }
                         `}
                     </style>
