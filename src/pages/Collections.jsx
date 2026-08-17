@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { db } from '../db';
-import { Plus, FolderHeart, Calendar, Package, ChevronRight, ArrowLeft, Pencil, Crown, X } from 'lucide-react';
+import { Plus, FolderHeart, Calendar, Package, ChevronRight, ArrowLeft, Pencil, Crown, X, Share2, Check } from 'lucide-react';
 import CollectionModal from '../components/CollectionModal';
 import ItemCard from '../components/ItemCard';
 import ProductCard from '../components/ProductCard';
@@ -55,6 +55,28 @@ export default function Collections() {
 
     // Drill-down state
     const [activeCollection, setActiveCollection] = useState(null);
+    const [shareToast, setShareToast] = useState(''); // '' | 'copied' | 'shared'
+
+    // Share a collection via Web Share API or clipboard fallback
+    const handleShare = async (col) => {
+        const url = `${window.location.origin}/shared/collection/${col.id}`;
+        const shareData = {
+            title: `${col.emoji} ${col.name} — WishFlow`,
+            text: `Check out my wishlist collection: ${col.name}`,
+            url,
+        };
+        if (navigator.share) {
+            try { await navigator.share(shareData); return; } catch { /* user cancelled */ return; }
+        }
+        try {
+            await navigator.clipboard.writeText(url);
+            setShareToast('copied');
+            setTimeout(() => setShareToast(''), 2500);
+        } catch {
+            setShareToast('error');
+            setTimeout(() => setShareToast(''), 2500);
+        }
+    };
 
     const handleUpgradeToPremium = async () => {
         try {
@@ -85,7 +107,7 @@ export default function Collections() {
                         setPaymentStatus({
                             isOpen: true,
                             success: true,
-                            title: 'wishflowlist.vercel.app says',
+                            title: 'WishFlow says',
                             message: 'Payment Successful! Please relogin to activate your Premium features.'
                         });
                     } else {
@@ -220,18 +242,38 @@ export default function Collections() {
                     padding: '2rem 1.5rem 2.5rem',
                     position: 'relative',
                 }}>
-                    <button onClick={() => setActiveCollection(null)} style={{ background: 'rgba(255,255,255,0.15)', border: 'none', color: '#fff', borderRadius: '12px', padding: '0.5rem 1rem', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '1.5rem' }}>
+                    <button onClick={() => setActiveCollection(null)} style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.25)', color: '#fff', borderRadius: '99px', padding: '0.5rem 1.25rem', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '0.4rem', marginBottom: '1.5rem', width: 'max-content' }}>
                         <ArrowLeft size={16} /> Back
                     </button>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
-                        <span style={{ fontSize: '3rem' }}>{activeCollection.emoji}</span>
-                        <div style={{ flex: 1, minWidth: '200px' }}>
+                    <style>
+                        {`
+                        @media (max-width: 768px) {
+                            .drill-down-header { flex-direction: column !important; text-align: center !important; justify-content: center !important; gap: 0.5rem !important; }
+                            .drill-down-text { min-width: 100% !important; }
+                            .drill-down-actions { justify-content: center !important; width: 100% !important; margin-top: 0.5rem; }
+                            .drill-down-actions > button { flex: 1; justify-content: center; }
+                        }
+                        `}
+                    </style>
+                    <div className="drill-down-header" style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+                        <span style={{ fontSize: '3.5rem', lineHeight: 1 }}>{activeCollection.emoji}</span>
+                        <div className="drill-down-text" style={{ flex: 1, minWidth: '200px' }}>
                             <h1 style={{ fontSize: '1.8rem', fontWeight: 900, color: '#fff', margin: 0, letterSpacing: '-0.02em' }}>{activeCollection.name}</h1>
                             <p style={{ color: 'rgba(255,255,255,0.7)', margin: '0.25rem 0 0', fontSize: '0.9rem' }}>
                                 {activeItems.length} item{activeItems.length !== 1 ? 's' : ''} · {fmt(activeItems.reduce((s, i) => s + (i.price || 0), 0))} total
                             </p>
                         </div>
-                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        <div className="drill-down-actions" style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                            {/* Share button */}
+                            <button
+                                id="share-collection-btn"
+                                onClick={() => handleShare(activeCollection)}
+                                style={{ background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(8px)', color: '#fff', border: '1px solid rgba(255,255,255,0.25)', borderRadius: '14px', padding: '0.65rem 1rem', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem', transition: 'background 0.2s' }}
+                                onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.25)'}
+                                onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.15)'}
+                            >
+                                <Share2 size={15} /> Share
+                            </button>
                             <button onClick={() => setShowAddExistingModal(true)} style={{ background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(8px)', color: '#fff', border: '1px solid rgba(255,255,255,0.3)', borderRadius: '14px', padding: '0.65rem 1rem', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                                 <Package size={16} /> Add Existing
                             </button>
@@ -244,7 +286,7 @@ export default function Collections() {
                                     }
                                 }
                                 setShowAddProductModal(true);
-                            }} style={{ background: 'var(--surface)', color: ORANGE, border: 'none', borderRadius: '14px', padding: '0.65rem 1rem', fontWeight: 800, fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
+                            }} style={{ background: 'var(--surface)', color: '#f97316', border: 'none', borderRadius: '14px', padding: '0.65rem 1rem', fontWeight: 800, fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
                                 <Plus size={16} /> New Item
                             </button>
                         </div>
@@ -395,6 +437,24 @@ export default function Collections() {
                         </div>
                     </div>,
                     document.body
+                )}
+
+                {/* ── Share / copy toast ── */}
+                {shareToast && (
+                    <div style={{
+                        position: 'fixed', bottom: '5.5rem', left: '50%', transform: 'translateX(-50%)',
+                        background: shareToast === 'copied' ? 'rgba(34,197,94,0.95)' : 'rgba(239,68,68,0.95)',
+                        backdropFilter: 'blur(12px)',
+                        color: '#fff', borderRadius: '14px', padding: '0.75rem 1.4rem',
+                        fontWeight: 700, fontSize: '0.88rem',
+                        display: 'flex', alignItems: 'center', gap: '0.5rem',
+                        boxShadow: '0 8px 32px rgba(0,0,0,0.35)',
+                        zIndex: 99999, whiteSpace: 'nowrap',
+                        animation: 'fadeInUp 0.25s ease-out',
+                    }}>
+                        {shareToast === 'copied' ? <Check size={15} /> : <X size={15} />}
+                        {shareToast === 'copied' ? 'Link copied to clipboard!' : 'Could not copy link'}
+                    </div>
                 )}
             </div>
         );

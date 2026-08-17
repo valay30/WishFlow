@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { addToSyncQueue } from './syncQueue';const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'YOUR_SUPABASE_URL_HERE';
+import { addToSyncQueue } from './syncQueue'; const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'YOUR_SUPABASE_URL_HERE';
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'YOUR_SUPABASE_ANON_KEY_HERE';
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
@@ -369,16 +369,16 @@ export const db = {
           created_at: new Date().toISOString()
         };
         await addToSyncQueue('ADD_ITEM', { item: newItem, targetCollectionId: finalCollectionId });
-        
+
         if (__itemCache) {
           __itemCache = [tempItem, ...__itemCache];
         }
-        
+
         if (finalCollectionId) {
           try {
             await db.collectionItems.add(finalCollectionId, tempItem.id);
           } catch (e) {
-             console.error("Failed optimistic collection assign:", e);
+            console.error("Failed optimistic collection assign:", e);
           }
         }
         return tempItem;
@@ -468,4 +468,33 @@ export const db = {
       return data;
     },
   },
+
+  shared: {
+    getCollection: async (collectionId) => {
+      const { data, error } = await supabase
+        .from('collections')
+        .select('*')
+        .eq('id', collectionId)
+        .single();
+      if (error) return null;
+      return data;
+    },
+    getCollectionItems: async (collectionId) => {
+      const { data: pivot, error: pivotErr } = await supabase
+        .from('collection_items')
+        .select('item_id')
+        .eq('collection_id', collectionId);
+      
+      if (pivotErr || !pivot || pivot.length === 0) return [];
+      
+      const itemIds = pivot.map(p => p.item_id);
+      const { data: items, error: itemsErr } = await supabase
+        .from('items')
+        .select('*')
+        .in('id', itemIds);
+        
+      if (itemsErr) return [];
+      return items;
+    }
+  }
 };
