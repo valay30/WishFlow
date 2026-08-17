@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { processSyncQueue } from './db/syncQueue';
 import { Analytics } from '@vercel/analytics/react';
@@ -21,6 +21,7 @@ import LandingPage from './pages/LandingPage';
 import Privacy from './pages/Privacy';
 import Terms from './pages/Terms';
 import Refund from './pages/Refund';
+import OfflinePage from './pages/OfflinePage';
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -36,15 +37,68 @@ function ScrollToTop() {
 
 function AppRoutes() {
   const { user, recoveryMode, isNewSignup, clearNewSignup } = useAuth();
+  const [isOffline, setIsOffline] = useState(!navigator.onLine);
+
+  const verifyOnlineStatus = async () => {
+    if (!navigator.onLine) {
+      setIsOffline(true);
+      return false;
+    }
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 3000);
+      await fetch(`/api/ping?_=${Date.now()}`, {
+        method: 'HEAD',
+        cache: 'no-store',
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
+      setIsOffline(false);
+      return true;
+    } catch {
+      setIsOffline(true);
+      return false;
+    }
+  };
 
   useEffect(() => {
-    // Process sync queue when online
-    if (navigator.onLine) {
-      processSyncQueue();
-    }
-    window.addEventListener('online', processSyncQueue);
-    return () => window.removeEventListener('online', processSyncQueue);
+    // Initial verification on mount
+    verifyOnlineStatus();
+
+    const handleOnline = () => {
+      verifyOnlineStatus().then((online) => {
+        if (online) processSyncQueue();
+      });
+    };
+
+    const handleOffline = () => {
+      setIsOffline(true);
+    };
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    window.addEventListener('focus', verifyOnlineStatus);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+      window.removeEventListener('focus', verifyOnlineStatus);
+    };
   }, []);
+
+  // Render offline overlay on top of everything
+  if (isOffline) {
+    return (
+      <OfflinePage
+        onRetry={async () => {
+          const online = await verifyOnlineStatus();
+          if (online) {
+            window.location.reload();
+          }
+        }}
+      />
+    );
+  }
 
   return (
     <>
