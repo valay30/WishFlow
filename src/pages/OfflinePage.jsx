@@ -1,35 +1,35 @@
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback, useState } from 'react';
 
 /* ─── Node data ─── */
 const NODES = [
-  { id: 0,  x: 12,  y: 15,  label: 'SYNC',          size: 52 },
-  { id: 1,  x: 32,  y: 8,   label: 'WIFI',           size: 44 },
-  { id: 2,  x: 58,  y: 12,  label: 'DATA',           size: 48 },
-  { id: 3,  x: 80,  y: 18,  label: 'CLOUD',          size: 56 },
-  { id: 4,  x: 8,   y: 38,  label: 'DNS',            size: 40 },
-  { id: 5,  x: 28,  y: 32,  label: 'HTTP',           size: 44 },
-  { id: 6,  x: 48,  y: 28,  label: 'API',            size: 52 },
-  { id: 7,  x: 70,  y: 35,  label: 'CDN',            size: 42 },
-  { id: 8,  x: 88,  y: 42,  label: 'PROXY',          size: 38 },
-  { id: 9,  x: 18,  y: 55,  label: 'TCP',            size: 46 },
-  { id: 10, x: 42,  y: 50,  label: 'SSL',            size: 50 },
-  { id: 11, x: 65,  y: 55,  label: 'VPN',            size: 44 },
-  { id: 12, x: 85,  y: 62,  label: 'NAT',            size: 38 },
-  { id: 13, x: 10,  y: 70,  label: 'ROUTER',         size: 54 },
-  { id: 14, x: 35,  y: 68,  label: 'PING',           size: 42 },
-  { id: 15, x: 58,  y: 72,  label: 'SIGNAL',         size: 48 },
-  { id: 16, x: 78,  y: 78,  label: 'LINK',           size: 40 },
-  { id: 17, x: 22,  y: 84,  label: 'HOST',           size: 46 },
-  { id: 18, x: 50,  y: 88,  label: 'NO CONNECTION',  size: 72, isFinal: true },
-  { id: 19, x: 75,  y: 90,  label: 'RETRY',          size: 44 },
-  { id: 20, x: 92,  y: 25,  label: 'SOCKET',         size: 36 },
-  { id: 21, x: 5,   y: 22,  label: 'IP',             size: 34 },
+  { id: 0, x: 12, y: 15, label: 'SYNC', size: 52 },
+  { id: 1, x: 32, y: 8, label: 'WIFI', size: 44 },
+  { id: 2, x: 58, y: 12, label: 'DATA', size: 48 },
+  { id: 3, x: 80, y: 18, label: 'CLOUD', size: 56 },
+  { id: 4, x: 8, y: 38, label: 'DNS', size: 40 },
+  { id: 5, x: 28, y: 32, label: 'HTTP', size: 44 },
+  { id: 6, x: 48, y: 28, label: 'API', size: 52 },
+  { id: 7, x: 70, y: 35, label: 'CDN', size: 42 },
+  { id: 8, x: 88, y: 42, label: 'PROXY', size: 38 },
+  { id: 9, x: 18, y: 55, label: 'TCP', size: 46 },
+  { id: 10, x: 42, y: 50, label: 'SSL', size: 50 },
+  { id: 11, x: 65, y: 55, label: 'VPN', size: 44 },
+  { id: 12, x: 85, y: 62, label: 'NAT', size: 38 },
+  { id: 13, x: 10, y: 70, label: 'ROUTER', size: 54 },
+  { id: 14, x: 35, y: 68, label: 'PING', size: 42 },
+  { id: 15, x: 58, y: 72, label: 'SIGNAL', size: 48 },
+  { id: 16, x: 78, y: 78, label: 'LINK', size: 40 },
+  { id: 17, x: 22, y: 84, label: 'HOST', size: 46 },
+  { id: 18, x: 50, y: 88, label: 'NO CONNECTION', size: 72, isFinal: true },
+  { id: 19, x: 75, y: 90, label: 'RETRY', size: 44 },
+  { id: 20, x: 92, y: 25, label: 'SOCKET', size: 36 },
+  { id: 21, x: 5, y: 22, label: 'IP', size: 34 },
 ];
 
 /* ─── Spotlight path keyframes (% of screen) ─── */
 const PATH = [
   { x: 10, y: 10 },
-  { x: 30, y: 8  },
+  { x: 30, y: 8 },
   { x: 58, y: 12 },
   { x: 80, y: 20 },
   { x: 88, y: 42 },
@@ -47,8 +47,9 @@ function easeInOut(t) { return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t; }
 
 export default function OfflinePage({ onRetry }) {
   const canvasRef = useRef(null);
-  const animRef   = useRef(null);
-  const stateRef  = useRef({
+  const animRef = useRef(null);
+  const [isChecking, setIsChecking] = useState(false);
+  const stateRef = useRef({
     lensX: 10, lensY: 10,
     pathIndex: 0,
     segT: 0,
@@ -58,6 +59,19 @@ export default function OfflinePage({ onRetry }) {
     finalGlow: 0,
     finalGlowDir: 1,
   });
+
+  const handleRetry = async () => {
+    if (isChecking) return;
+    setIsChecking(true);
+    if (onRetry) {
+      await onRetry();
+    } else {
+      window.location.reload();
+    }
+    setTimeout(() => {
+      setIsChecking(false);
+    }, 1000);
+  };
 
   const draw = useCallback(() => {
     const canvas = canvasRef.current;
@@ -109,7 +123,7 @@ export default function OfflinePage({ onRetry }) {
 
       if (isNeonGreen) {
         ctx.shadowColor = '#00FF87';
-        ctx.shadowBlur  = 8 + S.finalGlow * 20;
+        ctx.shadowBlur = 8 + S.finalGlow * 20;
 
         ctx.beginPath();
         ctx.arc(0, 0, r, 0, Math.PI * 2);
@@ -160,26 +174,26 @@ export default function OfflinePage({ onRetry }) {
     ctx.beginPath();
     ctx.arc(0, 0, lensR, 0, Math.PI * 2);
     ctx.strokeStyle = isFinalPhase ? 'rgba(0,255,135,0.45)' : 'rgba(255,255,255,0.35)';
-    ctx.lineWidth   = 1.8;
+    ctx.lineWidth = 1.8;
     ctx.shadowColor = isFinalPhase ? '#00FF87' : 'rgba(255,255,255,0.3)';
-    ctx.shadowBlur  = isFinalPhase ? 18 : 8;
+    ctx.shadowBlur = isFinalPhase ? 18 : 8;
     ctx.stroke();
 
     ctx.beginPath();
     ctx.arc(-lensR * 0.25, -lensR * 0.3, lensR * 0.35, Math.PI * 1.1, Math.PI * 1.7);
     ctx.strokeStyle = isFinalPhase ? 'rgba(0,255,135,0.25)' : 'rgba(255,255,255,0.18)';
-    ctx.lineWidth   = 1.2;
-    ctx.shadowBlur  = 0;
+    ctx.lineWidth = 1.2;
+    ctx.shadowBlur = 0;
     ctx.stroke();
 
     ctx.beginPath();
     ctx.moveTo(lensR * 0.7, lensR * 0.7);
     ctx.lineTo(lensR * 1.32, lensR * 1.32);
     ctx.strokeStyle = isFinalPhase ? 'rgba(0,255,135,0.6)' : 'rgba(255,255,255,0.55)';
-    ctx.lineWidth   = 3;
-    ctx.lineCap     = 'round';
+    ctx.lineWidth = 3;
+    ctx.lineCap = 'round';
     ctx.shadowColor = isFinalPhase ? '#00FF87' : 'rgba(255,255,255,0.3)';
-    ctx.shadowBlur  = isFinalPhase ? 12 : 6;
+    ctx.shadowBlur = isFinalPhase ? 12 : 6;
     ctx.stroke();
 
     ctx.restore();
@@ -244,7 +258,7 @@ export default function OfflinePage({ onRetry }) {
     const dpr = window.devicePixelRatio || 1;
 
     const resize = () => {
-      canvas.width  = canvas.offsetWidth  * dpr;
+      canvas.width = canvas.offsetWidth * dpr;
       canvas.height = canvas.offsetHeight * dpr;
     };
 
@@ -267,6 +281,15 @@ export default function OfflinePage({ onRetry }) {
         @keyframes offlineFadeIn { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
         @keyframes badgePulse { 0%,100%{opacity:1} 50%{opacity:0.35} }
         @keyframes retryGlow { 0%,100%{box-shadow:0 0 18px rgba(0,255,135,.30)} 50%{box-shadow:0 0 32px rgba(0,255,135,.55)} }
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+        #offline-retry-btn:active {
+          transform: translateY(1px) scale(0.96) !important;
+          box-shadow: 0 0 10px rgba(0,255,135,.20) !important;
+          opacity: 0.8;
+        }
       `}</style>
 
       <canvas ref={canvasRef} aria-hidden="true" style={styles.canvas} />
@@ -284,13 +307,13 @@ export default function OfflinePage({ onRetry }) {
             <svg width="26" height="26" viewBox="0 0 24 24" fill="none"
               stroke="rgba(255,255,255,0.75)" strokeWidth="1.6"
               strokeLinecap="round" strokeLinejoin="round">
-              <line x1="1" y1="1" x2="23" y2="23"/>
-              <path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"/>
-              <path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"/>
-              <path d="M10.71 5.05A16 16 0 0 1 22.56 9"/>
-              <path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"/>
-              <path d="M8.53 16.11a6 6 0 0 1 6.95 0"/>
-              <line x1="12" y1="20" x2="12.01" y2="20"/>
+              <line x1="1" y1="1" x2="23" y2="23" />
+              <path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55" />
+              <path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39" />
+              <path d="M10.71 5.05A16 16 0 0 1 22.56 9" />
+              <path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88" />
+              <path d="M8.53 16.11a6 6 0 0 1 6.95 0" />
+              <line x1="12" y1="20" x2="12.01" y2="20" />
             </svg>
           </div>
 
@@ -303,7 +326,7 @@ export default function OfflinePage({ onRetry }) {
             <button
               id="offline-retry-btn"
               style={styles.retryBtn}
-              onClick={onRetry || (() => window.location.reload())}
+              onClick={handleRetry}
               onMouseEnter={e => Object.assign(e.currentTarget.style, {
                 background: 'linear-gradient(135deg,#00e87a,#00c060)',
                 transform: 'translateY(-2px) scale(1.03)',
@@ -319,9 +342,12 @@ export default function OfflinePage({ onRetry }) {
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
                 stroke="currentColor" strokeWidth="2.5"
                 strokeLinecap="round" strokeLinejoin="round"
-                style={{ marginRight: 8 }}>
-                <polyline points="23 4 23 10 17 10"/>
-                <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+                style={{
+                  marginRight: 8,
+                  animation: isChecking ? 'spin 1s linear infinite' : 'none'
+                }}>
+                <polyline points="23 4 23 10 17 10" />
+                <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
               </svg>
               Try Again
             </button>
