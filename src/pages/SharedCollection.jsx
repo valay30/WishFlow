@@ -605,7 +605,7 @@ export default function SharedCollection() {
       min-height: 100vh;
       background: #fafafa;
       font-family: 'Outfit', sans-serif;
-      padding-bottom: 40px;
+      padding-bottom: 50px;
     }
     @media (min-width: 640px) {
       .sc-page {
@@ -617,6 +617,7 @@ export default function SharedCollection() {
       background: #fff;
       width: 100%;
       min-height: 100vh;
+      padding-bottom: 90px;
     }
     @media (min-width: 640px) {
       .sc-app-card {
@@ -625,6 +626,7 @@ export default function SharedCollection() {
         border-radius: 32px;
         box-shadow: 0 12px 48px rgba(0,0,0,0.04);
         overflow: hidden;
+        padding-bottom: 0;
       }
     }
     .sc-header {
@@ -792,7 +794,7 @@ export default function SharedCollection() {
     }
     /* CTA banner */
     .sc-cta {
-      margin: 1rem 1.25rem;
+      margin: 1rem 1.25rem 2rem;
       background: linear-gradient(135deg, #FFF5F2 0%, #FFF9F7 100%);
       border-radius: 20px;
       padding: 1.75rem 1.5rem; display: flex; flex-direction: column; gap: 1.25rem;
