@@ -145,7 +145,7 @@ export default function AdminPanel() {
             {/* Header */}
             <div className="admin-header-bar">
                 <button
-                    onClick={() => navigate('/home')}
+                    onClick={() => navigate('/')}
                     style={{
                         display: 'flex', alignItems: 'center', gap: '0.4rem',
                         background: 'rgba(255,255,255,0.08)', border: '1px solid #30363d',
@@ -500,7 +500,7 @@ export default function AdminPanel() {
             `}</style>
             <AlertModal
                 isOpen={deleteTargetUserId !== null}
-                title="wishflowlist.vercel.app says"
+                title="WishFlow"
                 message="Are you sure you want to permanently delete this user?"
                 cancelText="Cancel"
                 confirmText="OK"

@@ -263,7 +263,7 @@ export default function Archive() {
                                 </p>
                             </div>
                             <button
-                                onClick={() => navigate('/home')}
+                                onClick={() => navigate('/')}
                                 style={{
                                     marginTop: '0.5rem', padding: '0.85rem 2rem', background: ORANGE,
                                     color: '#fff', border: 'none', borderRadius: '18px',
@@ -292,7 +292,7 @@ export default function Archive() {
             `}</style>
             <AlertModal
                 isOpen={deleteTargetId !== null}
-                title="wishflowlist.vercel.app says"
+                title="WishFlow"
                 message="Permanently delete this purchased item?"
                 cancelText="Cancel"
                 confirmText="OK"

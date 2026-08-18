@@ -64,7 +64,7 @@ export default function AddProduct() {
                         setPaymentStatus({
                             isOpen: true,
                             success: true,
-                            title: 'wishflowlist.vercel.app says',
+                            title: 'WishFlow',
                             message: 'Payment Successful! Please relogin to activate your Premium features.'
                         });
                     } else {
@@ -123,7 +123,7 @@ export default function AddProduct() {
 
         if (!name || !price || !categoryId) return;
         await db.items.add({ name, price: parseFloat(price), link, image, category_id: parseInt(categoryId) });
-        navigate('/home');
+        navigate('/');
     };
 
     const handleImageUpload = (e) => {
