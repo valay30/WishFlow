@@ -593,6 +593,8 @@ export default function SharedCollection() {
   const day = collection ? getDay(collection.target_date) : null;
 
   const STYLES = `
+    ::-webkit-scrollbar { display: none !important; width: 0 !important; height: 0 !important; }
+    * { -ms-overflow-style: none !important; scrollbar-width: none !important; }
     @keyframes sc-shimmer {
       0%   { background-position: 200% 0; }
       100% { background-position: -200% 0; }
