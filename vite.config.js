@@ -63,7 +63,7 @@ export default defineConfig({
         short_name: 'WishFlow',
         description: 'Track and manage your wishlists easily.',
         theme_color: '#10367D',
-        background_color: '#EBEBEB',
+        background_color: '#FFFFFF',
         display: 'standalone',
         start_url: '/',
         scope: '/',
@@ -72,13 +72,25 @@ export default defineConfig({
             src: '/192x192.png',
             sizes: '192x192',
             type: 'image/png',
-            purpose: 'any maskable'
+            purpose: 'any'
+          },
+          {
+            src: '/192x192.png',
+            sizes: '192x192',
+            type: 'image/png',
+            purpose: 'maskable'
           },
           {
             src: '/512x512.png',
             sizes: '512x512',
             type: 'image/png',
-            purpose: 'any maskable'
+            purpose: 'any'
+          },
+          {
+            src: '/512x512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'maskable'
           },
           {
             src: '/apple-touch-icon.png',
