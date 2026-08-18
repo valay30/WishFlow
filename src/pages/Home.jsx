@@ -192,7 +192,7 @@ export default function Home() {
                         setPaymentStatus({
                             isOpen: true,
                             success: true,
-                            title: 'wishflowlist.vercel.app says',
+                            title: 'WishFlow',
                             message: 'Payment Successful! Please relogin to activate your Premium features.'
                         });
                     } else {

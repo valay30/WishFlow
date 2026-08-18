@@ -605,7 +605,7 @@ export default function SharedCollection() {
       min-height: 100vh;
       background: #fafafa;
       font-family: 'Outfit', sans-serif;
-      padding-bottom: 60px;
+      padding-bottom: 40px;
     }
     @media (min-width: 640px) {
       .sc-page {

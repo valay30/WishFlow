@@ -195,7 +195,7 @@ export default function CollectionModal({ existing = null, onSave, onDelete, onC
             <style>{`@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }`}</style>
             <AlertModal
                 isOpen={showDeleteConfirm}
-                title="wishflowlist.vercel.app says"
+                title="WishFlow"
                 message={`Delete "${existing?.name}"? Items in this collection won't be deleted.`}
                 cancelText="Cancel"
                 confirmText="OK"

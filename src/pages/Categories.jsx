@@ -291,7 +291,7 @@ export default function Categories() {
             `}</style>
             <AlertModal
                 isOpen={deleteTargetId !== null}
-                title="wishflowlist.vercel.app says"
+                title="WishFlow"
                 message="Delete this category?"
                 cancelText="Cancel"
                 confirmText="OK"
