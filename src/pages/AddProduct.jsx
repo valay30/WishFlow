@@ -182,7 +182,7 @@ export default function AddProduct() {
                     {/* Link */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
                         <label style={{ flex: '0 0 90px', color: 'var(--text-muted)', fontSize: '0.95rem', textAlign: 'left' }}>Link</label>
-                        <input className="input" style={{ flex: 1 }} type="url" value={link} onChange={e => setLink(e.target.value)} placeholder="https://example.com/product" />
+                        <input className="input" style={{ flex: 1 }} type="text" value={link} onChange={e => setLink(e.target.value)} placeholder="https://example.com/product" />
                     </div>
 
                     {/* Category */}

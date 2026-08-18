@@ -106,7 +106,7 @@ export default function AddProductModal({ categories, onAdd, onClose }) {
                         </div>
                         <div>
                             <label style={LABEL_ST}>Product Link</label>
-                            <input style={INPUT_ST} type="url" placeholder="https://..." value={link} onChange={e => setLink(e.target.value)} onFocus={focus} onBlur={blur} />
+                            <input style={INPUT_ST} type="text" placeholder="https://..." value={link} onChange={e => setLink(e.target.value)} onFocus={focus} onBlur={blur} />
                         </div>
                         <div>
                             <label style={LABEL_ST}>Image</label>

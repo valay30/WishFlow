@@ -252,7 +252,7 @@ export default function ProductDetails() {
                                 </div>
                                 <div>
                                     <label style={LABEL_ST}>Product Link</label>
-                                    <input style={INPUT_ST} type="url" placeholder="https://..." value={editLink} onChange={e => setEditLink(e.target.value)} onFocus={focus} onBlur={blur} />
+                                    <input style={INPUT_ST} type="text" placeholder="https://..." value={editLink} onChange={e => setEditLink(e.target.value)} onFocus={focus} onBlur={blur} />
                                 </div>
                                 <div>
                                     <label style={LABEL_ST}>Change Image</label>
@@ -433,7 +433,7 @@ export default function ProductDetails() {
 
                                     <div>
                                         <label style={LABEL_ST}>Product Link</label>
-                                        <input style={INPUT_ST} type="url" placeholder="https://..." value={editLink} onChange={e => setEditLink(e.target.value)} onFocus={focus} onBlur={blur} />
+                                        <input style={INPUT_ST} type="text" placeholder="https://..." value={editLink} onChange={e => setEditLink(e.target.value)} onFocus={focus} onBlur={blur} />
                                     </div>
 
                                     <div>

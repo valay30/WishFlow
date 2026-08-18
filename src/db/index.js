@@ -147,6 +147,16 @@ const getUserId = async () => {
   return session?.user?.id;
 };
 
+const normalizeUrl = (url) => {
+  if (!url) return url;
+  url = url.trim();
+  if (url.length === 0) return url;
+  if (!/^https?:\/\//i.test(url)) {
+    return 'https://' + url;
+  }
+  return url;
+};
+
 // ─── Database helpers ─────────────────────────────────────────────────────────
 export const db = {
   categories: {
@@ -367,7 +377,7 @@ export const db = {
         category_id: item.category_id,
         name: item.name,
         price: item.price,
-        link: item.link,
+        link: normalizeUrl(item.link),
         image: item.image,
       };
 
@@ -418,6 +428,10 @@ export const db = {
     update: async (itemId, updates) => {
       const id = await getUserId();
       if (!id) return null;
+
+      if (updates.link !== undefined) {
+        updates.link = normalizeUrl(updates.link);
+      }
 
       const { data, error } = await supabase
         .from('items')
