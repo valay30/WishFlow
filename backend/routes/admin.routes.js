@@ -1,6 +1,6 @@
 import express from 'express';
 import { adminGuard } from '../middleware/adminGuard.js';
-import { getAllUsers, grantPremium, revokePremium, deleteUser } from '../controllers/admin.controller.js';
+import { getAllUsers, grantPremium, revokePremium, deleteUser, getActivityFeed } from '../controllers/admin.controller.js';
 
 const router = express.Router();
 
@@ -11,5 +11,6 @@ router.get('/users', getAllUsers);
 router.post('/grant-premium', grantPremium);
 router.post('/revoke-premium', revokePremium);
 router.delete('/users/:userId', deleteUser);
+router.get('/activity', getActivityFeed);
 
 export default router;
