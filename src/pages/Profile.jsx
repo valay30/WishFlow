@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
 import { LogOut, User, ArrowLeft, Settings, Shield, ShieldCheck, Bell, LayoutGrid, List as ListIcon, FolderHeart, ChevronDown, ChevronUp, Crown, Lock } from 'lucide-react';
@@ -29,8 +30,38 @@ export default function Profile() {
     const { viewMode, setViewMode, colorTheme, setColorTheme, darkMode, setDarkMode, currency, setCurrency } = useSettings();
     const navigate = useNavigate();
     const [showGeneral, setShowGeneral] = useState(() => typeof window !== 'undefined' ? window.innerWidth >= 768 : false);
+    const [showAccount, setShowAccount] = useState(false);
     const [paymentStatus, setPaymentStatus] = useState({ isOpen: false, success: false, title: '', message: '' });
+    const [generalAlert, setGeneralAlert] = useState({ isOpen: false, title: '', message: '' });
     const [isUpgrading, setIsUpgrading] = useState(false);
+    const [username, setUsername] = useState('');
+    const [isSavingUsername, setIsSavingUsername] = useState(false);
+    const [showUsernameModal, setShowUsernameModal] = useState(false);
+    const [initialUsername, setInitialUsername] = useState('');
+
+    const [isProfileLoading, setIsProfileLoading] = useState(true);
+
+    useEffect(() => {
+        if (user?.username) {
+            setUsername(user.username);
+            setInitialUsername(user.username);
+        }
+        setIsProfileLoading(false);
+    }, [user?.username]);
+
+    const handleSaveUsername = async () => {
+        if (!username.trim()) return;
+        setIsSavingUsername(true);
+        const res = await db.profiles.updateUsername(username.trim());
+        setIsSavingUsername(false);
+        if (!res.success) {
+            setGeneralAlert({ isOpen: true, title: 'Error', message: res.error });
+        } else {
+            setInitialUsername(username.trim());
+            setShowUsernameModal(false);
+            setGeneralAlert({ isOpen: true, title: 'Success', message: 'Username saved successfully!' });
+        }
+    };
 
     const handleLogout = () => {
         logout();
@@ -123,7 +154,7 @@ export default function Profile() {
             {/* ── Hero Section ── */}
             <div style={{
                 background: `linear-gradient(160deg, var(--primary-dk) 0%, var(--primary-dk) 45%, var(--primary) 100%)`,
-                padding: '2.5rem 1.5rem 4.5rem',
+                padding: '2.5rem 1.5rem 3.5rem',
                 position: 'relative',
                 color: '#fff',
                 textAlign: 'center'
@@ -165,6 +196,27 @@ export default function Profile() {
                         <p style={{ margin: '0.35rem 0 0', color: 'rgba(255,255,255,0.6)', fontWeight: 600, fontSize: '1rem' }}>
                             {user?.email || 'user@example.com'}
                         </p>
+                        <div
+                            onClick={() => setShowUsernameModal(true)}
+                            style={{
+                                display: 'inline-block',
+                                marginTop: '0.15rem',
+                                cursor: 'pointer',
+                                transition: 'opacity 0.2s',
+                                opacity: 0.85
+                            }}
+                            onMouseEnter={e => { e.currentTarget.style.opacity = 1; }}
+                            onMouseLeave={e => { e.currentTarget.style.opacity = 0.85; }}
+                        >
+                            <p style={{ margin: 0, color: '#fff', fontWeight: 700, fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '0.3rem', justifyContent: 'center', minHeight: '1.2rem' }}>
+                                {!isProfileLoading && (
+                                    <>
+                                        {initialUsername ? `@${initialUsername}` : '@username'} 
+                                        {!initialUsername && <span style={{ fontSize: '0.8rem', opacity: 0.8 }}>✎</span>}
+                                    </>
+                                )}
+                            </p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -190,7 +242,6 @@ export default function Profile() {
                             ...(user?.isAdmin ? [{ icon: ShieldCheck, label: 'Admin Panel', id: 'admin' }] : []),
                             { icon: ListIcon, label: 'Categories Lists', id: 'lists', hideOnDesktop: true },
                             { icon: FolderHeart, label: 'My Collections', id: 'collections', hideOnDesktop: true },
-                            //{ icon: User, label: 'Account Details', id: 'account' },
                             { icon: Settings, label: 'General Settings', id: 'general' },
                         ].map((item, i) => (
                             <div key={item.id} className={item.hideOnDesktop ? 'hide-on-desktop' : ''} style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem', animation: `fadeInUp 0.4s ease-out ${i * 0.05}s backwards` }}>
@@ -466,6 +517,59 @@ export default function Profile() {
                 </div>
             </div>
 
+            {showUsernameModal && createPortal(
+                <div style={{
+                    position: 'fixed', inset: 0, zIndex: 999999,
+                    background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem'
+                }} onClick={() => setShowUsernameModal(false)}>
+                    <div style={{
+                        background: 'var(--surface)', borderRadius: '24px', padding: '2rem',
+                        width: '100%', maxWidth: '400px', boxShadow: '0 24px 48px rgba(0,0,0,0.2)',
+                        position: 'relative'
+                    }} onClick={e => e.stopPropagation()}>
+                        <button onClick={() => setShowUsernameModal(false)} style={{
+                            position: 'absolute', top: '1.25rem', right: '1.25rem', background: 'transparent',
+                            border: 'none', color: 'var(--text-dim)', cursor: 'pointer'
+                        }}>
+                            <div style={{ padding: '0.2rem' }}>✕</div>
+                        </button>
+                        <h2 style={{ margin: '0 0 0.5rem', fontSize: '1.4rem', color: 'var(--text)' }}>Username</h2>
+                        <p style={{ margin: '0 0 1.5rem', fontSize: '0.9rem', color: 'var(--text-muted)' }}>Set a unique username.</p>
+
+                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                            <input
+                                autoFocus
+                                type="text"
+                                value={username}
+                                onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9]/g, ''))}
+                                placeholder="yourusername"
+                                style={{
+                                    flex: 1, padding: '0.9rem 1rem', borderRadius: '12px',
+                                    border: `1px solid var(--border)`, background: 'var(--surface-2)',
+                                    color: 'var(--text)', fontSize: '1rem', fontFamily: 'inherit',
+                                    outline: 'none'
+                                }}
+                            />
+                            <button
+                                onClick={handleSaveUsername}
+                                disabled={isSavingUsername || !username.trim()}
+                                style={{
+                                    padding: '0 1.25rem', borderRadius: '12px', border: 'none',
+                                    background: 'var(--primary)', color: '#fff', fontWeight: 700, fontSize: '1rem',
+                                    cursor: isSavingUsername || !username.trim() ? 'not-allowed' : 'pointer',
+                                    opacity: isSavingUsername || !username.trim() ? 0.6 : 1,
+                                    transition: 'all 0.2s', fontFamily: 'inherit'
+                                }}
+                            >
+                                {isSavingUsername ? 'Saving...' : 'Save'}
+                            </button>
+                        </div>
+                    </div>
+                </div>,
+                document.body
+            )}
+
             <style>{`
                 @keyframes slideDown {
                     from { opacity: 0; transform: translateY(-12px); }
@@ -489,6 +593,12 @@ export default function Profile() {
                         window.location.reload();
                     }
                 }}
+            />
+            <AlertModal
+                isOpen={generalAlert.isOpen}
+                title={generalAlert.title}
+                message={generalAlert.message}
+                onConfirm={() => setGeneralAlert({ ...generalAlert, isOpen: false })}
             />
         </div>
     );

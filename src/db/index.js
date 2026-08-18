@@ -50,10 +50,20 @@ export const auth = {
       }
       const session = data?.session;
       if (session) {
+        // Fetch username from profiles
+        let username = null;
+        try {
+          const { data: profile } = await supabase.from('profiles').select('username').eq('id', session.user.id).single();
+          if (profile) username = profile.username;
+        } catch (err) {
+          console.error("Error fetching username:", err);
+        }
+
         return {
           id: session.user.id,
           email: session.user.email,
           name: session.user.user_metadata?.name,
+          username,
           isPremium: session.user.user_metadata?.is_premium || false,
           isAdmin: session.user.user_metadata?.is_admin || false,
         };
@@ -495,6 +505,148 @@ export const db = {
         
       if (itemsErr) return [];
       return items;
+    },
+    // New direct sharing methods
+    sendShareRequest: async (collectionId, username) => {
+      // 1. Find user by username
+      const { data: profile, error: profErr } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('username', username.toLowerCase())
+        .single();
+        
+      if (profErr || !profile) return { success: false, error: 'User not found' };
+      
+      const senderId = await getUserId();
+      if (!senderId) return { success: false, error: 'Not authenticated' };
+      if (senderId === profile.id) return { success: false, error: 'Cannot share with yourself' };
+
+      // 2. Insert share request
+      const { error } = await supabase
+        .from('collection_shares')
+        .insert({
+          collection_id: collectionId,
+          sender_id: senderId,
+          recipient_id: profile.id,
+          status: 'pending'
+        });
+        
+      if (error) {
+        if (error.code === '23505') return { success: false, error: 'Already shared with this user' };
+        return { success: false, error: error.message };
+      }
+      return { success: true };
+    },
+    getSharedWithMe: async () => {
+      const id = await getUserId();
+      if (!id) return [];
+      
+      const { data, error } = await supabase
+        .from('collection_shares')
+        .select(`
+          id,
+          status,
+          collection_id,
+          sender_id
+        `)
+        .eq('recipient_id', id);
+        
+      if (error) {
+        console.error("Supabase getSharedWithMe Error:", error);
+        return [];
+      }
+
+      if (!data || data.length === 0) return [];
+
+      // Fetch profiles and collections manually
+      const senderIds = data.map(d => d.sender_id);
+      const collectionIds = data.map(d => d.collection_id);
+      
+      const [ { data: profiles }, { data: collections } ] = await Promise.all([
+        supabase.from('profiles').select('id, username').in('id', senderIds),
+        supabase.from('collections').select('*').in('id', collectionIds)
+      ]);
+      
+      return data.map(share => ({
+        ...share,
+        profiles: profiles?.find(p => p.id === share.sender_id) || null,
+        collections: collections?.find(c => c.id === share.collection_id) || null
+      }));
+    },
+    updateShareStatus: async (shareId, status) => {
+      const { error } = await supabase
+        .from('collection_shares')
+        .update({ status })
+        .eq('id', shareId);
+      return !error;
+    },
+    getCollectionShares: async (collectionId) => {
+      const id = await getUserId();
+      if (!id) return [];
+      
+      const { data, error } = await supabase
+        .from('collection_shares')
+        .select(`
+          id,
+          status,
+          recipient_id,
+          created_at
+        `)
+        .eq('collection_id', collectionId)
+        .eq('sender_id', id);
+        
+      if (error) {
+        console.error("Supabase getCollectionShares Error:", error);
+        return [];
+      }
+
+      // Fetch profiles for recipients
+      if (data.length === 0) return [];
+      const recipientIds = data.map(d => d.recipient_id);
+      const { data: profiles } = await supabase.from('profiles').select('id, username').in('id', recipientIds);
+      
+      return data.map(share => ({
+        ...share,
+        profiles: profiles?.find(p => p.id === share.recipient_id) || null
+      }));
+    },
+    removeShare: async (shareId) => {
+      const { error } = await supabase
+        .from('collection_shares')
+        .delete()
+        .eq('id', shareId);
+      return !error;
+    }
+  },
+
+  profiles: {
+    getProfile: async () => {
+      const id = await getUserId();
+      if (!id) return null;
+      
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', id)
+        .single();
+        
+      if (error && error.code !== 'PGRST116') return null; // PGRST116 is "No rows found"
+      return data;
+    },
+    updateUsername: async (username) => {
+      const id = await getUserId();
+      if (!id) return { success: false, error: 'Not authenticated' };
+      
+      // Upsert profile
+      const { error } = await supabase
+        .from('profiles')
+        .upsert({ id, username: username.toLowerCase(), updated_at: new Date().toISOString() });
+        
+      if (error) {
+        if (error.code === '23505') return { success: false, error: 'Username is already taken' };
+        return { success: false, error: error.message };
+      }
+      return { success: true };
     }
   }
 };

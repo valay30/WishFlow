@@ -36,12 +36,19 @@ export function AuthProvider({ children }) {
                 return;
             }
             if (session) {
-                setUser({
+                const baseUser = {
                     id: session.user.id,
                     email: session.user.email,
                     name: session.user.user_metadata?.name,
                     isPremium: session.user.user_metadata?.is_premium || false,
                     isAdmin: session.user.user_metadata?.is_admin || false,
+                };
+                setUser(baseUser);
+
+                supabase.from('profiles').select('username').eq('id', session.user.id).single().then(({ data }) => {
+                    if (data?.username) {
+                        setUser(prev => prev ? { ...prev, username: data.username } : null);
+                    }
                 });
                 if (sessionStorage.getItem('isGoogleLoginRedirect') === 'true') {
                     sessionStorage.removeItem('isGoogleLoginRedirect');

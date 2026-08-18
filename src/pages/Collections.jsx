@@ -40,10 +40,12 @@ export default function Collections() {
     const fmt = (n) => new Intl.NumberFormat(undefined, { style: 'currency', currency: currency || 'INR', maximumFractionDigits: 0 }).format(n);
 
     const [collections, setCollections] = useState([]);
+    const [sharedCollections, setSharedCollections] = useState([]);
     const [items, setItems] = useState([]);
     const [categories, setCategories] = useState([]);
     const [collectionItems, setCollectionItems] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [activeTab, setActiveTab] = useState('my'); // 'my' | 'shared'
 
     // Modal state
     const [showModal, setShowModal] = useState(false);
@@ -56,6 +58,14 @@ export default function Collections() {
     // Drill-down state
     const [activeCollection, setActiveCollection] = useState(null);
     const [shareToast, setShareToast] = useState(''); // '' | 'copied' | 'shared'
+    const [showUsernameShareModal, setShowUsernameShareModal] = useState(false);
+    const [shareUsername, setShareUsername] = useState('');
+    const [isSharingUsername, setIsSharingUsername] = useState(false);
+    
+    // Access Management State
+    const [accessList, setAccessList] = useState([]);
+    const [isLoadingAccess, setIsLoadingAccess] = useState(false);
+    const [removeShareConfirm, setRemoveShareConfirm] = useState({ isOpen: false, shareId: null });
 
     // Share a collection via Web Share API or clipboard fallback
     const handleShare = async (col) => {
@@ -76,6 +86,39 @@ export default function Collections() {
             setShareToast('error');
             setTimeout(() => setShareToast(''), 2500);
         }
+    };
+
+    const handleUsernameShare = async () => {
+        if (!shareUsername.trim()) return;
+        setIsSharingUsername(true);
+        const res = await db.shared.sendShareRequest(activeCollection.id, shareUsername.trim());
+        setIsSharingUsername(false);
+        if (res.success) {
+            setShowUsernameShareModal(false);
+            setShareUsername('');
+            setShareToast('shared');
+            setTimeout(() => setShareToast(''), 2500);
+            if (showAccessModal) loadAccessList(); // refresh if open
+        } else {
+            alert(res.error);
+        }
+    };
+
+    const handleRemoveShare = (shareId) => {
+        setRemoveShareConfirm({ isOpen: true, shareId });
+    };
+
+    const loadAccessList = async () => {
+        if (!activeCollection) return;
+        setIsLoadingAccess(true);
+        const shares = await db.shared.getCollectionShares(activeCollection.id);
+        setAccessList(shares);
+        setIsLoadingAccess(false);
+    };
+
+    const openShareModal = () => {
+        loadAccessList();
+        setShowUsernameShareModal(true);
     };
 
     const handleUpgradeToPremium = async () => {
@@ -159,30 +202,34 @@ export default function Collections() {
 
     useEffect(() => {
         const load = async () => {
-            const [cols, its, cats, citems] = await Promise.all([
+            const [cols, its, cats, citems, shared] = await Promise.all([
                 db.collections.getAll().catch(() => []),
                 db.items.getAll().catch(() => []),
                 db.categories.getAll().catch(() => []),
                 db.collectionItems.getAll().catch(() => []),
+                db.shared.getSharedWithMe().catch(() => []),
             ]);
             setCollections(cols || []);
             setItems(its || []);
             setCategories(cats || []);
             setCollectionItems(citems || []);
+            setSharedCollections(shared || []);
             setLoading(false);
         };
         load();
     }, []);
 
     const reload = async () => {
-        const [cols, its, citems] = await Promise.all([
+        const [cols, its, citems, shared] = await Promise.all([
             db.collections.getAll().catch(() => []),
             db.items.getAll().catch(() => []),
-            db.collectionItems.getAll().catch(() => [])
+            db.collectionItems.getAll().catch(() => []),
+            db.shared.getSharedWithMe().catch(() => [])
         ]);
         setCollections(cols || []);
         setItems(its || []);
         setCollectionItems(citems || []);
+        setSharedCollections(shared || []);
     };
 
     const handleSave = async (data) => {
@@ -266,15 +313,15 @@ export default function Collections() {
                             </p>
                         </div>
                         <div className="drill-down-actions" style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                            {/* Share button */}
+
                             <button
-                                id="share-collection-btn"
-                                onClick={() => handleShare(activeCollection)}
+                                id="invite-friend-btn"
+                                onClick={openShareModal}
                                 style={{ background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(8px)', color: '#fff', border: '1px solid rgba(255,255,255,0.25)', borderRadius: '14px', padding: '0.65rem 1rem', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem', transition: 'background 0.2s' }}
                                 onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.25)'}
                                 onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.15)'}
                             >
-                                <Share2 size={15} /> Share
+                                <FolderHeart size={15} /> Invite Friend
                             </button>
                             <button onClick={() => setShowAddExistingModal(true)} style={{ background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(8px)', color: '#fff', border: '1px solid rgba(255,255,255,0.3)', borderRadius: '14px', padding: '0.65rem 1rem', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                                 <Package size={16} /> Add Existing
@@ -444,20 +491,147 @@ export default function Collections() {
                 {/* ── Share / copy toast ── */}
                 {shareToast && (
                     <div style={{
-                        position: 'fixed', bottom: '5.5rem', left: '50%', transform: 'translateX(-50%)',
-                        background: shareToast === 'copied' ? 'rgba(34,197,94,0.95)' : 'rgba(239,68,68,0.95)',
-                        backdropFilter: 'blur(12px)',
-                        color: '#fff', borderRadius: '14px', padding: '0.75rem 1.4rem',
-                        fontWeight: 700, fontSize: '0.88rem',
+                        position: 'fixed', bottom: '2rem', left: '50%', transform: 'translateX(-50%)',
+                        background: shareToast === 'copied' || shareToast === 'shared' ? 'rgba(34,197,94,0.95)' : 'rgba(239,68,68,0.95)',
+                        backdropFilter: 'blur(10px)', color: '#fff', padding: '0.8rem 1.5rem',
+                        borderRadius: '20px', fontWeight: 700, fontSize: '0.9rem',
                         display: 'flex', alignItems: 'center', gap: '0.5rem',
-                        boxShadow: '0 8px 32px rgba(0,0,0,0.35)',
-                        zIndex: 99999, whiteSpace: 'nowrap',
-                        animation: 'fadeInUp 0.25s ease-out',
+                        boxShadow: '0 8px 32px rgba(0,0,0,0.15)', zIndex: 9999,
+                        animation: 'fadeInUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
                     }}>
-                        {shareToast === 'copied' ? <Check size={15} /> : <X size={15} />}
-                        {shareToast === 'copied' ? 'Link copied to clipboard!' : 'Could not copy link'}
+                        {shareToast === 'copied' || shareToast === 'shared' ? <Check size={15} /> : <X size={15} />}
+                        {shareToast === 'copied' ? 'Link copied to clipboard!' : shareToast === 'shared' ? 'Invite sent!' : 'Could not copy link'}
                     </div>
                 )}
+                {/* ── Username Share Modal ── */}
+                {showUsernameShareModal && (
+                    <div style={{
+                        position: 'fixed', inset: 0, zIndex: 99999,
+                        background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem'
+                    }} onClick={() => setShowUsernameShareModal(false)}>
+                        <div style={{
+                            background: BG, borderRadius: '24px', padding: '2rem',
+                            width: '100%', maxWidth: '400px', boxShadow: '0 24px 48px rgba(0,0,0,0.2)',
+                            position: 'relative', maxHeight: '85vh', display: 'flex', flexDirection: 'column'
+                        }} onClick={e => e.stopPropagation()}>
+                            <button onClick={() => setShowUsernameShareModal(false)} style={{
+                                position: 'absolute', top: '1.25rem', right: '1.25rem', background: 'transparent',
+                                border: 'none', color: 'var(--text-dim)', cursor: 'pointer'
+                            }}>
+                                <X size={20} />
+                            </button>
+                            <h2 style={{ margin: '0 0 0.5rem', fontSize: '1.4rem', color: 'var(--text)', flexShrink: 0 }}>Invite Friend</h2>
+                            <p style={{ margin: '0 0 1.25rem', fontSize: '0.9rem', color: 'var(--text-muted)', flexShrink: 0 }}>Enter their username to share this wishlist.</p>
+                            
+                            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', flexShrink: 0 }}>
+                                <input
+                                    autoFocus
+                                    placeholder="username"
+                                    value={shareUsername}
+                                    onChange={e => setShareUsername(e.target.value)}
+                                    style={{
+                                        flex: 1, padding: '0.75rem 1rem', borderRadius: '12px',
+                                        border: `1px solid ${BORDER}`, background: SURFACE, color: 'var(--text)',
+                                        fontSize: '0.95rem', outline: 'none'
+                                    }}
+                                />
+                                <button
+                                    onClick={handleUsernameShare}
+                                    disabled={isSharingUsername || !shareUsername.trim()}
+                                    style={{
+                                        padding: '0 1.25rem', borderRadius: '12px', border: 'none',
+                                        background: ORANGE, color: '#fff', fontWeight: 700, fontSize: '0.9rem',
+                                        cursor: isSharingUsername || !shareUsername.trim() ? 'not-allowed' : 'pointer',
+                                        opacity: isSharingUsername || !shareUsername.trim() ? 0.6 : 1, transition: 'all 0.2s',
+                                        whiteSpace: 'nowrap'
+                                    }}
+                                >
+                                    {isSharingUsername ? '...' : 'Send'}
+                                </button>
+                            </div>
+
+                            <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.5rem', paddingRight: '0.25rem' }}>
+                                <h3 style={{ margin: '0 0 0.5rem', fontSize: '0.9rem', color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Shared With</h3>
+                                {isLoadingAccess ? (
+                                    <p style={{ color: 'var(--text-muted)', textAlign: 'center', padding: '1.5rem 0', fontSize: '0.85rem' }}>Loading...</p>
+                                ) : accessList.length === 0 ? (
+                                    <p style={{ color: 'var(--text-muted)', textAlign: 'center', padding: '1.5rem 0', fontSize: '0.85rem' }}>Not shared with anyone yet.</p>
+                                ) : (
+                                    accessList.map(share => (
+                                        <div key={share.id} style={{
+                                            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                                            padding: '0.75rem', background: SURFACE, borderRadius: '12px', border: `1px solid ${BORDER}`
+                                        }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                                <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: ORANGE, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '0.85rem' }}>
+                                                    {share.profiles?.username?.[0]?.toUpperCase() || '?'}
+                                                </div>
+                                                <div>
+                                                    <div style={{ fontWeight: 700, color: 'var(--text)', fontSize: '0.9rem' }}>@{share.profiles?.username || 'unknown'}</div>
+                                                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                                                        {new Date(share.created_at).toLocaleDateString()}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                <span style={{
+                                                    fontSize: '0.7rem', fontWeight: 700, padding: '0.2rem 0.5rem', borderRadius: '6px',
+                                                    background: share.status === 'accepted' ? 'rgba(34,197,94,0.1)' : share.status === 'pending' ? 'rgba(245,158,11,0.1)' : 'rgba(239,68,68,0.1)',
+                                                    color: share.status === 'accepted' ? '#22c55e' : share.status === 'pending' ? '#f59e0b' : '#ef4444'
+                                                }}>
+                                                    {share.status.charAt(0).toUpperCase() + share.status.slice(1)}
+                                                </span>
+                                                <button
+                                                    onClick={() => handleRemoveShare(share.id)}
+                                                    style={{
+                                                        background: 'transparent', border: 'none', color: 'var(--text-muted)',
+                                                        cursor: 'pointer', padding: '0.2rem', display: 'flex', alignItems: 'center', justifyContent: 'center'
+                                                    }}
+                                                    title="Remove Access"
+                                                    onMouseEnter={e => e.currentTarget.style.color = '#ef4444'}
+                                                    onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}
+                                                >
+                                                    <X size={16} />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+
+                            <button
+                                onClick={() => handleShare(activeCollection)}
+                                style={{
+                                    marginTop: '1rem', padding: '0.85rem', borderRadius: '12px', border: `1px solid ${BORDER}`,
+                                    background: 'var(--surface-2)', color: 'var(--text)', fontWeight: 600, fontSize: '0.95rem',
+                                    cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
+                                    width: '100%', transition: 'all 0.2s', flexShrink: 0
+                                }}
+                            >
+                                <Share2 size={18} /> Share via Link
+                            </button>
+                        </div>
+                    </div>
+                )}
+                
+                <AlertModal
+                    isOpen={removeShareConfirm.isOpen}
+                    title="Remove Access"
+                    message="Are you sure you want to remove this user's access to your collection?"
+                    onConfirm={async () => {
+                        const shareId = removeShareConfirm.shareId;
+                        setRemoveShareConfirm({ isOpen: false, shareId: null });
+                        const success = await db.shared.removeShare(shareId);
+                        if (success) {
+                            setAccessList(prev => prev.filter(s => s.id !== shareId));
+                        } else {
+                            alert('Failed to remove access.');
+                        }
+                    }}
+                    onCancel={() => setRemoveShareConfirm({ isOpen: false, shareId: null })}
+                    isDestructive={true}
+                />
             </div>
         );
     }
@@ -506,6 +680,42 @@ export default function Collections() {
                         </p>
                     </div>
                 </div>
+
+                {/* Tabs */}
+                <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1.5rem' }}>
+                    <button
+                        onClick={() => setActiveTab('my')}
+                        style={{
+                            flex: 1, padding: '0.75rem', borderRadius: '14px', border: 'none',
+                            background: activeTab === 'my' ? 'rgba(255,255,255,0.2)' : 'transparent',
+                            color: activeTab === 'my' ? '#fff' : 'rgba(255,255,255,0.6)',
+                            fontWeight: 700, fontSize: '0.9rem', cursor: 'pointer', transition: 'all 0.2s',
+                            fontFamily: 'inherit'
+                        }}
+                    >
+                        My Collections
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('shared')}
+                        style={{
+                            flex: 1, padding: '0.75rem', borderRadius: '14px', border: 'none',
+                            background: activeTab === 'shared' ? 'rgba(255,255,255,0.2)' : 'transparent',
+                            color: activeTab === 'shared' ? '#fff' : 'rgba(255,255,255,0.6)',
+                            fontWeight: 700, fontSize: '0.9rem', cursor: 'pointer', transition: 'all 0.2s',
+                            fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem'
+                        }}
+                    >
+                        Shared with Me
+                        {sharedCollections.filter(s => s.status === 'pending').length > 0 && (
+                            <span style={{
+                                background: '#ef4444', color: '#fff', borderRadius: '99px',
+                                padding: '0.1rem 0.4rem', fontSize: '0.75rem', fontWeight: 800
+                            }}>
+                                {sharedCollections.filter(s => s.status === 'pending').length}
+                            </span>
+                        )}
+                    </button>
+                </div>
             </div>
 
             {/* Collections Grid */}
@@ -519,7 +729,99 @@ export default function Collections() {
                 minHeight: '60vh'
             }}>
                 <div style={{ maxWidth: '700px', margin: '0 auto' }}>
-                    {collections.length === 0 ? (
+                    {loading ? (
+                        <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-dim)', fontWeight: 600 }}>
+                            Loading...
+                        </div>
+                    ) : activeTab === 'shared' ? (
+                        <div style={{ display: 'grid', gap: '1rem', paddingBottom: '3rem' }}>
+                            {sharedCollections.length === 0 ? (
+                                <div style={{ textAlign: 'center', padding: '3rem 1rem' }}>
+                                    <FolderHeart size={48} color="var(--border)" style={{ marginBottom: '1rem' }} />
+                                    <h3 style={{ margin: '0 0 0.5rem', color: 'var(--text)', fontSize: '1.2rem', fontWeight: 800 }}>Nothing shared yet</h3>
+                                    <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>When friends share wishlists with your username, they will appear here.</p>
+                                </div>
+                            ) : (
+                                sharedCollections.map(share => {
+                                    const col = share.collections;
+                                    if (!col) return null;
+                                    const isPending = share.status === 'pending';
+
+                                    return (
+                                        <div key={share.id}
+                                            onClick={() => {
+                                                if (share.status === 'accepted') navigate(`/shared/collection/${col.id}`);
+                                            }}
+                                            style={{
+                                                background: SURFACE,
+                                                borderRadius: '24px',
+                                                padding: '1.25rem',
+                                                border: `1px solid ${isPending ? ORANGE : BORDER}`,
+                                                boxShadow: isPending ? '0 8px 24px rgba(var(--primary-rgb),0.1)' : '0 4px 12px rgba(0,0,0,0.03)',
+                                                display: 'flex',
+                                                flexDirection: 'column',
+                                                gap: '1rem',
+                                                cursor: share.status === 'accepted' ? 'pointer' : 'default',
+                                                transition: 'transform 0.2s, box-shadow 0.2s',
+                                                animation: 'fadeInUp 0.4s ease-out'
+                                            }}
+                                        >
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                                                <div style={{
+                                                    width: '56px', height: '56px', borderRadius: '16px',
+                                                    background: 'rgba(var(--primary-rgb),0.05)', border: `1px solid ${BORDER}`,
+                                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                    fontSize: '2rem'
+                                                }}>
+                                                    {col.emoji}
+                                                </div>
+                                                <div style={{ flex: 1 }}>
+                                                    <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 800, color: 'var(--text)' }}>
+                                                        {col.name}
+                                                    </h3>
+                                                    <p style={{ margin: '0.2rem 0 0', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                                                        Shared by <strong style={{ color: ORANGE }}>@{share.profiles?.username || 'unknown'}</strong>
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            {isPending && (
+                                                <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
+                                                    <button
+                                                        onClick={async (e) => {
+                                                            e.stopPropagation();
+                                                            const success = await db.shared.updateShareStatus(share.id, 'accepted');
+                                                            if (success) await reload();
+                                                        }}
+                                                        style={{
+                                                            flex: 1, padding: '0.75rem', borderRadius: '12px', border: 'none',
+                                                            background: ORANGE, color: '#fff', fontWeight: 700, cursor: 'pointer'
+                                                        }}
+                                                    >
+                                                        Accept
+                                                    </button>
+                                                    <button
+                                                        onClick={async (e) => {
+                                                            e.stopPropagation();
+                                                            const success = await db.shared.updateShareStatus(share.id, 'declined');
+                                                            if (success) await reload();
+                                                        }}
+                                                        style={{
+                                                            flex: 1, padding: '0.75rem', borderRadius: '12px',
+                                                            border: `1px solid ${BORDER}`, background: 'var(--surface-2)',
+                                                            color: 'var(--text-dim)', fontWeight: 700, cursor: 'pointer'
+                                                        }}
+                                                    >
+                                                        Decline
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                })
+                            )}
+                        </div>
+                    ) : collections.length === 0 ? (
                         /* Empty state */
                         <div style={{
                             background: SURFACE, borderRadius: '28px', padding: '3.5rem 2rem',
