@@ -231,72 +231,117 @@ function MobileItemCard({ item }) {
   );
 }
 
-/* ─── Desktop item card (horizontal layout) ─────────────────────────────── */
+/* ─── Desktop item card (vertical layout) ─────────────────────────────── */
 function DesktopItemCard({ item }) {
   const purchased = !!item.is_purchased;
   return (
-    <div style={{
-      background: '#fff',
-      borderRadius: '20px',
-      overflow: 'hidden',
-      boxShadow: '0 4px 16px rgba(0,0,0,0.04)',
-      border: '1px solid #f9f9f9',
-      display: 'flex',
-      flexDirection: 'row',
-      minHeight: '160px',
-      opacity: purchased ? 0.7 : 1,
-      height: '100%',
-      boxSizing: 'border-box',
-      padding: '0.4rem',
-    }}>
-      <div style={{
-        width: '40%', maxWidth: '180px', flexShrink: 0,
-        background: '#f7f7f7', overflow: 'hidden',
+    <div
+      style={{
+        background: '#fff',
+        borderRadius: '24px',
+        overflow: 'hidden',
+        boxShadow: '0 12px 40px rgba(0,0,0,0.06)',
+        border: '1px solid rgba(0,0,0,0.03)',
+        display: 'flex',
+        flexDirection: 'column',
+        opacity: purchased ? 0.75 : 1,
+        boxSizing: 'border-box',
+        padding: '0.6rem',
+        transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+        height: '100%',
         position: 'relative',
-        borderRadius: '16px',
+      }}
+      onMouseEnter={e => {
+        if (!purchased) {
+          e.currentTarget.style.transform = 'translateY(-6px)';
+          e.currentTarget.style.boxShadow = '0 24px 50px rgba(0,0,0,0.12)';
+          e.currentTarget.style.borderColor = 'rgba(0,0,0,0.06)';
+        }
+      }}
+      onMouseLeave={e => {
+        if (!purchased) {
+          e.currentTarget.style.transform = 'translateY(0)';
+          e.currentTarget.style.boxShadow = '0 12px 40px rgba(0,0,0,0.06)';
+          e.currentTarget.style.borderColor = 'rgba(0,0,0,0.03)';
+        }
+      }}
+    >
+      <div style={{
+        width: '100%',
+        aspectRatio: '1 / 1',
+        background: '#f8f9fa',
+        overflow: 'hidden',
+        position: 'relative',
+        borderRadius: '18px',
       }}>
         {item.image
-          ? <img src={item.image} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-          : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Package size={40} color="#ddd" /></div>
+          ? <img src={item.image} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.6s cubic-bezier(0.16, 1, 0.3, 1)' }}
+            onMouseEnter={e => !purchased && (e.currentTarget.style.transform = 'scale(1.05)')}
+            onMouseLeave={e => !purchased && (e.currentTarget.style.transform = 'scale(1)')}
+          />
+          : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Package size={48} color="#ddd" /></div>
         }
         {purchased && (
           <div style={{
             position: 'absolute', inset: 0,
-            background: 'rgba(255,255,255,0.5)',
+            background: 'rgba(255,255,255,0.65)',
+            backdropFilter: 'blur(6px)',
+            WebkitBackdropFilter: 'blur(6px)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: '2rem',
-          }}>✓</div>
+          }}>
+            <div style={{
+              background: 'linear-gradient(135deg, #111, #333)', color: '#fff', borderRadius: '50%', width: 56, height: 56,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              boxShadow: '0 8px 20px rgba(0,0,0,0.15)'
+            }}>
+              <Check size={28} strokeWidth={3} />
+            </div>
+          </div>
         )}
       </div>
+
       <div style={{
-        flex: 1, padding: '1rem 1.25rem',
-        display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '0.25rem',
+        flex: 1, padding: '1.25rem 0.5rem 0.5rem',
+        display: 'flex', flexDirection: 'column', gap: '1rem',
       }}>
         <p style={{
-          margin: 0, fontWeight: 700, fontSize: '1.05rem', color: '#111',
-          lineHeight: 1.4,
+          margin: 0, fontWeight: 700, fontSize: '1.2rem', color: '#111',
+          lineHeight: 1.4, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden'
         }}>{item.name}</p>
 
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', marginTop: '0.25rem' }}>
-          {item.price > 0 && (
-            <span style={{ fontWeight: 800, fontSize: '1.15rem', color: '#111' }}>{fmt(item.price)}</span>
-          )}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 'auto', gap: '0.5rem' }}>
+          {item.price > 0 ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
+              <span style={{ fontSize: '0.75rem', color: '#888', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Price</span>
+              <span style={{ fontWeight: 800, fontSize: '1.4rem', color: '#E85C2C', lineHeight: 1 }}>{fmt(item.price)}</span>
+            </div>
+          ) : <div />}
+
           {item.link && (
             <a
               href={item.link}
               target="_blank"
               rel="noopener noreferrer"
               style={{
-                width: 42, height: 42, borderRadius: '50%',
-                background: '#fff',
-                border: '1.5px solid #f0f0f0',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.03)',
+                width: 44, height: 44, borderRadius: '50%',
+                background: '#111', color: '#fff',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 flexShrink: 0, textDecoration: 'none',
-                transition: 'all 0.2s',
+                transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.background = '#E85C2C';
+                e.currentTarget.style.transform = 'scale(1.1) rotate(-10deg)';
+                e.currentTarget.style.boxShadow = '0 8px 20px rgba(232, 92, 44, 0.3)';
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.background = '#111';
+                e.currentTarget.style.transform = 'scale(1) rotate(0deg)';
+                e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
               }}
             >
-              <ArrowRight size={18} color="#E85C2C" />
+              <ArrowRight size={20} />
             </a>
           )}
         </div>
@@ -445,9 +490,9 @@ function CalendarModal({ collection, onClose }) {
             style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none' }}
           >
             {/* Upper arch: day names rest on this */}
-            <path d="M 0 65 Q 180 10 360 65" stroke="rgba(255,255,255,0.35)" fill="none" strokeWidth="1.2" vectorEffect="non-scaling-stroke" />
+            <path d="M 0 60 Q 180 10 360 60" stroke="rgba(255,255,255,0.35)" fill="none" strokeWidth="1.2" vectorEffect="non-scaling-stroke" />
             {/* Lower arch: dates rest on this */}
-            <path d="M 0 105 Q 180 50 360 105" stroke="rgba(255,255,255,0.35)" fill="none" strokeWidth="1.2" vectorEffect="non-scaling-stroke" />
+            <path d="M 0 120 Q 180 70 360 120" stroke="rgba(255,255,255,0.35)" fill="none" strokeWidth="1.2" vectorEffect="non-scaling-stroke" />
           </svg>
 
           <div style={{ position: 'relative', height: '100%', overflow: 'visible' }}>
@@ -466,10 +511,10 @@ function CalendarModal({ collection, onClose }) {
                 opacity *= Math.max(0, (1.15 - t) / 0.2);
               }
 
-              const upperY = bezierY(t, 65, 10, 65);
-              const lowerY = bezierY(t, 105, 50, 105);
+              const upperY = bezierY(t, 60, 10, 60);
+              const lowerY = bezierY(t, 120, 70, 120);
               const midY = (upperY + lowerY) / 2;
-              const circleSize = 40;
+              const circleSize = 54;
 
               return (
                 <div
@@ -489,10 +534,10 @@ function CalendarModal({ collection, onClose }) {
                   <span
                     style={{
                       position: 'absolute',
-                      top: `${((upperY - 18) / 130) * 100}%`,
+                      top: `${((upperY - 24) / 130) * 100}%`,
                       left: 0, width: '100%', textAlign: 'center',
-                      fontSize: '0.82rem',
-                      fontWeight: d.isTarget || d.isToday ? 700 : 400,
+                      fontSize: '0.9rem',
+                      fontWeight: 400,
                       color: '#fff',
                       whiteSpace: 'nowrap',
                       transition: isDragging ? 'none' : 'top 0.35s cubic-bezier(0.2, 1, 0.3, 1)',
@@ -508,8 +553,8 @@ function CalendarModal({ collection, onClose }) {
                       top: `${(midY / 130) * 100}%`,
                       left: 0,
                       transform: 'translateY(-50%)',
-                      width: `${circleSize}px`,
-                      height: `${circleSize}px`,
+                      width: `45px`,
+                      height: `45px`,
                       borderRadius: '50%',
                       background: d.isTarget
                         ? 'linear-gradient(135deg, #e91e8c, #ff5722)'
@@ -518,8 +563,8 @@ function CalendarModal({ collection, onClose }) {
                         ? '1.5px solid rgba(255,255,255,0.55)'
                         : 'none',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontSize: d.isTarget ? '1.1rem' : '1rem',
-                      fontWeight: d.isTarget ? 800 : d.isToday ? 600 : 400,
+                      fontSize: d.isTarget ? '1.4rem' : '1.1rem',
+                      fontWeight: d.isTarget ? 500 : 400,
                       boxShadow: d.isTarget ? '0 6px 20px rgba(255,30,100,0.45)' : 'none',
                       color: '#fff',
                       transition: isDragging ? 'none' : 'top 0.35s cubic-bezier(0.2, 1, 0.3, 1), background 0.3s, box-shadow 0.3s',
@@ -540,11 +585,18 @@ function CalendarModal({ collection, onClose }) {
             <span style={{ fontSize: '1rem', fontWeight: 400 }}>{daysLeft} days left</span>
           </div>
           <button style={{
-            background: 'rgba(255,255,255,0.65)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)',
-            border: '1.5px solid rgba(255,255,255,0.9)', borderRadius: '99px',
-            padding: '0.6rem 1.4rem', color: '#E83A2C',
-            fontWeight: 600, fontSize: '1rem',
-            display: 'flex', alignItems: 'center', gap: '0.4rem',
+            background: 'rgba(255,255,255,0.65)',
+            backdropFilter: 'blur(12px)',
+            WebkitBackdropFilter: 'blur(12px)',
+            border: '1.5px solid rgba(255,255,255,0.9)',
+            borderRadius: '99px',
+            padding: '0.6rem 1.4rem',
+            color: '#E83A2C',
+            fontWeight: 600,
+            fontSize: '1rem',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.4rem',
             boxShadow: '0 4px 16px rgba(0,0,0,0.06)'
           }}>
             {collection?.name || 'Event'}
@@ -870,7 +922,9 @@ export default function SharedCollection() {
     }
     .sc-copy-btn:hover { background: #fff; transform: translateY(-2px); }
     .sc-search-btn {
-      background: #fafafa; border: 1.5px solid #f0f0f0; cursor: pointer;
+      background: #fafafa; 
+      border: 1.5px solid #f0f0f0; 
+      cursor: pointer;
       display: flex; align-items: center; justify-content: center;
       width: 48px; height: 48px; border-radius: 50%; color: #111;
       transition: all 0.18s; pointer-events: auto;
