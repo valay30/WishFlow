@@ -537,7 +537,7 @@ export default function Profile() {
                         <h2 style={{ margin: '0 0 0.5rem', fontSize: '1.4rem', color: 'var(--text)' }}>Username</h2>
                         <p style={{ margin: '0 0 1.5rem', fontSize: '0.9rem', color: 'var(--text-muted)' }}>Set a unique username.</p>
 
-                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                             <input
                                 autoFocus
                                 type="text"
@@ -545,7 +545,8 @@ export default function Profile() {
                                 onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9]/g, ''))}
                                 placeholder="yourusername"
                                 style={{
-                                    flex: 1, padding: '0.9rem 1rem', borderRadius: '12px',
+                                    width: '100%', boxSizing: 'border-box',
+                                    padding: '0.9rem 1rem', borderRadius: '12px',
                                     border: `1px solid var(--border)`, background: 'var(--surface-2)',
                                     color: 'var(--text)', fontSize: '1rem', fontFamily: 'inherit',
                                     outline: 'none'
@@ -555,7 +556,7 @@ export default function Profile() {
                                 onClick={handleSaveUsername}
                                 disabled={isSavingUsername || !username.trim()}
                                 style={{
-                                    padding: '0 1.25rem', borderRadius: '12px', border: 'none',
+                                    width: '100%', padding: '0.9rem 1.25rem', borderRadius: '12px', border: 'none',
                                     background: 'var(--primary)', color: '#fff', fontWeight: 700, fontSize: '1rem',
                                     cursor: isSavingUsername || !username.trim() ? 'not-allowed' : 'pointer',
                                     opacity: isSavingUsername || !username.trim() ? 0.6 : 1,

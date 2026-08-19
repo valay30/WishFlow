@@ -162,3 +162,18 @@ export const getActivityFeed = async (req, res) => {
         res.status(500).json({ error: 'Failed to fetch activity feed' });
     }
 };
+
+export const getAllItems = async (req, res) => {
+    try {
+        const { data: items, error } = await supabase
+            .from('items')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        res.json(items || []);
+    } catch (err) {
+        console.error('Admin list items error:', err.message);
+        res.status(500).json({ error: err?.message || 'Failed to list items' });
+    }
+};

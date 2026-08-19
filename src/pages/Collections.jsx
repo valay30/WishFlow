@@ -524,14 +524,15 @@ export default function Collections() {
                             <h2 style={{ margin: '0 0 0.5rem', fontSize: '1.4rem', color: 'var(--text)', flexShrink: 0 }}>Invite Friend</h2>
                             <p style={{ margin: '0 0 1.25rem', fontSize: '0.9rem', color: 'var(--text-muted)', flexShrink: 0 }}>Enter their username to share this wishlist.</p>
                             
-                            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', flexShrink: 0 }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1.5rem', flexShrink: 0 }}>
                                 <input
                                     autoFocus
                                     placeholder="username"
                                     value={shareUsername}
                                     onChange={e => setShareUsername(e.target.value)}
                                     style={{
-                                        flex: 1, padding: '0.75rem 1rem', borderRadius: '12px',
+                                        width: '100%', boxSizing: 'border-box',
+                                        padding: '0.75rem 1rem', borderRadius: '12px',
                                         border: `1px solid ${BORDER}`, background: SURFACE, color: 'var(--text)',
                                         fontSize: '0.95rem', outline: 'none'
                                     }}
@@ -540,7 +541,7 @@ export default function Collections() {
                                     onClick={handleUsernameShare}
                                     disabled={isSharingUsername || !shareUsername.trim()}
                                     style={{
-                                        padding: '0 1.25rem', borderRadius: '12px', border: 'none',
+                                        width: '100%', padding: '0.75rem 1.25rem', borderRadius: '12px', border: 'none',
                                         background: ORANGE, color: '#fff', fontWeight: 700, fontSize: '0.9rem',
                                         cursor: isSharingUsername || !shareUsername.trim() ? 'not-allowed' : 'pointer',
                                         opacity: isSharingUsername || !shareUsername.trim() ? 0.6 : 1, transition: 'all 0.2s',
