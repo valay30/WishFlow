@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { db } from '../db';
 import { Plus, FolderHeart, Calendar, Package, ChevronRight, ArrowLeft, Pencil, Crown, X, Share2, Check } from 'lucide-react';
 import CollectionModal from '../components/CollectionModal';
@@ -34,6 +34,7 @@ const fmt = (n) => new Intl.NumberFormat('en-IN', { style: 'currency', currency:
 ══════════════════════════════════════ */
 export default function Collections() {
     const navigate = useNavigate();
+    const location = useLocation();
     const { user, isPremium } = useAuth();
     const { viewMode, currency } = useSettings();
 
@@ -46,6 +47,13 @@ export default function Collections() {
     const [collectionItems, setCollectionItems] = useState([]);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('my'); // 'my' | 'shared'
+
+    useEffect(() => {
+        const searchParams = new URLSearchParams(location.search);
+        if (searchParams.get('tab') === 'shared') {
+            setActiveTab('shared');
+        }
+    }, [location.search]);
 
     // Modal state
     const [showModal, setShowModal] = useState(false);

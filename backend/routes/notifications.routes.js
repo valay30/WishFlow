@@ -80,7 +80,7 @@ router.post('/notify-share', async (req, res) => {
     const payload = JSON.stringify({
       title: 'New Collection Shared!',
       body: `${senderName} has shared "${collectionName}" with you.`,
-      url: '/collections',
+      url: '/collections?tab=shared',
     });
 
     const sendPromises = subscriptions.map(async (sub) => {
