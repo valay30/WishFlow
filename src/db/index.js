@@ -584,7 +584,8 @@ export const db = {
           collection_id,
           sender_id
         `)
-        .eq('recipient_id', id);
+        .eq('recipient_id', id)
+        .neq('status', 'declined');
         
       if (error) {
         console.error("Supabase getSharedWithMe Error:", error);
