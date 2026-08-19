@@ -84,19 +84,26 @@ self.addEventListener('push', (event) => {
 
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
-  const urlToOpen = event.notification.data?.url || '/';
+  // Ensure url is absolute so we can match it against client.url
+  const urlToOpen = new URL(event.notification.data?.url || '/', self.location.origin).href;
 
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
-      // Check if there is already a window/tab open with the target URL
+      // Find a window that is already open to our site
       for (let i = 0; i < windowClients.length; i++) {
         const client = windowClients[i];
-        // If so, just focus it.
-        if (client.url === urlToOpen && 'focus' in client) {
-          return client.focus();
+        
+        // If they already have the app open on any page, just focus it and navigate to the right tab
+        if (client.url && 'focus' in client) {
+          client.focus();
+          if ('navigate' in client) {
+            client.navigate(urlToOpen);
+          }
+          return;
         }
       }
-      // If not, open a new window/tab
+      
+      // If no window is open, open a new one
       if (clients.openWindow) {
         return clients.openWindow(urlToOpen);
       }
