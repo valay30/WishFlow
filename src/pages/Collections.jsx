@@ -98,7 +98,6 @@ export default function Collections() {
             setShareUsername('');
             setShareToast('shared');
             setTimeout(() => setShareToast(''), 2500);
-            if (showAccessModal) loadAccessList(); // refresh if open
         } else {
             alert(res.error);
         }

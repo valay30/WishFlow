@@ -1,5 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
-import { addToSyncQueue } from './syncQueue'; const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'YOUR_SUPABASE_URL_HERE';
+import { addToSyncQueue } from './syncQueue'; 
+import { API_URL } from '../config';
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'YOUR_SUPABASE_URL_HERE';
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'YOUR_SUPABASE_ANON_KEY_HERE';
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
@@ -549,6 +551,25 @@ export const db = {
         if (error.code === '23505') return { success: false, error: 'Already shared with this user' };
         return { success: false, error: error.message };
       }
+
+      // Trigger push notification via backend
+      try {
+        const { data: senderProfile } = await supabase.from('profiles').select('username').eq('id', senderId).single();
+        const { data: collection } = await supabase.from('collections').select('name').eq('id', collectionId).single();
+        
+        await fetch(`${API_URL}/api/notifications/notify-share`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            recipientId: profile.id,
+            collectionName: collection?.name || 'a collection',
+            senderName: senderProfile?.username || 'Someone'
+          })
+        });
+      } catch (err) {
+        console.error("Failed to trigger push notification", err);
+      }
+
       return { success: true };
     },
     getSharedWithMe: async () => {

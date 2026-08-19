@@ -9,6 +9,7 @@ import TierBadgeCard from '../components/TierBadgeCard';
 import AlertModal from '../components/AlertModal';
 import CustomSelect from '../components/CustomSelect';
 import { API_URL } from '../config';
+import { subscribeToPushNotifications } from '../utils/pushNotifications';
 
 const ORANGE = 'var(--primary)';
 const SURFACE = 'var(--surface)';
@@ -242,15 +243,24 @@ export default function Profile() {
                             ...(user?.isAdmin ? [{ icon: ShieldCheck, label: 'Admin Panel', id: 'admin' }] : []),
                             { icon: ListIcon, label: 'Categories Lists', id: 'lists', hideOnDesktop: true },
                             { icon: FolderHeart, label: 'My Collections', id: 'collections', hideOnDesktop: true },
+                            { icon: Bell, label: 'Enable Notifications', id: 'notifications' },
                             { icon: Settings, label: 'General Settings', id: 'general' },
                         ].map((item, i) => (
                             <div key={item.id} className={item.hideOnDesktop ? 'hide-on-desktop' : ''} style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem', animation: `fadeInUp 0.4s ease-out ${i * 0.05}s backwards` }}>
                                 <button
-                                    onClick={() => {
+                                    onClick={async () => {
                                         if (item.id === 'admin') navigate('/admin');
                                         if (item.id === 'lists') navigate('/categories');
                                         if (item.id === 'collections') navigate('/collections');
                                         if (item.id === 'general') setShowGeneral(!showGeneral);
+                                        if (item.id === 'notifications') {
+                                            const success = await subscribeToPushNotifications(user?.id);
+                                            setGeneralAlert({
+                                                isOpen: true,
+                                                title: success ? 'Success' : 'Notice',
+                                                message: success ? 'Notifications enabled successfully!' : 'Could not enable notifications. Ensure your browser supports it and permissions are granted.'
+                                            });
+                                        }
                                     }}
                                     style={{
                                         display: 'flex', alignItems: 'center', gap: '1.25rem',
