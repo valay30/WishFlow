@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { db } from '../db';
-import { Plus, FolderHeart, Calendar, Package, ChevronRight, ArrowLeft, Pencil, Crown, X, Share2, Check } from 'lucide-react';
+import { Plus, FolderHeart, Calendar, Package, ChevronRight, ArrowLeft, Pencil, Crown, X, Share2, Check, Copy } from 'lucide-react';
 import CollectionModal from '../components/CollectionModal';
 import ItemCard from '../components/ItemCard';
 import ProductCard from '../components/ProductCard';
@@ -86,6 +86,21 @@ export default function Collections() {
         if (navigator.share) {
             try { await navigator.share(shareData); return; } catch { /* user cancelled */ return; }
         }
+        try {
+            await navigator.clipboard.writeText(url);
+            setShareToast('copied');
+            setTimeout(() => setShareToast(''), 2500);
+        } catch {
+            setShareToast('error');
+            setTimeout(() => setShareToast(''), 2500);
+        }
+    };
+
+    // Copy collection link directly to clipboard
+    const handleCopyLink = async (col) => {
+        const targetCol = col || activeCollection;
+        if (!targetCol) return;
+        const url = `${window.location.origin}/shared/collection/${targetCol.id}`;
         try {
             await navigator.clipboard.writeText(url);
             setShareToast('copied');
@@ -495,21 +510,6 @@ export default function Collections() {
                     document.body
                 )}
 
-                {/* ── Share / copy toast ── */}
-                {shareToast && (
-                    <div style={{
-                        position: 'fixed', bottom: '2rem', left: '50%', transform: 'translateX(-50%)',
-                        background: shareToast === 'copied' || shareToast === 'shared' ? 'rgba(34,197,94,0.95)' : 'rgba(239,68,68,0.95)',
-                        backdropFilter: 'blur(10px)', color: '#fff', padding: '0.8rem 1.5rem',
-                        borderRadius: '20px', fontWeight: 700, fontSize: '0.9rem',
-                        display: 'flex', alignItems: 'center', gap: '0.5rem',
-                        boxShadow: '0 8px 32px rgba(0,0,0,0.15)', zIndex: 9999,
-                        animation: 'fadeInUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
-                    }}>
-                        {shareToast === 'copied' || shareToast === 'shared' ? <Check size={15} /> : <X size={15} />}
-                        {shareToast === 'copied' ? 'Link copied to clipboard!' : shareToast === 'shared' ? 'Invite sent!' : 'Could not copy link'}
-                    </div>
-                )}
                 {/* ── Username Share Modal ── */}
                 {showUsernameShareModal && (
                     <div style={{
@@ -567,59 +567,133 @@ export default function Collections() {
                                     <p style={{ color: 'var(--text-muted)', textAlign: 'center', padding: '1.5rem 0', fontSize: '0.85rem' }}>Not shared with anyone yet.</p>
                                 ) : (
                                     accessList.map(share => (
-                                        <div key={share.id} style={{
-                                            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                                            padding: '0.75rem', background: SURFACE, borderRadius: '12px', border: `1px solid ${BORDER}`
-                                        }}>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                                                <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: ORANGE, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '0.85rem' }}>
-                                                    {share.profiles?.username?.[0]?.toUpperCase() || '?'}
-                                                </div>
-                                                <div>
-                                                    <div style={{ fontWeight: 700, color: 'var(--text)', fontSize: '0.9rem' }}>@{share.profiles?.username || 'unknown'}</div>
-                                                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                                                        {new Date(share.created_at).toLocaleDateString()}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                                <span style={{
-                                                    fontSize: '0.7rem', fontWeight: 700, padding: '0.2rem 0.5rem', borderRadius: '6px',
-                                                    background: share.status === 'accepted' ? 'rgba(34,197,94,0.1)' : share.status === 'pending' ? 'rgba(245,158,11,0.1)' : 'rgba(239,68,68,0.1)',
-                                                    color: share.status === 'accepted' ? '#22c55e' : share.status === 'pending' ? '#f59e0b' : '#ef4444'
-                                                }}>
-                                                    {share.status.charAt(0).toUpperCase() + share.status.slice(1)}
-                                                </span>
-                                                <button
-                                                    onClick={() => handleRemoveShare(share.id)}
-                                                    style={{
-                                                        background: 'transparent', border: 'none', color: 'var(--text-muted)',
-                                                        cursor: 'pointer', padding: '0.2rem', display: 'flex', alignItems: 'center', justifyContent: 'center'
-                                                    }}
-                                                    title="Remove Access"
-                                                    onMouseEnter={e => e.currentTarget.style.color = '#ef4444'}
-                                                    onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}
-                                                >
-                                                    <X size={16} />
-                                                </button>
-                                            </div>
-                                        </div>
+                                         <div key={share.id} style={{
+                                             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                                             padding: '0.75rem', background: SURFACE, borderRadius: '12px', border: `1px solid ${BORDER}`
+                                         }}>
+                                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                                 <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: ORANGE, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '0.85rem' }}>
+                                                     {share.profiles?.username?.[0]?.toUpperCase() || '?'}
+                                                 </div>
+                                                 <div>
+                                                     <div style={{ fontWeight: 700, color: 'var(--text)', fontSize: '0.9rem' }}>@{share.profiles?.username || 'unknown'}</div>
+                                                     <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                                                         {new Date(share.created_at).toLocaleDateString()}
+                                                     </div>
+                                                 </div>
+                                             </div>
+                                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                 <span style={{
+                                                     fontSize: '0.7rem', fontWeight: 700, padding: '0.2rem 0.5rem', borderRadius: '6px',
+                                                     background: share.status === 'accepted' ? 'rgba(34,197,94,0.1)' : share.status === 'pending' ? 'rgba(245,158,11,0.1)' : 'rgba(239,68,68,0.1)',
+                                                     color: share.status === 'accepted' ? '#22c55e' : share.status === 'pending' ? '#f59e0b' : '#ef4444'
+                                                 }}>
+                                                     {share.status.charAt(0).toUpperCase() + share.status.slice(1)}
+                                                 </span>
+                                                 <button
+                                                     onClick={() => handleRemoveShare(share.id)}
+                                                     style={{
+                                                         background: 'transparent', border: 'none', color: 'var(--text-muted)',
+                                                         cursor: 'pointer', padding: '0.2rem', display: 'flex', alignItems: 'center', justifyContent: 'center'
+                                                     }}
+                                                     title="Remove Access"
+                                                     onMouseEnter={e => e.currentTarget.style.color = '#ef4444'}
+                                                     onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}
+                                                 >
+                                                     <X size={16} />
+                                                 </button>
+                                             </div>
+                                         </div>
                                     ))
                                 )}
                             </div>
 
-                            <button
-                                onClick={() => handleShare(activeCollection)}
-                                style={{
-                                    marginTop: '1rem', padding: '0.85rem', borderRadius: '12px', border: `1px solid ${BORDER}`,
-                                    background: 'var(--surface-2)', color: 'var(--text)', fontWeight: 600, fontSize: '0.95rem',
-                                    cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
-                                    width: '100%', transition: 'all 0.2s', flexShrink: 0
-                                }}
-                            >
-                                <Share2 size={18} /> Share via Link
-                            </button>
+                            <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1rem', flexShrink: 0 }}>
+                                <button
+                                    id="copy-collection-link-btn"
+                                    onClick={() => handleCopyLink(activeCollection)}
+                                    style={{
+                                        flex: 1, padding: '0.85rem 0.5rem', borderRadius: '12px',
+                                        border: shareToast === 'copied' ? '1px solid #22c55e' : `1px solid ${BORDER}`,
+                                        background: shareToast === 'copied' ? 'rgba(34,197,94,0.1)' : 'var(--surface-2)',
+                                        color: shareToast === 'copied' ? '#22c55e' : 'var(--text)',
+                                        fontWeight: 600, fontSize: '0.9rem',
+                                        cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.45rem',
+                                        transition: 'all 0.2s', whiteSpace: 'nowrap'
+                                    }}
+                                    onMouseEnter={e => {
+                                        if (shareToast !== 'copied') e.currentTarget.style.background = 'var(--border)';
+                                    }}
+                                    onMouseLeave={e => {
+                                        if (shareToast !== 'copied') e.currentTarget.style.background = 'var(--surface-2)';
+                                    }}
+                                >
+                                    {shareToast === 'copied' ? (
+                                        <>
+                                            <Check size={16} /> Copied!
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Copy size={16} /> Copy Link
+                                        </>
+                                    )}
+                                </button>
+                                <button
+                                    id="share-collection-link-btn"
+                                    onClick={() => handleShare(activeCollection)}
+                                    style={{
+                                        flex: 1, padding: '0.85rem 0.5rem', borderRadius: '12px', border: `1px solid ${BORDER}`,
+                                        background: 'var(--surface-2)', color: 'var(--text)', fontWeight: 600, fontSize: '0.9rem',
+                                        cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.45rem',
+                                        transition: 'all 0.2s', whiteSpace: 'nowrap'
+                                    }}
+                                    onMouseEnter={e => e.currentTarget.style.background = 'var(--border)'}
+                                    onMouseLeave={e => e.currentTarget.style.background = 'var(--surface-2)'}
+                                >
+                                    <Share2 size={16} /> Share via Link
+                                </button>
+                            </div>
+
+                            {/* Floating toast anchored below modal card without shifting popup position */}
+                            {shareToast && (
+                                <div style={{
+                                    position: 'absolute', top: 'calc(100% + 12px)', left: '50%', transform: 'translateX(-50%)',
+                                    background: shareToast === 'copied' || shareToast === 'shared' ? 'rgba(34,197,94,0.95)' : 'rgba(239,68,68,0.95)',
+                                    backdropFilter: 'blur(10px)', color: '#fff', padding: '0.75rem 1.5rem',
+                                    borderRadius: '20px', fontWeight: 700, fontSize: '0.9rem',
+                                    display: 'flex', alignItems: 'center', gap: '0.5rem',
+                                    boxShadow: '0 8px 32px rgba(0,0,0,0.25)',
+                                    animation: 'fadeInUp 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
+                                    pointerEvents: 'none', whiteSpace: 'nowrap', zIndex: 100000
+                                }}>
+                                    {shareToast === 'copied' || shareToast === 'shared' ? <Check size={16} /> : <X size={16} />}
+                                    {shareToast === 'copied' ? 'Link copied to clipboard!' : shareToast === 'shared' ? 'Invite sent!' : 'Could not copy link'}
+                                </div>
+                            )}
                         </div>
+                    </div>
+                )}
+
+                {/* ── Standalone share / copy toast (when modal is not open) ── */}
+                {!showUsernameShareModal && shareToast && (
+                    <div style={{
+                        position: 'fixed', bottom: '2rem', left: '50%', transform: 'translateX(-50%)',
+                        background: shareToast === 'copied' || shareToast === 'shared' ? 'rgba(34,197,94,0.95)' : 'rgba(239,68,68,0.95)',
+                        backdropFilter: 'blur(10px)', color: '#fff', padding: '0.85rem 1.6rem',
+                        borderRadius: '20px', fontWeight: 700, fontSize: '0.9rem',
+                        display: 'flex', alignItems: 'center', gap: '0.5rem',
+                        boxShadow: '0 8px 32px rgba(0,0,0,0.25)', zIndex: 1000000,
+                        animation: 'toastSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+                        pointerEvents: 'none'
+                    }}>
+                        <style>{`
+                            @keyframes toastSlideUp {
+                                from { opacity: 0; transform: translate(-50%, 16px); }
+                                to { opacity: 1; transform: translate(-50%, 0); }
+                            }
+                        `}</style>
+                        {shareToast === 'copied' || shareToast === 'shared' ? <Check size={16} /> : <X size={16} />}
+                        {shareToast === 'copied' ? 'Link copied to clipboard!' : shareToast === 'shared' ? 'Invite sent!' : 'Could not copy link'}
                     </div>
                 )}
                 

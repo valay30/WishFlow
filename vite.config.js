@@ -18,12 +18,18 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,ico,png,svg,webp,woff2}'],
       },
       manifest: {
+        id: '/',
         name: 'WishFlow',
         short_name: 'WishFlow',
         description: 'Track and manage your wishlists easily.',
+        lang: 'en',
+        dir: 'ltr',
+        orientation: 'any',
+        categories: ['shopping', 'lifestyle', 'productivity'],
         theme_color: '#10367D',
         background_color: '#FFFFFF',
         display: 'standalone',
+        display_override: ['standalone', 'minimal-ui'],
         start_url: '/',
         scope: '/',
         icons: [
@@ -55,6 +61,82 @@ export default defineConfig({
             src: '/apple-touch-icon.png',
             sizes: '180x180',
             type: 'image/png'
+          }
+        ],
+        shortcuts: [
+          {
+            name: 'My Collections',
+            short_name: 'Collections',
+            description: 'View your wishlist collections',
+            url: '/collections',
+            icons: [{ src: '/192x192.png', sizes: '192x192' }]
+          },
+          {
+            name: 'Shared with Me',
+            short_name: 'Shared',
+            description: 'View shared collections',
+            url: '/collections?tab=shared',
+            icons: [{ src: '/192x192.png', sizes: '192x192' }]
+          }
+        ],
+        screenshots: [
+          // Mobile Screenshots (Narrow)
+          {
+            src: '/Screenshot/HomePageMobile.png',
+            sizes: '339x749',
+            type: 'image/png',
+            form_factor: 'narrow',
+            label: 'WishFlow Mobile Dashboard'
+          },
+          {
+            src: '/Screenshot/CollectionPageMobileAfter.png',
+            sizes: '339x750',
+            type: 'image/png',
+            form_factor: 'narrow',
+            label: 'WishFlow Mobile Collections'
+          },
+          {
+            src: '/Screenshot/ProductPageMobile.png',
+            sizes: '338x752',
+            type: 'image/png',
+            form_factor: 'narrow',
+            label: 'WishFlow Mobile Product Details'
+          },
+          {
+            src: '/Screenshot/PurchasedMobile.png',
+            sizes: '341x752',
+            type: 'image/png',
+            form_factor: 'narrow',
+            label: 'WishFlow Mobile Purchased Items'
+          },
+          // Desktop Screenshots (Wide)
+          {
+            src: '/Screenshot/HomePageDesktop.png',
+            sizes: '1407x755',
+            type: 'image/png',
+            form_factor: 'wide',
+            label: 'WishFlow Desktop Dashboard'
+          },
+          {
+            src: '/Screenshot/CollectionPageDesktopAfter.png',
+            sizes: '1589x862',
+            type: 'image/png',
+            form_factor: 'wide',
+            label: 'WishFlow Collections Management'
+          },
+          {
+            src: '/Screenshot/ProductPageDesktop.png',
+            sizes: '1581x856',
+            type: 'image/png',
+            form_factor: 'wide',
+            label: 'WishFlow Product Details'
+          },
+          {
+            src: '/Screenshot/PurchasedDesktop.png',
+            sizes: '1536x849',
+            type: 'image/png',
+            form_factor: 'wide',
+            label: 'WishFlow Purchased Items Tracking'
           }
         ],
         // ── Web Share Target API ──
