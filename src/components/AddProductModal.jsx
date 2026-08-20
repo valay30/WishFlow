@@ -25,7 +25,7 @@ const INPUT_ST = {
     outline: 'none', transition: 'border-color 0.2s, box-shadow 0.2s',
 };
 
-export default function AddProductModal({ categories, onAdd, onClose }) {
+export default function AddProductModal({ categories, onAdd, onClose, shareUrl = null }) {
     const [name, setName] = useState('');
     const { currency } = useSettings();
     const [price, setPrice] = useState('');
@@ -116,6 +116,7 @@ export default function AddProductModal({ categories, onAdd, onClose }) {
                             onChange={setLink}
                             categories={categories}
                             onResult={handleScraperResult}
+                            autoFetchUrl={shareUrl}
                         />
 
                         <div style={{ position: 'relative' }}>

@@ -38,6 +38,7 @@ export default function Home() {
     const navigate = useNavigate();
 
     const showAddModal = searchParams.get('add') === 'true';
+    const shareUrl = searchParams.get('share') || null;
     const selectedCategory = searchParams.get('category') ? parseInt(searchParams.get('category')) : null;
 
     const [items, setItems] = useState([]);
@@ -101,7 +102,12 @@ export default function Home() {
         }
         setSearchParams(p => { const n = new URLSearchParams(p); n.set('add', 'true'); return n; });
     };
-    const closeModal = () => setSearchParams(p => { const n = new URLSearchParams(p); n.delete('add'); return n; });
+    const closeModal = () => setSearchParams(p => {
+        const n = new URLSearchParams(p);
+        n.delete('add');
+        n.delete('share'); // also clean the share param
+        return n;
+    });
 
     useEffect(() => {
         const checkLimitOnAdd = async () => {
@@ -266,7 +272,7 @@ export default function Home() {
     return (
         <>
             {/* ── Modal ── */}
-            {shouldShowAddModal && <AddProductModal categories={categories} onAdd={handleAdd} onClose={closeModal} />}
+            {shouldShowAddModal && <AddProductModal categories={categories} onAdd={handleAdd} onClose={closeModal} shareUrl={shareUrl} />}
 
             {/* ══════════ MOBILE: hero + sheet layout ══════════ */}
             <div className="d-mobile-layout">
