@@ -1,9 +1,35 @@
 import * as cheerio from 'cheerio';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
-// ── Gemini setup ──────────────────────────────────────────────────────────────
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+// ── Gemini candidate models with automatic fallback ──────────────────────────
+const CANDIDATE_MODELS = [
+    'gemini-1.5-flash',
+    'gemini-1.5-flash-latest',
+    'gemini-2.0-flash',
+    'gemini-2.0-flash-exp',
+    'gemini-1.5-pro',
+    'gemini-pro',
+];
+
+async function generateWithGemini(prompt) {
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) return null;
+
+    const genAI = new GoogleGenerativeAI(apiKey);
+
+    for (const modelName of CANDIDATE_MODELS) {
+        try {
+            const model = genAI.getGenerativeModel({ model: modelName });
+            const result = await model.generateContent(prompt);
+            const text = result.response.text().trim();
+            if (text) return text;
+        } catch (err) {
+            // If model is 404 or unsupported on current API tier, try next candidate
+            console.warn(`Gemini model ${modelName} failed (${err.message}). Trying next candidate...`);
+        }
+    }
+    return null;
+}
 
 // ── Browser-like headers to bypass anti-bot detection ────────────────────────
 const BROWSER_HEADERS = {
@@ -386,8 +412,9 @@ Return ONLY this JSON (no markdown, no explanation):
 }`;
 
     try {
-        const result = await model.generateContent(prompt);
-        const text = result.response.text().trim();
+        const text = await generateWithGemini(prompt);
+        if (!text) return null;
+
         // Strip any ```json ``` wrapping if Gemini adds it
         const jsonText = text.replace(/^```json\s*/i, '').replace(/```\s*$/, '').trim();
         const parsed = JSON.parse(jsonText);
