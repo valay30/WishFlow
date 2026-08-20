@@ -41,3 +41,8 @@ desktop.ini
 
 # Testing
 /coverage
+
+# Android signing keys & release builds (do not commit private keys to GitHub)
+android/*.keystore
+android/*.jks
+android/*key*.txt

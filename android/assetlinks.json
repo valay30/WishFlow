@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "shop.wishflow.app",
+        "sha256_cert_fingerprints": ["F5:44:0F:1E:D2:BA:E4:CE:59:39:60:6C:84:D1:06:0F:55:57:58:4D:89:C1:BB:14:24:83:16:EB:D2:6F:CD:AC"]
+      }
+    }]
