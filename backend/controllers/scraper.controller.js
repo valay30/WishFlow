@@ -39,6 +39,58 @@ async function unshortenUrl(url) {
     }
 }
 
+// ── Proxy fallback for cloud datacenter IPs blocked by Amazon/Flipkart ───────
+async function fetchViaProxy(targetUrl) {
+    try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 7000);
+        const res = await fetch(`https://r.jina.ai/${targetUrl}`, {
+            headers: {
+                'Accept': 'application/json',
+                'X-With-Generated-Alt': 'true',
+            },
+            signal: controller.signal,
+        });
+        clearTimeout(timeout);
+        const json = await res.json();
+        if (json?.data) {
+            const content = json.data.content || '';
+            const rawTitle = json.data.title || '';
+
+            // Clean Amazon page title prefix/suffix
+            const cleanTitle = rawTitle
+                .replace(/^Amazon\.in\s*:\s*/i, '')
+                .replace(/:\s*Amazon\.in.*$/i, '')
+                .trim();
+
+            // Extract first meaningful product image from markdown: ![alt](url)
+            let image = null;
+            const imgMatches = content.matchAll(/!\[.*?\]\((https?:\/\/[^\s\)]+)\)/g);
+            for (const m of imgMatches) {
+                const imgUrl = m[1];
+                if (imgUrl && !imgUrl.includes('logo') && !imgUrl.includes('icon') && !imgUrl.includes('sprite') && !imgUrl.includes('arrow') && (imgUrl.includes('media-amazon') || imgUrl.includes('images-amazon') || imgUrl.includes('flixcart') || imgUrl.includes('myntassets'))) {
+                    image = resolveImageUrl(imgUrl, targetUrl);
+                    break;
+                }
+            }
+
+            // Extract price from content if available
+            const priceMatch = content.match(/(?:₹|Rs\.?|INR|\$|€|£)\s*([\d,]+(?:\.\d{2})?)/i);
+            const price = priceMatch ? parseFloat(priceMatch[1].replace(/,/g, '')) : null;
+
+            return {
+                title: cleanTitle && cleanTitle !== 'Page Not Found' ? cleanTitle : '',
+                description: content.slice(0, 2500),
+                image,
+                price,
+            };
+        }
+    } catch (err) {
+        console.warn('Proxy fallback failed:', err.message);
+    }
+    return null;
+}
+
 // ── Fix relative image URLs and clean Amazon thumbnail params ─────────────────
 function resolveImageUrl(src, baseUrl) {
     if (!src) return null;
@@ -435,6 +487,32 @@ export const extractMetadata = async (req, res) => {
 
         // Fix image URL
         if (raw.image) raw.image = resolveImageUrl(raw.image, finalUrl);
+
+        // Step 5.1: If page is a CAPTCHA / anti-bot block (common on cloud servers like Render/AWS/Vercel)
+        const isBlocked = !raw.title ||
+            raw.title.toLowerCase() === 'amazon.in' ||
+            raw.title.toLowerCase().includes('robot check') ||
+            html.includes('api-services-support@amazon.com') ||
+            html.includes('Enter the characters you see below') ||
+            (!raw.price && !raw.image);
+
+        if (isBlocked) {
+            const proxyData = await fetchViaProxy(finalUrl);
+            if (proxyData) {
+                if (proxyData.title && (raw.title.toLowerCase() === 'amazon.in' || raw.title.toLowerCase().includes('robot check') || !raw.title)) {
+                    raw.title = proxyData.title;
+                }
+                if (proxyData.description) {
+                    raw.description = proxyData.description;
+                }
+                if (proxyData.image && !raw.image) {
+                    raw.image = proxyData.image;
+                }
+                if (proxyData.price && !raw.price) {
+                    raw.price = proxyData.price;
+                }
+            }
+        }
 
         // Step 6: Gemini normalizes, categorizes & matches collection
         const geminiResult = await geminiNormalize(raw, categories || [], collections || []);
