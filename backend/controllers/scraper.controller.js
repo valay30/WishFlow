@@ -69,7 +69,7 @@ async function unshortenUrl(url) {
 async function fetchViaProxy(targetUrl) {
     try {
         const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 7000);
+        const timeout = setTimeout(() => controller.abort(), 10000);
         const res = await fetch(`https://r.jina.ai/${targetUrl}`, {
             headers: {
                 'Accept': 'application/json',
@@ -81,7 +81,7 @@ async function fetchViaProxy(targetUrl) {
         const json = await res.json();
         if (json?.data) {
             const content = json.data.content || '';
-            const rawTitle = json.data.title || '';
+            const rawTitle = json.data.title || json.data.metadata?.title || '';
 
             // Clean Amazon page title prefix/suffix
             const cleanTitle = rawTitle
@@ -100,12 +100,12 @@ async function fetchViaProxy(targetUrl) {
                 }
             }
 
-            // Extract price from content if available
+            // Extract price from content if available (e.g. ₹239.89 or Rs. 239)
             const priceMatch = content.match(/(?:₹|Rs\.?|INR|\$|€|£)\s*([\d,]+(?:\.\d{2})?)/i);
             const price = priceMatch ? parseFloat(priceMatch[1].replace(/,/g, '')) : null;
 
             return {
-                title: cleanTitle && cleanTitle !== 'Page Not Found' ? cleanTitle : '',
+                title: cleanTitle && cleanTitle !== 'Page Not Found' && cleanTitle.toLowerCase() !== 'amazon.in' && !cleanTitle.toLowerCase().includes('robot check') ? cleanTitle : '',
                 description: content.slice(0, 2500),
                 image,
                 price,
@@ -377,11 +377,15 @@ function trimTitle(title) {
     return title.trim().split(/\s+/).slice(0, 5).join(' ');
 }
 
-// ── Gemini AI: normalize + categorize ────────────────────────────────────────
-async function geminiNormalize(rawData, userCategories) {
+// ── Gemini AI: normalize + categorize + match collection ──────────────────
+async function geminiNormalize(rawData, userCategories, userCollections) {
     const catNames = userCategories?.length
         ? userCategories.map(c => `${c.id}:${c.name}`).join(', ')
         : 'No categories';
+
+    const colNames = userCollections?.length
+        ? userCollections.map(c => `${c.id}:${c.name}`).join(', ')
+        : 'No collections';
 
     const prompt = `You are a product data extractor for a wishlist app. Given raw scraped product data, return ONLY valid JSON.
 
@@ -394,6 +398,7 @@ Raw data:
 - Site: ${rawData.site || 'unknown'}
 
 User's categories (id:name): ${catNames}
+User's custom collections (id:name): ${colNames}
 
 Tasks:
 1. Clean the title: strip the site/brand domain name, SEO junk, "Buy online", "Best price", "with warranty", sizes, colors, model numbers, and any filler words. Keep ONLY the core product identity — maximum 4-5 words. Examples: "Apple iPhone 15 Pro" NOT "Buy Apple iPhone 15 Pro 128GB Natural Titanium Online at Best Price in India". "Nike Air Force 1" NOT "Nike Air Force 1 '07 Men's Shoe White White Size 10". "boAt Airdopes 311 Pro" NOT "boAt Airdopes 311 Pro TWS Earbuds with 60H Playback".
@@ -401,6 +406,7 @@ Tasks:
 3. Detect currency code (INR, USD, EUR, GBP, etc.) from context.
 4. Keep the image URL exactly as-is (do not modify).
 5. Match the product to ONE of the user's categories by id. If no match, use id -1 (meaning "Other").
+6. Match the product to ONE of the user's custom collections by id ONLY IF the product clearly and logically fits the collection name/purpose (e.g., gaming headset -> "Gaming Setup", shoes -> "Gym / Fitness"). If it does NOT clearly match any collection or there are no collections, set collectionId to null.
 
 Return ONLY this JSON (no markdown, no explanation):
 {
@@ -408,7 +414,8 @@ Return ONLY this JSON (no markdown, no explanation):
   "price": 1234.56,
   "currency": "INR",
   "image": "https://...",
-  "categoryId": 3
+  "categoryId": 3,
+  "collectionId": null
 }`;
 
     try {
