@@ -23,6 +23,7 @@ import Terms from './pages/Terms';
 import Refund from './pages/Refund';
 import OfflinePage from './pages/OfflinePage';
 import SharedCollection from './pages/SharedCollection';
+import ShareTargetPage from './pages/ShareTargetPage';
 function ScrollToTop() {
   const { pathname } = useLocation();
 
@@ -110,6 +111,7 @@ function AppRoutes() {
         <Route path="/terms" element={<Terms />} />
         <Route path="/refund" element={<Refund />} />
         <Route path="/shared/collection/:id" element={<SharedCollection />} />
+        <Route path="/share-target" element={<ShareTargetPage />} />
 
         {/* ── Protected app routes (layout route — no path, uses Outlet) ── */}
         <Route element={<ProtectedRoute />}>

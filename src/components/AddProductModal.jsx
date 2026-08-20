@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Upload, Sparkles } from 'lucide-react';
 import { uploadToImageKit } from '../utils/imagekit';
 import { db } from '../db';
 import { useSettings } from '../context/SettingsContext';
 import CustomSelect from './CustomSelect';
+import LinkScraper from './LinkScraper';
 
 const ORANGE = 'var(--primary)';
 const SURFACE2 = 'var(--surface-2)';
@@ -34,6 +35,31 @@ export default function AddProductModal({ categories, onAdd, onClose }) {
     const [colId, setColId] = useState('');
     const [collections, setCollections] = useState([]);
     const [isUploading, setIsUploading] = useState(false);
+    const [flashFields, setFlashFields] = useState({});
+
+    // Flash highlight an auto-filled field briefly
+    const flashField = (fields) => {
+        setFlashFields(fields);
+        setTimeout(() => setFlashFields({}), 1500);
+    };
+
+    // Called when LinkScraper returns product data
+    const handleScraperResult = ({ title, price: p, image: img, categoryId, url: productUrl }) => {
+        const filled = {};
+        if (title) { setName(title); filled.name = true; }
+        if (p) { setPrice(String(p)); filled.price = true; }
+        if (img) { setImage(img); filled.image = true; }
+        if (productUrl) { setLink(productUrl); filled.link = true; }
+        // Match category: if categoryId is valid (not -1), select it; else try to find 'Other'
+        if (categoryId && categoryId !== -1) {
+            const match = categories.find(c => c.id === categoryId);
+            if (match) { setCatId(String(match.id)); filled.catId = true; }
+        } else {
+            const other = categories.find(c => c.name.toLowerCase() === 'other');
+            if (other) { setCatId(String(other.id)); filled.catId = true; }
+        }
+        flashField(filled);
+    };
 
     useEffect(() => {
         db.collections.getAll().then(res => setCollections(res || []));
@@ -84,14 +110,30 @@ export default function AddProductModal({ categories, onAdd, onClose }) {
                     </div>
 
                     <form onSubmit={handleSubmit} style={{ padding: '1rem 1.5rem 2rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                        <div>
+                        {/* AI Auto-Fill Strip */}
+                        <LinkScraper
+                            categories={categories}
+                            onResult={handleScraperResult}
+                        />
+
+                        <div style={{ borderTop: '1px solid var(--border)', margin: '0 -0.25rem' }} />
+
+                        <div style={{ position: 'relative' }}>
                             <label style={LABEL_ST}>Product Name</label>
-                            <input style={INPUT_ST} required placeholder="e.g. Wireless Headphones" value={name} onChange={e => setName(e.target.value)} onFocus={focus} onBlur={blur} />
+                            <input
+                                style={{ ...INPUT_ST, ...(flashFields.name ? { borderColor: 'var(--primary)', boxShadow: '0 0 0 4px rgba(var(--primary-rgb),0.15)', transition: 'all 0.3s' } : {}) }}
+                                required placeholder="e.g. Wireless Headphones"
+                                value={name} onChange={e => setName(e.target.value)} onFocus={focus} onBlur={blur}
+                            />
                         </div>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
                             <div>
                                 <label style={LABEL_ST}>Price ({new Intl.NumberFormat(undefined, { style: 'currency', currency: currency || 'INR' }).formatToParts(0).find(x => x.type === 'currency').value})</label>
-                                <input style={INPUT_ST} type="number" step="0.01" required placeholder="0.00" value={price} onChange={e => setPrice(e.target.value)} onFocus={focus} onBlur={blur} />
+                                <input
+                                    style={{ ...INPUT_ST, ...(flashFields.price ? { borderColor: 'var(--primary)', boxShadow: '0 0 0 4px rgba(var(--primary-rgb),0.15)' } : {}) }}
+                                    type="number" step="0.01" required placeholder="0.00"
+                                    value={price} onChange={e => setPrice(e.target.value)} onFocus={focus} onBlur={blur}
+                                />
                             </div>
                             <div>
                                 <label style={LABEL_ST}>Category</label>
@@ -105,8 +147,12 @@ export default function AddProductModal({ categories, onAdd, onClose }) {
                             </div>
                         </div>
                         <div>
-                            <label style={LABEL_ST}>Product Link</label>
-                            <input style={INPUT_ST} type="text" placeholder="https://..." value={link} onChange={e => setLink(e.target.value)} onFocus={focus} onBlur={blur} />
+                            <label style={LABEL_ST}>Product Link (optional)</label>
+                            <input
+                                style={{ ...INPUT_ST, ...(flashFields.link ? { borderColor: 'var(--primary)', boxShadow: '0 0 0 4px rgba(var(--primary-rgb),0.15)' } : {}) }}
+                                type="text" placeholder="https://..."
+                                value={link} onChange={e => setLink(e.target.value)} onFocus={focus} onBlur={blur}
+                            />
                         </div>
                         <div>
                             <label style={LABEL_ST}>Image</label>

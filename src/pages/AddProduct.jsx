@@ -8,6 +8,7 @@ import { API_URL } from '../config';
 import AlertModal from '../components/AlertModal';
 import { useSettings } from '../context/SettingsContext';
 import CustomSelect from '../components/CustomSelect';
+import LinkScraper from '../components/LinkScraper';
 
 export default function AddProduct() {
     const navigate = useNavigate();
@@ -22,6 +23,30 @@ export default function AddProduct() {
     const [itemCount, setItemCount] = useState(0);
     const [showPremiumModal, setShowPremiumModal] = useState(false);
     const [paymentStatus, setPaymentStatus] = useState({ isOpen: false, success: false, title: '', message: '' });
+    const [flashFields, setFlashFields] = useState({});
+
+    // Flash highlight auto-filled fields briefly
+    const flashField = (fields) => {
+        setFlashFields(fields);
+        setTimeout(() => setFlashFields({}), 1500);
+    };
+
+    // Called when LinkScraper returns data
+    const handleScraperResult = ({ title, price: p, image: img, categoryId: cId, url: productUrl }) => {
+        const filled = {};
+        if (title) { setName(title); filled.name = true; }
+        if (p) { setPrice(String(p)); filled.price = true; }
+        if (img) { setImage(img); filled.image = true; }
+        if (productUrl) { setLink(productUrl); filled.link = true; }
+        if (cId && cId !== -1) {
+            const match = categories.find(c => c.id === cId);
+            if (match) { setCategoryId(String(match.id)); filled.categoryId = true; }
+        } else {
+            const other = categories.find(c => c.name.toLowerCase() === 'other');
+            if (other) { setCategoryId(String(other.id)); filled.categoryId = true; }
+        }
+        flashField(filled);
+    };
 
     useEffect(() => {
         const loadInitialData = async () => {
@@ -167,22 +192,42 @@ export default function AddProduct() {
             }}>
                 <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
 
+                    {/* AI Auto-Fill Strip */}
+                    <LinkScraper
+                        categories={categories}
+                        onResult={handleScraperResult}
+                    />
+
                     {/* Name */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
                         <label style={{ flex: '0 0 90px', color: 'var(--text-muted)', fontSize: '0.95rem', textAlign: 'left' }}>Name</label>
-                        <input className="input" style={{ flex: 1 }} value={name} onChange={e => setName(e.target.value)} required placeholder="e.g. Wireless Headphones" />
+                        <input
+                            className="input" style={{ flex: 1, ...(flashFields.name ? { borderColor: 'var(--primary)', boxShadow: '0 0 0 4px rgba(var(--primary-rgb),0.15)' } : {}) }}
+                            value={name} onChange={e => setName(e.target.value)}
+                            required placeholder="e.g. Wireless Headphones"
+                        />
                     </div>
 
                     {/* Price */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
                         <label style={{ flex: '0 0 90px', color: 'var(--text-muted)', fontSize: '0.95rem', textAlign: 'left' }}>Price</label>
-                        <input className="input" style={{ flex: 1 }} type="number" step="0.01" value={price} onChange={e => setPrice(e.target.value)} required placeholder="0.00" />
+                        <input
+                            className="input" style={{ flex: 1, ...(flashFields.price ? { borderColor: 'var(--primary)', boxShadow: '0 0 0 4px rgba(var(--primary-rgb),0.15)' } : {}) }}
+                            type="number" step="0.01"
+                            value={price} onChange={e => setPrice(e.target.value)}
+                            required placeholder="0.00"
+                        />
                     </div>
 
                     {/* Link */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
                         <label style={{ flex: '0 0 90px', color: 'var(--text-muted)', fontSize: '0.95rem', textAlign: 'left' }}>Link</label>
-                        <input className="input" style={{ flex: 1 }} type="text" value={link} onChange={e => setLink(e.target.value)} placeholder="https://example.com/product" />
+                        <input
+                            className="input" style={{ flex: 1, ...(flashFields.link ? { borderColor: 'var(--primary)', boxShadow: '0 0 0 4px rgba(var(--primary-rgb),0.15)' } : {}) }}
+                            type="text"
+                            value={link} onChange={e => setLink(e.target.value)}
+                            placeholder="https://example.com/product"
+                        />
                     </div>
 
                     {/* Category */}
