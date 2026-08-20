@@ -81,14 +81,56 @@ export const deleteUser = async (req, res) => {
     const { userId } = req.params;
     if (!userId) return res.status(400).json({ error: 'userId required' });
     try {
-        // Delete dependent data (items, categories) to bypass foreign key constraint errors
+        // 1. Fetch user's collections to get their IDs
+        const { data: userCollections } = await supabase
+            .from('collections')
+            .select('id')
+            .eq('user_id', userId);
+        const colIds = userCollections?.map(c => c.id) || [];
+
+        // 2. Fetch user's items to get their IDs
+        const { data: userItems } = await supabase
+            .from('items')
+            .select('id')
+            .eq('user_id', userId);
+        const itemIds = userItems?.map(i => i.id) || [];
+
+        // 3. Delete collection_items linked to user's collections or items
+        if (colIds.length > 0) {
+            await supabase.from('collection_items').delete().in('collection_id', colIds);
+        }
+        if (itemIds.length > 0) {
+            await supabase.from('collection_items').delete().in('item_id', itemIds);
+        }
+
+        // 4. Delete collection_shares linked to user or user's collections
+        await supabase.from('collection_shares').delete().eq('sender_id', userId);
+        await supabase.from('collection_shares').delete().eq('recipient_id', userId);
+        if (colIds.length > 0) {
+            await supabase.from('collection_shares').delete().in('collection_id', colIds);
+        }
+
+        // 5. Delete items
         const { error: itemsErr } = await supabase.from('items').delete().eq('user_id', userId);
         if (itemsErr) console.warn('Warning deleting items for user:', itemsErr);
 
+        // 6. Delete collections
+        const { error: colErr } = await supabase.from('collections').delete().eq('user_id', userId);
+        if (colErr) console.warn('Warning deleting collections for user:', colErr);
+
+        // 7. Delete categories
         const { error: catErr } = await supabase.from('categories').delete().eq('user_id', userId);
         if (catErr) console.warn('Warning deleting categories for user:', catErr);
 
-        // Delete from Auth
+        // 8. Delete push subscriptions
+        const { error: pushErr } = await supabase.from('push_subscriptions').delete().eq('user_id', userId);
+        if (pushErr) console.warn('Warning deleting push subscriptions for user:', pushErr);
+
+        // 9. Delete profile
+        const { error: profErr } = await supabase.from('profiles').delete().eq('id', userId);
+        if (profErr) console.warn('Warning deleting profile for user:', profErr);
+
+        // 10. Delete from Supabase Auth
         const { error } = await supabase.auth.admin.deleteUser(userId);
         if (error) throw error;
 
