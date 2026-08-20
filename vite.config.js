@@ -29,7 +29,7 @@ export default defineConfig({
         theme_color: '#10367D',
         background_color: '#FFFFFF',
         display: 'standalone',
-        display_override: ['standalone', 'minimal-ui'],
+        display_override: ['window-controls-overlay', 'standalone', 'minimal-ui'],
         start_url: '/',
         scope: '/',
         icons: [
