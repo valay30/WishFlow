@@ -109,14 +109,14 @@ export default function AddProductModal({ categories, onAdd, onClose }) {
                         </button>
                     </div>
 
-                    <form onSubmit={handleSubmit} style={{ padding: '1rem 1.5rem 2rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                        {/* AI Auto-Fill Strip */}
+                    <form onSubmit={handleSubmit} style={{ padding: '0.75rem 1.5rem 2rem', display: 'flex', flexDirection: 'column', gap: '0.9rem' }}>
+                        {/* Single Product Link input with optional Fetch — value is always saved regardless of Fetch */}
                         <LinkScraper
+                            value={link}
+                            onChange={setLink}
                             categories={categories}
                             onResult={handleScraperResult}
                         />
-
-                        <div style={{ borderTop: '1px solid var(--border)', margin: '0 -0.25rem' }} />
 
                         <div style={{ position: 'relative' }}>
                             <label style={LABEL_ST}>Product Name</label>
@@ -146,14 +146,7 @@ export default function AddProductModal({ categories, onAdd, onClose }) {
                                 />
                             </div>
                         </div>
-                        <div>
-                            <label style={LABEL_ST}>Product Link (optional)</label>
-                            <input
-                                style={{ ...INPUT_ST, ...(flashFields.link ? { borderColor: 'var(--primary)', boxShadow: '0 0 0 4px rgba(var(--primary-rgb),0.15)' } : {}) }}
-                                type="text" placeholder="https://..."
-                                value={link} onChange={e => setLink(e.target.value)} onFocus={focus} onBlur={blur}
-                            />
-                        </div>
+
                         <div>
                             <label style={LABEL_ST}>Image</label>
                             {!image ? (

@@ -1,19 +1,26 @@
 import { useState, useEffect, useRef } from 'react';
-import { Sparkles, Link, X, CheckCircle, AlertCircle } from 'lucide-react';
+import { Sparkles, Link as LinkIcon, X, CheckCircle, AlertCircle } from 'lucide-react';
 import { API_URL } from '../config';
 
 const PRIMARY = 'var(--primary)';
+const BORDER = 'var(--border)';
 
 /**
- * LinkScraper — Reusable "Paste URL → Auto-Fill" component.
+ * LinkScraper — Single "Product Link" input.
  *
- * Props:
- *   categories  - Array of { id, name } for AI category matching
- *   onResult    - Called with { title, price, currency, image, categoryId, categoryName, url }
- *   autoFetchUrl - If set, auto-triggers fetch immediately on mount (for Share Target)
+ * Behaviour:
+ *  - value/onChange: controlled by parent → link is ALWAYS saved even without clicking Fetch
+ *  - Click "Fetch" → calls backend scraper → auto-fills parent form via onResult
+ *  - Field is entirely optional — form submits fine with no link
+ *  - autoFetchUrl: auto-triggers Fetch on mount (for PWA Share Target)
  */
-export default function LinkScraper({ categories = [], onResult, autoFetchUrl = null }) {
-    const [url, setUrl] = useState(autoFetchUrl || '');
+export default function LinkScraper({
+    value = '',
+    onChange,
+    categories = [],
+    onResult,
+    autoFetchUrl = null,
+}) {
     const [status, setStatus] = useState('idle'); // idle | loading | success | error
     const [errorMsg, setErrorMsg] = useState('');
     const inputRef = useRef(null);
@@ -23,24 +30,19 @@ export default function LinkScraper({ categories = [], onResult, autoFetchUrl = 
     useEffect(() => {
         if (autoFetchUrl && !hasFetchedRef.current) {
             hasFetchedRef.current = true;
-            fetchData(autoFetchUrl);
+            onChange?.(autoFetchUrl);
+            runFetch(autoFetchUrl);
         }
     }, [autoFetchUrl]);
 
-    // Check if the input value looks like a URL
-    const isUrl = (val) => {
-        try {
-            new URL(val.trim());
-            return true;
-        } catch {
-            return false;
-        }
+    const isValidUrl = (val) => {
+        try { new URL(val.trim()); return true; } catch { return false; }
     };
 
-    const fetchData = async (targetUrl) => {
-        const trimmed = (targetUrl || url).trim();
-        if (!trimmed || !isUrl(trimmed)) {
-            setErrorMsg('Please enter a valid URL (starting with http:// or https://)');
+    const runFetch = async (target) => {
+        const trimmed = (target ?? value).trim();
+        if (!trimmed || !isValidUrl(trimmed)) {
+            setErrorMsg('Enter a valid URL (https://...)');
             setStatus('error');
             return;
         }
@@ -58,28 +60,33 @@ export default function LinkScraper({ categories = [], onResult, autoFetchUrl = 
             const data = await res.json();
 
             if (!res.ok) {
-                setErrorMsg(data.error || 'Failed to fetch product data');
+                setErrorMsg(data.error || 'Could not fetch details');
                 setStatus('error');
                 return;
             }
 
             setStatus('success');
             onResult?.({ ...data, url: trimmed });
-        } catch (err) {
-            setErrorMsg('Network error. Make sure the backend is running.');
+            // Reset success indicator after 3s
+            setTimeout(() => setStatus('idle'), 3000);
+        } catch {
+            setErrorMsg('Network error — backend not reachable.');
             setStatus('error');
         }
     };
 
+    const handleChange = (e) => {
+        onChange?.(e.target.value);
+        if (status !== 'idle') setStatus('idle');
+        if (errorMsg) setErrorMsg('');
+    };
+
     const handleKeyDown = (e) => {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            fetchData();
-        }
+        if (e.key === 'Enter') { e.preventDefault(); runFetch(); }
     };
 
     const handleClear = () => {
-        setUrl('');
+        onChange?.('');
         setStatus('idle');
         setErrorMsg('');
         inputRef.current?.focus();
@@ -90,93 +97,123 @@ export default function LinkScraper({ categories = [], onResult, autoFetchUrl = 
     const isError = status === 'error';
 
     return (
-        <div style={{
-            borderRadius: '18px',
-            padding: '1rem 1.1rem',
-            background: 'linear-gradient(135deg, rgba(var(--primary-rgb),0.08), rgba(var(--primary-rgb),0.04))',
-            border: `1.5px solid ${isError ? '#ef4444' : isSuccess ? '#22c55e' : 'rgba(var(--primary-rgb),0.25)'}`,
-            transition: 'border-color 0.3s, box-shadow 0.3s',
-            boxShadow: isLoading ? `0 0 0 3px rgba(var(--primary-rgb),0.15)` : 'none',
-        }}>
-            {/* Header */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.65rem' }}>
-                <Sparkles size={14} color={PRIMARY} />
-                <span style={{ fontSize: '0.72rem', fontWeight: 700, color: PRIMARY, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                    Paste Link
-                </span>
-            </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+            {/* Label */}
+            <label style={{
+                fontSize: '0.72rem',
+                fontWeight: 700,
+                color: PRIMARY,
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.35rem',
+            }}>
+                Product Link
+            </label>
 
-            {/* Input Row */}
-            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                <div style={{ flex: 1, position: 'relative', display: 'flex', alignItems: 'center' }}>
-                    <Link size={15} color="var(--text-muted)" style={{ position: 'absolute', left: '0.75rem', flexShrink: 0 }} />
+            {/* Input Row: Input Box + Outside Fetch Button */}
+            <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'center' }}>
+                {/* Input Box */}
+                <div style={{
+                    flex: 1,
+                    display: 'flex',
+                    alignItems: 'center',
+                    background: 'var(--surface-2)',
+                    border: `1.5px solid ${isError ? '#ef4444' : isSuccess ? '#22c55e' : BORDER}`,
+                    borderRadius: '14px',
+                    padding: '0.75rem 0.85rem',
+                    transition: 'border-color 0.2s',
+                    boxSizing: 'border-box',
+                    minWidth: 0,
+                }}>
+                    <LinkIcon size={16} color="var(--text-dim)" style={{ flexShrink: 0, marginRight: '0.5rem' }} />
+
                     <input
                         ref={inputRef}
                         type="url"
-                        value={url}
-                        onChange={e => { setUrl(e.target.value); setStatus('idle'); setErrorMsg(''); }}
+                        value={value}
+                        onChange={handleChange}
                         onKeyDown={handleKeyDown}
-                        placeholder="https://amazon.in/dp/... or any shop URL"
+                        placeholder="https://..."
                         disabled={isLoading}
                         style={{
-                            width: '100%',
-                            padding: '0.65rem 2.2rem 0.65rem 2.2rem',
-                            background: 'var(--surface-2)',
-                            border: '1.5px solid var(--border)',
-                            borderRadius: '11px',
+                            flex: 1,
+                            background: 'transparent',
+                            border: 'none',
+                            outline: 'none',
                             color: 'var(--text)',
                             fontFamily: 'inherit',
-                            fontSize: '0.85rem',
-                            outline: 'none',
-                            boxSizing: 'border-box',
-                            opacity: isLoading ? 0.7 : 1,
-                            transition: 'border-color 0.2s',
+                            fontSize: '0.92rem',
+                            padding: 0,
+                            minWidth: 0,
                         }}
-                        onFocus={e => e.target.style.borderColor = PRIMARY}
-                        onBlur={e => e.target.style.borderColor = 'var(--border)'}
                     />
-                    {url && !isLoading && (
+
+                    {/* Clear button */}
+                    {value && !isLoading && (
                         <button
                             type="button"
                             onClick={handleClear}
-                            style={{ position: 'absolute', right: '0.6rem', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', display: 'flex', padding: '2px' }}
+                            style={{
+                                background: 'transparent',
+                                border: 'none',
+                                cursor: 'pointer',
+                                color: 'var(--text-dim)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                padding: '2px',
+                                marginLeft: '0.35rem',
+                                flexShrink: 0,
+                            }}
                         >
-                            <X size={13} />
+                            <X size={14} />
                         </button>
                     )}
                 </div>
 
-                {/* Fetch Button */}
+                {/* Fetch Button (Outside) */}
                 <button
                     type="button"
-                    onClick={() => fetchData()}
-                    disabled={isLoading || !url.trim()}
+                    onClick={() => runFetch()}
+                    disabled={isLoading || !value.trim()}
                     style={{
-                        padding: '0.65rem 1rem',
-                        borderRadius: '11px',
+                        flexShrink: 0,
+                        width: '96px',
+                        padding: '0.75rem 0.5rem',
+                        borderRadius: '14px',
                         border: 'none',
                         background: isSuccess
-                            ? 'rgba(34,197,94,0.15)'
-                            : isLoading
-                                ? 'rgba(var(--primary-rgb),0.5)'
+                            ? '#22c55e'
+                            : (!value.trim() || isLoading)
+                                ? 'rgba(var(--primary-rgb),0.35)'
                                 : PRIMARY,
-                        color: isSuccess ? '#22c55e' : '#fff',
+                        color: '#fff',
                         fontWeight: 700,
-                        fontSize: '0.82rem',
-                        cursor: isLoading || !url.trim() ? 'not-allowed' : 'pointer',
+                        fontSize: '0.88rem',
+                        fontFamily: 'inherit',
+                        cursor: isLoading || !value.trim() ? 'default' : 'pointer',
                         display: 'flex',
                         alignItems: 'center',
-                        gap: '0.4rem',
+                        justifyContent: 'center',
+                        gap: '0.35rem',
+                        transition: 'background-color 0.25s ease, opacity 0.2s ease',
                         whiteSpace: 'nowrap',
-                        flexShrink: 0,
-                        transition: 'all 0.2s',
-                        opacity: !url.trim() && !isLoading ? 0.5 : 1,
+                        boxSizing: 'border-box',
                     }}
                 >
                     {isLoading ? (
                         <>
-                            <span style={{ width: '13px', height: '13px', border: '2px solid rgba(255,255,255,0.4)', borderTopColor: '#fff', borderRadius: '50%', animation: 'scraper-spin 0.7s linear infinite', display: 'inline-block', flexShrink: 0 }} />
-                            Fetching...
+                            <span style={{
+                                width: '12px', height: '12px',
+                                border: '2px solid rgba(255,255,255,0.35)',
+                                borderTopColor: '#fff',
+                                borderRadius: '50%',
+                                animation: 'ls-spin 0.7s linear infinite',
+                                display: 'inline-block',
+                                flexShrink: 0,
+                            }} />
+                            Fetching
                         </>
                     ) : isSuccess ? (
                         <>
@@ -184,16 +221,23 @@ export default function LinkScraper({ categories = [], onResult, autoFetchUrl = 
                             Done
                         </>
                     ) : (
-                        <>
-                            Fetch
-                        </>
+                        'Fetch'
                     )}
                 </button>
             </div>
 
-            <style>{`
-                @keyframes scraper-spin { to { transform: rotate(360deg); } }
-            `}</style>
+            {/* Error message */}
+            {isError && (
+                <div style={{
+                    display: 'flex', alignItems: 'center', gap: '0.3rem',
+                    fontSize: '0.73rem', color: '#ef4444',
+                }}>
+                    <AlertCircle size={11} />
+                    <span>{errorMsg}</span>
+                </div>
+            )}
+
+            <style>{`@keyframes ls-spin { to { transform: rotate(360deg); } }`}</style>
         </div>
     );
 }

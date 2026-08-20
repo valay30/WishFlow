@@ -102,7 +102,9 @@ body.product-detail-bg {
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* ══════════════════════════════════════
@@ -739,6 +741,19 @@ ins.adsbygoogle {
 /* ══════════════════════════════════════
    FORM INPUTS
 ══════════════════════════════════════ */
+/* Hide up and down arrows from number inputs (Chrome, Safari, Edge, Opera) */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Hide up and down arrows from number inputs (Firefox) */
+input[type='number'] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
 .input,
 .select {
   width: 100%;
@@ -1033,7 +1048,7 @@ body::before {
   .admin-container {
     flex-direction: column !important;
   }
-  
+
   .admin-sidebar {
     position: fixed !important;
     top: 0;
@@ -1047,40 +1062,41 @@ body::before {
     border-bottom: none !important;
     padding: 1.5rem !important;
   }
-  
+
   .admin-sidebar.open {
     transform: translateX(0);
   }
-  
+
   .admin-mobile-header {
     display: flex !important;
   }
-  
+
   .admin-sidebar-close {
     display: flex !important;
   }
-  
+
   .admin-main-content {
     padding: 1.5rem !important;
   }
-  
+
   .admin-stats-grid {
     grid-template-columns: 1fr !important;
   }
-  
+
   .admin-filter-bar {
     flex-wrap: wrap !important;
   }
-  
-  .admin-filter-bar > div:last-child {
+
+  .admin-filter-bar>div:last-child {
     width: 100% !important;
   }
-  
+
   .admin-table-wrapper {
     overflow-x: auto !important;
   }
-  
-  .admin-table-header, .admin-table-row {
+
+  .admin-table-header,
+  .admin-table-row {
     min-width: 800px !important;
   }
 }
