@@ -21,13 +21,13 @@ const BROWSER_HEADERS = {
     'DNT': '1',
 };
 
-// ── Unshorten redirect chains (amzn.to, dl.flipkart, etc.) ───────────────────
+// ── Unshorten redirect chains (amzn.in, amzn.to, fkrt.it, etc.) ─────────────
 async function unshortenUrl(url) {
     try {
         const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 5000);
+        const timeout = setTimeout(() => controller.abort(), 6000);
         const res = await fetch(url, {
-            method: 'HEAD',
+            method: 'GET',
             redirect: 'follow',
             headers: BROWSER_HEADERS,
             signal: controller.signal,
@@ -49,7 +49,7 @@ function resolveImageUrl(src, baseUrl) {
         if (!src.startsWith('http')) return new URL(src, baseUrl).href;
 
         // Remove Amazon image resizing modifiers to get full HD image
-        // e.g. ._AC_UY218_. → nothing → gets full size image
+        // e.g. ._AC_UY218_. or ._SX300_ → nothing → gets full size image
         src = src.replace(/\._[A-Z0-9_,]+_\./g, '.');
         return src;
     } catch {
@@ -63,8 +63,9 @@ function extractJsonLd($) {
     $('script[type="application/ld+json"]').each((_, el) => {
         try {
             const raw = $(el).html();
-            const parsed = JSON.parse(raw);
-            const items = Array.isArray(parsed) ? parsed : [parsed];
+            if (!raw) return;
+            const data = JSON.parse(raw);
+            const items = Array.isArray(data) ? data : [data];
 
             for (const item of items) {
                 const target = item['@type'] === 'Product' ? item
@@ -140,14 +141,23 @@ function extractMeta($) {
 // ── Site-specific CSS selectors for major Indian & global shopping sites ──────
 function extractSiteSpecific($, hostname, baseUrl) {
     const result = {};
+    const host = (hostname || '').toLowerCase();
 
-    // ── Amazon ──
-    if (hostname.includes('amazon')) {
-        result.title = result.title || $('#productTitle').text().trim() || $('#title').text().trim();
+    // ── Amazon (amazon.in, amazon.com, amzn.in, amzn.to, a.co) ──
+    if (host.includes('amazon') || host.includes('amzn') || host.includes('a.co')) {
+        result.title = result.title ||
+            $('#productTitle').text().trim() ||
+            $('#title').text().trim() ||
+            $('h1.product-title-word-break').text().trim() ||
+            $('span#productTitle').text().trim();
 
         // Price: try multiple price selectors Amazon uses
         const priceSelectors = [
             '.a-price .a-offscreen',
+            '#corePriceDisplay_desktop_feature_div .a-offscreen',
+            '#corePrice_desktop .a-offscreen',
+            '#corePrice_feature_div .a-offscreen',
+            '.apexPriceToPay .a-offscreen',
             '#priceblock_ourprice',
             '#priceblock_dealprice',
             '#price_inside_buybox',
@@ -161,22 +171,35 @@ function extractSiteSpecific($, hostname, baseUrl) {
         }
 
         // Image: get the main large image
-        const imgData = $('#landingImage, #imgBlkFront').attr('data-old-hires') ||
-            $('#landingImage, #imgBlkFront').attr('src');
-        if (imgData) result.image = result.image || resolveImageUrl(imgData, baseUrl);
+        const imgData = $('#landingImage, #imgBlkFront, #main-image').attr('data-old-hires') ||
+            $('#landingImage, #imgBlkFront, #main-image').attr('src') ||
+            $('#landingImage').attr('data-a-dynamic-image');
 
-        // Also check the image JSON blob Amazon embeds
+        if (imgData) {
+            if (imgData.startsWith('{')) {
+                // Parse dynamic image JSON blob
+                try {
+                    const keys = Object.keys(JSON.parse(imgData));
+                    if (keys.length) result.image = resolveImageUrl(keys[0], baseUrl);
+                } catch { /* ignore */ }
+            } else {
+                result.image = result.image || resolveImageUrl(imgData, baseUrl);
+            }
+        }
+
+        // Also check the image JSON blob Amazon embeds in scripts
         if (!result.image) {
             const scripts = $('script').map((_, el) => $(el).html()).get();
             for (const s of scripts) {
-                const m = s.match(/"hiRes"\s*:\s*"(https?:\/\/[^"]+)"/);
-                if (m) { result.image = m[1]; break; }
+                const m = s.match(/"hiRes"\s*:\s*"(https?:\/\/[^"]+)"/) ||
+                    s.match(/"large"\s*:\s*"(https?:\/\/[^"]+)"/);
+                if (m) { result.image = resolveImageUrl(m[1], baseUrl); break; }
             }
         }
     }
 
-    // ── Flipkart ──
-    if (hostname.includes('flipkart')) {
+    // ── Flipkart (flipkart.com, fkrt.it, dl.flipkart.com) ──
+    if (host.includes('flipkart') || host.includes('fkrt')) {
         result.title = result.title || $('.B_NuCI').first().text().trim() ||
             $('span[class*="title"]').first().text().trim() ||
             $('h1').first().text().trim();
@@ -186,8 +209,8 @@ function extractSiteSpecific($, hostname, baseUrl) {
         if (imgEl.length) result.image = result.image || resolveImageUrl(imgEl.attr('src'), baseUrl);
     }
 
-    // ── Myntra ──
-    if (hostname.includes('myntra')) {
+    // ── Myntra (myntra.com, myntr.it) ──
+    if (host.includes('myntra') || host.includes('myntr')) {
         result.title = result.title || $('.pdp-name').first().text().trim() ||
             $('h1.pdp-title').first().text().trim();
         result.priceText = result.priceText || $('.pdp-price strong').first().text().trim() ||
@@ -195,14 +218,14 @@ function extractSiteSpecific($, hostname, baseUrl) {
     }
 
     // ── Meesho ──
-    if (hostname.includes('meesho')) {
+    if (host.includes('meesho')) {
         result.title = result.title || $('p[class*="ProductTitle"]').first().text().trim() ||
             $('h1').first().text().trim();
         result.priceText = result.priceText || $('h5[class*="price"]').first().text().trim();
     }
 
     // ── Nykaa ──
-    if (hostname.includes('nykaa')) {
+    if (host.includes('nykaa')) {
         result.title = result.title || $('h1.product-title').first().text().trim() ||
             $('h1[class*="css-"]').first().text().trim();
         result.priceText = result.priceText || $('span.price').first().text().trim() ||
@@ -210,7 +233,7 @@ function extractSiteSpecific($, hostname, baseUrl) {
     }
 
     // ── Nike ──
-    if (hostname.includes('nike')) {
+    if (host.includes('nike')) {
         result.title = result.title || $('h1[data-testid="product_title"]').first().text().trim() ||
             $('h1.headline-2').first().text().trim();
         result.priceText = result.priceText || $('div[data-testid="currentPrice-container"]').first().text().trim();
@@ -333,26 +356,33 @@ Return ONLY this JSON (no markdown, no explanation):
 // MAIN CONTROLLER
 // ═══════════════════════════════════════════════════════════════════════════════
 export const extractMetadata = async (req, res) => {
-    let { url, categories } = req.body;
+    let { url, categories, collections } = req.body;
     if (!url) return res.status(400).json({ error: 'URL is required' });
 
     try {
-        // Step 1: Unshorten URL
-        url = await unshortenUrl(url);
-        const hostname = new URL(url).hostname;
+        // Step 1: Unshorten URL (for amzn.in, amzn.to, fkrt.it, bit.ly, etc.)
+        let resolvedUrl = await unshortenUrl(url);
 
         // Step 2: Fetch HTML with browser headers, 7s timeout
         const controller = new AbortController();
         const fetchTimeout = setTimeout(() => controller.abort(), 7000);
 
         let html = '';
+        let finalUrl = resolvedUrl;
+        let hostname = '';
         try {
-            const fetchRes = await fetch(url, {
+            const fetchRes = await fetch(resolvedUrl, {
                 headers: BROWSER_HEADERS,
                 redirect: 'follow',
                 signal: controller.signal,
             });
             clearTimeout(fetchTimeout);
+            finalUrl = fetchRes.url || resolvedUrl;
+            try {
+                hostname = new URL(finalUrl).hostname.toLowerCase();
+            } catch {
+                hostname = new URL(url).hostname.toLowerCase();
+            }
             html = await fetchRes.text();
         } catch (fetchErr) {
             clearTimeout(fetchTimeout);
@@ -363,12 +393,33 @@ export const extractMetadata = async (req, res) => {
         }
 
         // Step 3: Parse HTML
-        const $ = cheerio.load(html);
+        let $ = cheerio.load(html);
+
+        // Check if page contains a meta refresh redirect
+        const metaRefresh = $('meta[http-equiv="refresh"]').attr('content');
+        if (metaRefresh) {
+            const match = metaRefresh.match(/url=['"]?([^'"\s>]+)/i);
+            if (match && match[1]) {
+                try {
+                    const redirectTarget = new URL(match[1], finalUrl).href;
+                    if (!redirectTarget.includes(finalUrl)) {
+                        const rRes = await fetch(redirectTarget, {
+                            headers: BROWSER_HEADERS,
+                            redirect: 'follow',
+                        });
+                        finalUrl = rRes.url || redirectTarget;
+                        hostname = new URL(finalUrl).hostname.toLowerCase();
+                        html = await rRes.text();
+                        $ = cheerio.load(html);
+                    }
+                } catch { /* proceed with current html */ }
+            }
+        }
 
         // Step 4: Multi-tiered extraction
         const jsonLd = extractJsonLd($);
         const meta = extractMeta($);
-        const siteSpecific = extractSiteSpecific($, hostname, url);
+        const siteSpecific = extractSiteSpecific($, hostname, finalUrl);
         const nextData = extractNextData($);
 
         // Step 5: Merge with priority: JSON-LD > Next.js data > Site selectors > OpenGraph
@@ -383,10 +434,10 @@ export const extractMetadata = async (req, res) => {
         };
 
         // Fix image URL
-        if (raw.image) raw.image = resolveImageUrl(raw.image, url);
+        if (raw.image) raw.image = resolveImageUrl(raw.image, finalUrl);
 
-        // Step 6: Gemini normalizes & categorizes
-        const geminiResult = await geminiNormalize(raw, categories || []);
+        // Step 6: Gemini normalizes, categorizes & matches collection
+        const geminiResult = await geminiNormalize(raw, categories || [], collections || []);
 
         if (!geminiResult) {
             // Gemini failed — return what we have from HTML (still trim the title)
@@ -396,12 +447,15 @@ export const extractMetadata = async (req, res) => {
                 currency: raw.currency || 'INR',
                 image: raw.image,
                 categoryId: -1,
+                collectionId: null,
+                url: finalUrl,
                 source: 'html',
             });
         }
 
-        // Find the matching category name for the response
+        // Find the matching category & collection name for the response
         const matchedCat = (categories || []).find(c => c.id === geminiResult.categoryId);
+        const matchedCol = (collections || []).find(c => String(c.id) === String(geminiResult.collectionId));
 
         // trimTitle is a guaranteed 5-word hard cap applied at EVERY exit point
         const finalTitle = trimTitle(geminiResult.title || raw.title);
@@ -413,6 +467,9 @@ export const extractMetadata = async (req, res) => {
             image: geminiResult.image || raw.image,
             categoryId: geminiResult.categoryId ?? -1,
             categoryName: matchedCat?.name || 'Other',
+            collectionId: matchedCol ? matchedCol.id : null,
+            collectionName: matchedCol?.name || null,
+            url: finalUrl,
             source: 'gemini',
         });
 
