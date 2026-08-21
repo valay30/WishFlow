@@ -24,8 +24,8 @@ const FEATURES = [
         label: 'Save Anything, Instantly',
         desc: 'Save any product from any website that you want to purchase in future',
         longDesc: 'Simply paste a product URL from any shopping website. WishFlow automatically fetches the product name, image, and price for you. No more juggling browser tabs or losing track of things you want to buy.',
-        cardGrad: 'linear-gradient(160deg, #4ade80 0%, #16a34a 50%, #064e3b 100%)',
-        glow: 'rgba(74,222,128,0.45)',
+        cardGrad: '#fff',
+        glow: 'rgba(232,92,44,0.1)',
     },
     {
         id: 1,
@@ -33,8 +33,8 @@ const FEATURES = [
         label: 'Collections for Every Occasion',
         desc: 'Organize your wishlist products for any events/occasions',
         longDesc: 'Create separate collections for birthdays, weddings, festivals, and more. Keep your wishlist perfectly organized so you always know what you want and when you want it. Add items from multiple stores into a single themed collection.',
-        cardGrad: 'linear-gradient(160deg, #f472b6 0%, #db2777 50%, #831843 100%)',
-        glow: 'rgba(244,114,182,0.45)',
+        cardGrad: '#fff',
+        glow: 'rgba(232,92,44,0.12)',
     },
     {
         id: 2,
@@ -42,8 +42,8 @@ const FEATURES = [
         label: 'Share with Friends & Family',
         desc: 'Share with friends & family and make gifting meaningful',
         longDesc: 'Share your wishlist collections with a single link. No app download required for your friends or family to view it. Make birthdays and festivals stress free by letting your loved ones know exactly what you want.',
-        cardGrad: 'linear-gradient(160deg, #60a5fa 0%, #2563eb 50%, #1e3a8a 100%)',
-        glow: 'rgba(96,165,250,0.45)',
+        cardGrad: '#fff',
+        glow: 'rgba(232,92,44,0.15)',
     },
 ];
 
@@ -53,20 +53,14 @@ const NOISE_URI = `url("data:image/svg+xml,%3Csvg viewBox='0 0 300 300' xmlns='h
    Logo
 ───────────────────────────────────────── */
 function WFLogo({ size = 40 }) {
-    const cx = size / 2, cy = size / 2;
-    const sw = size * 0.09;
-    const r = size * 0.38;
     return (
-        <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} fill="none" style={{ flexShrink: 0 }}>
-            {[30, 90, 150, 210, 270, 330].map((deg, i) => {
-                const rad = (deg * Math.PI) / 180;
-                return (
-                    <line key={i} x1={cx} y1={cy}
-                        x2={cx + r * Math.cos(rad)} y2={cy + r * Math.sin(rad)}
-                        stroke="white" strokeWidth={sw} strokeLinecap="round" />
-                );
-            })}
-        </svg>
+        <img 
+            src="/192x192.png" 
+            alt="WishFlow Logo" 
+            width={size} 
+            height={size} 
+            style={{ flexShrink: 0, borderRadius: size * 0.2 }} 
+        />
     );
 }
 
@@ -80,7 +74,7 @@ const FAQS = [
     },
     {
         q: 'Is WishFlow free to use?',
-        a: 'Yes! WishFlow has a free tier that lets you save and organize products. We also offer a Premium plan which unlocks additional features like unlimited collections, advanced price tracking, and priority support. You can upgrade anytime from your profile page.'
+        a: 'Yes! WishFlow has a free tier that lets you save and organize products. We also offer a Premium plan which unlocks additional features like unlimited collections, advanced price tracking, and collection sharing. You can upgrade anytime from your profile page.'
     },
     {
         q: 'Can I save products from any website?',
@@ -104,7 +98,7 @@ function FAQItem({ q, a }) {
     const [open, setOpen] = useState(false);
     return (
         <div style={{
-            borderBottom: '1px solid rgba(255,255,255,0.08)',
+            borderBottom: '1px solid rgba(0,0,0,0.06)',
             overflow: 'hidden',
         }}>
             <button
@@ -116,8 +110,8 @@ function FAQItem({ q, a }) {
                     fontFamily: FONT,
                 }}
             >
-                <span style={{ fontWeight: 600, fontSize: 'clamp(0.95rem, 2vw, 1.05rem)', color: '#fff', lineHeight: 1.4 }}>{q}</span>
-                <ChevronDown size={20} color="#a78bfa" style={{ flexShrink: 0, transition: 'transform 0.3s ease', transform: open ? 'rotate(180deg)' : 'rotate(0deg)' }} />
+                <span style={{ fontWeight: 600, fontSize: 'clamp(0.95rem, 2vw, 1.05rem)', color: '#111', lineHeight: 1.4 }}>{q}</span>
+                <ChevronDown size={20} color="#E85C2C" style={{ flexShrink: 0, transition: 'transform 0.3s ease', transform: open ? 'rotate(180deg)' : 'rotate(0deg)' }} />
             </button>
             <div style={{
                 maxHeight: open ? '500px' : '0',
@@ -125,7 +119,7 @@ function FAQItem({ q, a }) {
                 transition: 'max-height 0.35s ease',
             }}>
                 <p style={{
-                    margin: '0 0 1.4rem', color: 'rgba(255,255,255,0.65)',
+                    margin: '0 0 1.4rem', color: '#666',
                     fontSize: 'clamp(0.88rem, 1.8vw, 0.98rem)', lineHeight: 1.75, fontFamily: FONT,
                 }}>{a}</p>
             </div>
@@ -223,7 +217,7 @@ export default function LandingPage() {
     };
 
     return (
-        <div style={{ background: '#050a10', fontFamily: FONT, overflowX: 'hidden' }}>
+        <div style={{ background: '#fdfdfd', fontFamily: FONT, overflowX: 'hidden' }}>
             <style>{KEYFRAMES}</style>
 
             {/* ── NAVBAR ── */}
@@ -231,18 +225,18 @@ export default function LandingPage() {
                 position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100,
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                 padding: '1rem 2rem',
-                background: 'rgba(5,10,16,0.85)',
+                background: 'rgba(255,255,255,0.9)',
                 backdropFilter: 'blur(16px)',
-                borderBottom: '1px solid rgba(255,255,255,0.06)',
+                borderBottom: '1px solid rgba(0,0,0,0.06)',
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
                     <WFLogo size={28} />
-                    <span style={{ color: '#fff', fontWeight: 800, fontSize: '1.1rem', letterSpacing: '-0.01em' }}>WishFlow</span>
+                    <span style={{ color: '#111', fontWeight: 800, fontSize: '1.1rem', letterSpacing: '-0.01em' }}>WishFlow</span>
                 </div>
                 <button
                     onClick={() => navigate('/auth')}
                     style={{
-                        background: '#fff', color: '#050a10', border: 'none',
+                        background: '#E85C2C', color: '#fff', border: 'none',
                         borderRadius: '50px', padding: '0.5rem 1.4rem',
                         fontWeight: 700, fontSize: '0.9rem', cursor: 'pointer', fontFamily: FONT,
                     }}
@@ -278,28 +272,28 @@ export default function LandingPage() {
 
                 {/* Headline */}
                 <div style={{ position: 'relative', zIndex: 2, textAlign: 'center', padding: '0 1.5rem', animation: 'lp-fadeIn 0.5s ease both', marginBottom: isMobile ? '1.5rem' : '2rem' }}>
-                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '99px', padding: '0.35rem 1rem', marginBottom: '1.25rem' }}>
-                        <Star size={13} color="#f9a8d4" fill="#f9a8d4" />
-                        <span style={{ color: '#f9a8d4', fontSize: '0.78rem', fontWeight: 600, letterSpacing: '0.05em' }}>YOUR SMART WISHLIST APP</span>
+                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: '#FFF5F2', border: '1px solid rgba(232,92,44,0.15)', borderRadius: '99px', padding: '0.35rem 1rem', marginBottom: '1.25rem' }}>
+                        <Star size={13} color="#E85C2C" fill="#E85C2C" />
+                        <span style={{ color: '#E85C2C', fontSize: '0.78rem', fontWeight: 600, letterSpacing: '0.05em' }}>YOUR SMART WISHLIST APP</span>
                     </div>
-                    <h1 style={{ fontWeight: 900, fontSize: isMobile ? '2.4rem' : 'clamp(2.8rem, 5vw, 4rem)', color: '#fff', margin: '0 0 0.5rem', lineHeight: 1.1, letterSpacing: '-0.02em' }}>
+                    <h1 style={{ fontWeight: 900, fontSize: isMobile ? '2.4rem' : 'clamp(2.8rem, 5vw, 4rem)', color: '#111', margin: '0 0 0.5rem', lineHeight: 1.1, letterSpacing: '-0.02em' }}>
                         WishFlow,
                     </h1>
                     <div style={{ fontWeight: 900, fontSize: isMobile ? '2.2rem' : 'clamp(2.6rem, 4.5vw, 3.6rem)', lineHeight: 1.1, letterSpacing: '-0.02em', marginBottom: '1.25rem' }}>
-                        <span style={{ color: '#e879f9' }}>your </span>
-                        <span style={{ color: '#c084fc' }}>wishlist </span>
-                        <span style={{ color: '#60a5fa' }}>assistant</span>
+                        <span style={{ color: '#111' }}>your </span>
+                        <span style={{ color: '#E85C2C' }}>wishlist assistant</span>
+                        {/* <span style={{ color: '#FF9A5A' }}>assistant</span> */}
                     </div>
-                    <p style={{ color: 'rgba(255,255,255,0.58)', fontSize: isMobile ? '1rem' : '1.15rem', maxWidth: '540px', margin: '0 auto 1.75rem', lineHeight: 1.6 }}>
+                    <p style={{ color: '#666', fontSize: isMobile ? '1rem' : '1.15rem', maxWidth: '540px', margin: '0 auto 1.75rem', lineHeight: 1.6 }}>
                         Save products from any website, organize them into beautiful collections, and share your wishlist with friends & family — all for free.
                     </p>
                     <button
                         onClick={() => navigate('/auth')}
                         style={{
-                            background: '#fff', color: '#111', border: 'none',
+                            background: '#E85C2C', color: '#fff', border: 'none',
                             borderRadius: '50px', padding: isMobile ? '0.95rem 2.2rem' : '1rem 2.75rem',
                             fontWeight: 700, fontSize: '1rem', cursor: 'pointer', fontFamily: FONT,
-                            boxShadow: '0 12px 40px rgba(0,0,0,0.5)', letterSpacing: '-0.01em',
+                            boxShadow: '0 12px 32px rgba(232,92,44,0.25)', letterSpacing: '-0.01em',
                             transition: 'transform 0.15s',
                         }}
                         onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
@@ -323,16 +317,16 @@ export default function LandingPage() {
                             const isActive = i === activeSlide;
                             return (
                                 <div key={s.id} style={{ position: 'absolute', left: `calc(50% - ${cardW / 2}px)`, top: '50%', width: `${cardW}px`, height: `${cardH}px`, transform: `translate(${tx}px, -50%)`, transition: dragging ? 'none' : 'transform 0.42s cubic-bezier(.25,.8,.25,1)', zIndex: isActive ? 2 : 1 }}>
-                                    <div style={{ width: '100%', height: '100%', background: s.cardGrad, borderRadius: '24px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '2rem', position: 'relative', overflow: 'hidden', transform: `scale(${isActive ? 1 : 0.87})`, opacity: isActive ? 1 : 0.4, transition: 'transform 0.38s ease, opacity 0.38s ease', boxShadow: isActive ? '0 28px 70px rgba(0,0,0,0.6)' : '0 12px 40px rgba(0,0,0,0.4)' }}>
+                                    <div style={{ width: '100%', height: '100%', background: '#fff', borderRadius: '24px', border: isActive ? '2px solid #E85C2C' : '1px solid #f0f0f0', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '2rem', position: 'relative', overflow: 'hidden', transform: `scale(${isActive ? 1 : 0.87})`, opacity: isActive ? 1 : 0.4, transition: 'transform 0.38s ease, opacity 0.38s ease, border 0.38s ease, box-shadow 0.38s ease', boxShadow: isActive ? '0 25px 60px rgba(232,92,44,0.15)' : '0 12px 30px rgba(0,0,0,0.05)' }}>
                                         <div style={{ position: 'absolute', inset: 0, backgroundImage: NOISE_URI, opacity: 0.1, mixBlendMode: 'screen', pointerEvents: 'none' }} />
-                                        <div style={{ width: '100px', height: '100px', borderRadius: '50%', border: '1.5px solid rgba(255,255,255,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1.25rem', zIndex: 1 }}>
-                                            <div style={{ width: '70px', height: '70px', borderRadius: '50%', background: 'rgba(255,255,255,0.18)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                                <s.Icon size={30} color="#fff" strokeWidth={1.75} />
+                                        <div style={{ width: '100px', height: '100px', borderRadius: '50%', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1.25rem', zIndex: 1 }}>
+                                            <div style={{ width: '70px', height: '70px', borderRadius: '50%', background: '#FFF5F2', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                                <s.Icon size={30} color="#E85C2C" strokeWidth={2} />
                                             </div>
                                         </div>
-                                        <h3 style={{ fontFamily: FONT, fontWeight: 800, fontSize: '1.5rem', color: '#fff', margin: '0 0 0.75rem', textAlign: 'center', zIndex: 1 }}>{s.label}</h3>
-                                        <div style={{ width: '50px', height: '1.5px', background: 'rgba(255,255,255,0.22)', borderRadius: '2px', marginBottom: '0.75rem', zIndex: 1 }} />
-                                        <p style={{ fontFamily: FONT, fontSize: '0.95rem', color: 'rgba(255,255,255,0.8)', margin: 0, lineHeight: 1.55, textAlign: 'center', zIndex: 1 }}>{s.desc}</p>
+                                        <h3 style={{ fontFamily: FONT, fontWeight: 800, fontSize: '1.5rem', color: '#111', margin: '0 0 0.75rem', textAlign: 'center', zIndex: 1 }}>{s.label}</h3>
+                                        <div style={{ width: '50px', height: '1.5px', background: 'rgba(232,92,44,0.3)', borderRadius: '2px', marginBottom: '0.75rem', zIndex: 1 }} />
+                                        <p style={{ fontFamily: FONT, fontSize: '0.95rem', color: '#666', margin: 0, lineHeight: 1.55, textAlign: 'center', zIndex: 1 }}>{s.desc}</p>
                                     </div>
                                 </div>
                             );
@@ -341,16 +335,29 @@ export default function LandingPage() {
                 ) : (
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '2rem', width: '100%', maxWidth: '960px', height: 'clamp(300px, 42vh, 440px)', position: 'relative', zIndex: 2, padding: '0 2rem', boxSizing: 'border-box', animation: 'lp-fadeIn 0.5s ease 0.1s both' }}>
                         {FEATURES.map(s => (
-                            <div key={s.id} style={{ background: s.cardGrad, borderRadius: '24px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden', boxShadow: '0 24px 64px rgba(0,0,0,0.5)' }}>
+                            <div 
+                                key={s.id} 
+                                style={{ background: '#fff', borderRadius: '24px', border: '1px solid #f0f0f0', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden', boxShadow: '0 24px 64px rgba(0,0,0,0.06)', transition: 'transform 0.3s ease, border 0.3s ease, box-shadow 0.3s ease' }}
+                                onMouseEnter={e => {
+                                    e.currentTarget.style.border = '2px solid #E85C2C';
+                                    e.currentTarget.style.boxShadow = '0 25px 60px rgba(232,92,44,0.15)';
+                                    e.currentTarget.style.transform = 'translateY(-4px)';
+                                }}
+                                onMouseLeave={e => {
+                                    e.currentTarget.style.border = '1px solid #f0f0f0';
+                                    e.currentTarget.style.boxShadow = '0 24px 64px rgba(0,0,0,0.06)';
+                                    e.currentTarget.style.transform = 'translateY(0)';
+                                }}
+                            >
                                 <div style={{ position: 'absolute', inset: 0, backgroundImage: NOISE_URI, opacity: 0.08, mixBlendMode: 'screen', pointerEvents: 'none' }} />
-                                <div style={{ width: '110px', height: '110px', borderRadius: '50%', border: '1.5px solid rgba(255,255,255,0.14)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1rem', zIndex: 1 }}>
-                                    <div style={{ width: '72px', height: '72px', borderRadius: '50%', background: 'rgba(255,255,255,0.16)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                        <s.Icon size={28} color="#fff" strokeWidth={1.75} />
+                                <div style={{ width: '110px', height: '110px', borderRadius: '50%', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1rem', zIndex: 1 }}>
+                                    <div style={{ width: '72px', height: '72px', borderRadius: '50%', background: '#FFF5F2', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                        <s.Icon size={28} color="#E85C2C" strokeWidth={2} />
                                     </div>
                                 </div>
-                                <h3 style={{ fontFamily: FONT, fontWeight: 800, fontSize: 'clamp(1rem, 1.5vw, 1.3rem)', color: '#fff', margin: '0 0 0.5rem', textAlign: 'center', zIndex: 1, padding: '0 1rem' }}>{s.label}</h3>
-                                <div style={{ width: '36px', height: '1.5px', background: 'rgba(255,255,255,0.22)', borderRadius: '2px', marginBottom: '0.5rem', zIndex: 1 }} />
-                                <p style={{ fontFamily: FONT, fontSize: 'clamp(0.78rem, 1vw, 0.88rem)', color: 'rgba(255,255,255,0.72)', margin: 0, lineHeight: 1.6, textAlign: 'center', maxWidth: '210px', zIndex: 1, padding: '0 1rem' }}>{s.desc}</p>
+                                <h3 style={{ fontFamily: FONT, fontWeight: 800, fontSize: 'clamp(1rem, 1.5vw, 1.3rem)', color: '#111', margin: '0 0 0.5rem', textAlign: 'center', zIndex: 1, padding: '0 1rem' }}>{s.label}</h3>
+                                <div style={{ width: '36px', height: '1.5px', background: 'rgba(232,92,44,0.3)', borderRadius: '2px', marginBottom: '0.5rem', zIndex: 1 }} />
+                                <p style={{ fontFamily: FONT, fontSize: 'clamp(0.78rem, 1vw, 0.88rem)', color: '#666', margin: 0, lineHeight: 1.6, textAlign: 'center', maxWidth: '210px', zIndex: 1, padding: '0 1rem' }}>{s.desc}</p>
                             </div>
                         ))}
                     </div>
@@ -360,7 +367,7 @@ export default function LandingPage() {
                 {isMobile && (
                     <div style={{ display: 'flex', gap: '0.4rem', zIndex: 2, marginTop: '1rem', marginBottom: '1.5rem' }}>
                         {FEATURES.map((_, i) => (
-                            <button key={i} onClick={() => { setActiveSlide(i); resetAuto(); }} style={{ width: i === activeSlide ? '1.75rem' : '0.45rem', height: '0.45rem', borderRadius: '99px', background: i === activeSlide ? '#fff' : 'rgba(255,255,255,0.3)', border: 'none', cursor: 'pointer', transition: 'all 0.3s ease', padding: 0 }} />
+                            <button key={i} onClick={() => { setActiveSlide(i); resetAuto(); }} style={{ width: i === activeSlide ? '1.75rem' : '0.45rem', height: '0.45rem', borderRadius: '99px', background: i === activeSlide ? '#E85C2C' : 'rgba(0,0,0,0.1)', border: 'none', cursor: 'pointer', transition: 'all 0.3s ease', padding: 0 }} />
                         ))}
                     </div>
                 )}
@@ -368,8 +375,8 @@ export default function LandingPage() {
                 {/* Scroll nudge — desktop only */}
                 {!isMobile && (
                     <div style={{ position: 'absolute', bottom: '1.5rem', left: '50%', transform: 'translateX(-50%)', zIndex: 2, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.35rem', animation: 'lp-pulse 2.2s ease-in-out infinite', opacity: 0.5, cursor: 'pointer' }} onClick={() => window.scrollBy({ top: window.innerHeight * 0.9, behavior: 'smooth' })}>
-                        <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.7rem', fontFamily: FONT, letterSpacing: '0.08em', fontWeight: 600 }}>SCROLL</span>
-                        <ChevronDown size={18} color="rgba(255,255,255,0.6)" />
+                        <span style={{ color: '#888', fontSize: '0.7rem', fontFamily: FONT, letterSpacing: '0.08em', fontWeight: 600 }}>SCROLL</span>
+                        <ChevronDown size={18} color="#888" />
                     </div>
                 )}
             </section>
@@ -377,60 +384,60 @@ export default function LandingPage() {
             {/* ── WHY WISHFLOW (3 Feature Bullets) ── */}
             <section style={{ padding: isMobile ? '5rem 1.5rem' : '7rem 2rem', maxWidth: '1000px', margin: '0 auto' }}>
                 <div style={{ textAlign: 'center', marginBottom: isMobile ? '3rem' : '4rem' }}>
-                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(167,139,250,0.1)', border: '1px solid rgba(167,139,250,0.25)', borderRadius: '99px', padding: '0.35rem 1rem', marginBottom: '1rem' }}>
-                        <Zap size={13} color="#a78bfa" fill="#a78bfa" />
-                        <span style={{ color: '#a78bfa', fontSize: '0.78rem', fontWeight: 600, letterSpacing: '0.05em' }}>FEATURES</span>
+                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: '#FFF5F2', border: '1px solid rgba(232,92,44,0.15)', borderRadius: '99px', padding: '0.35rem 1rem', marginBottom: '1rem' }}>
+                        <Zap size={13} color="#E85C2C" fill="#E85C2C" />
+                        <span style={{ color: '#E85C2C', fontSize: '0.78rem', fontWeight: 600, letterSpacing: '0.05em' }}>FEATURES</span>
                     </div>
-                    <h2 style={{ fontWeight: 900, fontSize: isMobile ? '2rem' : 'clamp(2rem, 3.5vw, 2.75rem)', color: '#fff', margin: '0 0 1rem', letterSpacing: '-0.02em', lineHeight: 1.15 }}>
+                    <h2 style={{ fontWeight: 900, fontSize: isMobile ? '2rem' : 'clamp(2rem, 3.5vw, 2.75rem)', color: '#111', margin: '0 0 1rem', letterSpacing: '-0.02em', lineHeight: 1.15 }}>
                         Everything your wishlist needs
                     </h2>
-                    <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: isMobile ? '0.95rem' : '1.05rem', maxWidth: '520px', margin: '0 auto', lineHeight: 1.7 }}>
+                    <p style={{ color: '#666', fontSize: isMobile ? '0.95rem' : '1.05rem', maxWidth: '520px', margin: '0 auto', lineHeight: 1.7 }}>
                         WishFlow is more than just bookmarks. It is a complete wishlist management system designed for the way you shop online today.
                     </p>
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: '1.5rem' }}>
                     {FEATURES.map(f => (
-                        <div key={f.id} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '20px', padding: '2rem', transition: 'border-color 0.2s ease' }}
-                            onMouseEnter={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.18)'}
-                            onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'}
+                        <div key={f.id} style={{ background: '#fff', border: '1px solid #f0f0f0', borderRadius: '20px', padding: '2rem', transition: 'border-color 0.2s ease' }}
+                            onMouseEnter={e => e.currentTarget.style.borderColor = 'rgba(232,92,44,0.3)'}
+                            onMouseLeave={e => e.currentTarget.style.borderColor = '#f0f0f0'}
                         >
-                            <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: f.cardGrad, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1.25rem' }}>
-                                <f.Icon size={22} color="#fff" strokeWidth={2} />
+                            <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: '#FFF5F2', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1.25rem' }}>
+                                <f.Icon size={22} color="#E85C2C" strokeWidth={2} />
                             </div>
-                            <h3 style={{ fontFamily: FONT, fontWeight: 800, fontSize: '1.1rem', color: '#fff', margin: '0 0 0.75rem' }}>{f.label}</h3>
-                            <p style={{ fontFamily: FONT, fontSize: '0.92rem', color: 'rgba(255,255,255,0.55)', margin: 0, lineHeight: 1.7 }}>{f.longDesc}</p>
+                            <h3 style={{ fontFamily: FONT, fontWeight: 800, fontSize: '1.1rem', color: '#111', margin: '0 0 0.75rem' }}>{f.label}</h3>
+                            <p style={{ fontFamily: FONT, fontSize: '0.92rem', color: '#666', margin: 0, lineHeight: 1.7 }}>{f.longDesc}</p>
                         </div>
                     ))}
                 </div>
             </section>
 
             {/* ── HOW IT WORKS ── */}
-            <section style={{ padding: isMobile ? '5rem 1.5rem' : '7rem 2rem', background: 'rgba(255,255,255,0.02)', borderTop: '1px solid rgba(255,255,255,0.06)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+            <section style={{ padding: isMobile ? '5rem 1.5rem' : '7rem 2rem', background: '#fafafa', borderTop: '1px solid rgba(0,0,0,0.04)', borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
                 <div style={{ maxWidth: '900px', margin: '0 auto' }}>
                     <div style={{ textAlign: 'center', marginBottom: isMobile ? '3rem' : '4rem' }}>
-                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(96,165,250,0.1)', border: '1px solid rgba(96,165,250,0.25)', borderRadius: '99px', padding: '0.35rem 1rem', marginBottom: '1rem' }}>
-                            <Zap size={13} color="#60a5fa" fill="#60a5fa" />
-                            <span style={{ color: '#60a5fa', fontSize: '0.78rem', fontWeight: 600, letterSpacing: '0.05em' }}>HOW IT WORKS</span>
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: '#FFF5F2', border: '1px solid rgba(232,92,44,0.15)', borderRadius: '99px', padding: '0.35rem 1rem', marginBottom: '1rem' }}>
+                            <Zap size={13} color="#E85C2C" fill="#E85C2C" />
+                            <span style={{ color: '#FF9A5A', fontSize: '0.78rem', fontWeight: 600, letterSpacing: '0.05em' }}>HOW IT WORKS</span>
                         </div>
-                        <h2 style={{ fontWeight: 900, fontSize: isMobile ? '2rem' : 'clamp(2rem, 3.5vw, 2.75rem)', color: '#fff', margin: '0 0 1rem', letterSpacing: '-0.02em', lineHeight: 1.15 }}>
+                        <h2 style={{ fontWeight: 900, fontSize: isMobile ? '2rem' : 'clamp(2rem, 3.5vw, 2.75rem)', color: '#111', margin: '0 0 1rem', letterSpacing: '-0.02em', lineHeight: 1.15 }}>
                             From URL to organized wishlist in seconds
                         </h2>
-                        <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: isMobile ? '0.95rem' : '1.05rem', maxWidth: '500px', margin: '0 auto', lineHeight: 1.7 }}>
+                        <p style={{ color: '#666', fontSize: isMobile ? '0.95rem' : '1.05rem', maxWidth: '500px', margin: '0 auto', lineHeight: 1.7 }}>
                             WishFlow is designed to be effortless. Here is how it works in four simple steps.
                         </p>
                     </div>
 
                     <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)', gap: '1.5rem' }}>
                         {HOW_IT_WORKS.map((step, i) => (
-                            <div key={i} style={{ display: 'flex', gap: '1.25rem', alignItems: 'flex-start', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '20px', padding: '1.75rem' }}>
-                                <div style={{ flexShrink: 0, width: '48px', height: '48px', borderRadius: '14px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                    <step.Icon size={22} color="#a78bfa" strokeWidth={1.75} />
+                            <div key={i} style={{ display: 'flex', gap: '1.25rem', alignItems: 'flex-start', background: '#fff', border: '1px solid #f0f0f0', borderRadius: '20px', padding: '1.75rem' }}>
+                                <div style={{ flexShrink: 0, width: '48px', height: '48px', borderRadius: '14px', background: '#FFF5F2', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                    <step.Icon size={22} color="#E85C2C" strokeWidth={2} />
                                 </div>
                                 <div>
-                                    <div style={{ color: '#a78bfa', fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.1em', marginBottom: '0.4rem', fontFamily: FONT }}>STEP {step.step}</div>
-                                    <h3 style={{ fontFamily: FONT, fontWeight: 700, fontSize: '1rem', color: '#fff', margin: '0 0 0.6rem' }}>{step.title}</h3>
-                                    <p style={{ fontFamily: FONT, fontSize: '0.88rem', color: 'rgba(255,255,255,0.52)', margin: 0, lineHeight: 1.72 }}>{step.desc}</p>
+                                    <div style={{ color: '#E85C2C', fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.1em', marginBottom: '0.4rem', fontFamily: FONT }}>STEP {step.step}</div>
+                                    <h3 style={{ fontFamily: FONT, fontWeight: 700, fontSize: '1rem', color: '#111', margin: '0 0 0.6rem' }}>{step.title}</h3>
+                                    <p style={{ fontFamily: FONT, fontSize: '0.88rem', color: '#666', margin: 0, lineHeight: 1.72 }}>{step.desc}</p>
                                 </div>
                             </div>
                         ))}
@@ -441,15 +448,15 @@ export default function LandingPage() {
             {/* ── PRICING SECTION ── */}
             <section style={{ padding: isMobile ? '5rem 1.5rem' : '7rem 2rem', maxWidth: '900px', margin: '0 auto' }}>
                 <div style={{ textAlign: 'center', marginBottom: isMobile ? '3rem' : '4rem' }}>
-                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(232,121,249,0.1)', border: '1px solid rgba(232,121,249,0.25)', borderRadius: '99px', padding: '0.35rem 1rem', marginBottom: '1rem' }}>
-                        <Star size={13} color="#e879f9" fill="#e879f9" />
-                        <span style={{ color: '#e879f9', fontSize: '0.78rem', fontWeight: 600, letterSpacing: '0.05em' }}>SIMPLE PRICING</span>
+                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: '#FFF5F2', border: '1px solid rgba(232,92,44,0.15)', borderRadius: '99px', padding: '0.35rem 1rem', marginBottom: '1rem' }}>
+                        <Star size={13} color="#E85C2C" fill="#E85C2C" />
+                        <span style={{ color: '#111', fontSize: '0.78rem', fontWeight: 600, letterSpacing: '0.05em' }}>SIMPLE PRICING</span>
                     </div>
-                    <h2 style={{ fontWeight: 900, fontSize: isMobile ? '2rem' : 'clamp(2rem, 3.5vw, 2.75rem)', color: '#fff', margin: '0 0 1rem', letterSpacing: '-0.02em', lineHeight: 1.15 }}>
+                    <h2 style={{ fontWeight: 900, fontSize: isMobile ? '2rem' : 'clamp(2rem, 3.5vw, 2.75rem)', color: '#111', margin: '0 0 1rem', letterSpacing: '-0.02em', lineHeight: 1.15 }}>
                         Choose the plan that fits you
                     </h2>
-                    <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: isMobile ? '0.95rem' : '1.05rem', maxWidth: '480px', margin: '0 auto', lineHeight: 1.7 }}>
-                        Get started for free or unlock unlimited wishes with a one-time lifetime payment.
+                    <p style={{ color: '#666', fontSize: isMobile ? '0.95rem' : '1.05rem', maxWidth: '480px', margin: '0 auto', lineHeight: 1.7 }}>
+                        Get started for free or unlock unlimited wishes with a one time lifetime payment.
                     </p>
                 </div>
 
@@ -529,9 +536,10 @@ export default function LandingPage() {
                                 {[
                                     'Up to 5 wishes',
                                     'Basic support',
+                                    'Auto fetch product information'
                                 ].map((feature, i) => (
                                     <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-                                        <Check size={18} color="#16a34a" strokeWidth={2.5} />
+                                        <Check size={18} color="#E85C2C" strokeWidth={2.5} />
                                         <span style={{ fontSize: '0.92rem', fontWeight: 600, color: '#1e293b' }}>{feature}</span>
                                     </div>
                                 ))}
@@ -547,13 +555,13 @@ export default function LandingPage() {
                         display: 'flex',
                         flexDirection: 'column',
                         justifyContent: 'space-between',
-                        boxShadow: '0 25px 60px rgba(96,165,250,0.25), 0 0 0 2px #60a5fa',
+                        boxShadow: '0 25px 60px rgba(232,92,44,0.15), 0 0 0 2px #E85C2C',
                         position: 'relative',
                     }}>
                         <div>
                             {/* Top header pill */}
                             <div style={{
-                                background: '#eff6ff',
+                                background: '#FFF5F2',
                                 borderRadius: '20px',
                                 padding: '1.5rem',
                                 marginBottom: '1.5rem',
@@ -565,9 +573,9 @@ export default function LandingPage() {
                                     borderRadius: '99px',
                                     fontSize: '0.82rem',
                                     fontWeight: 800,
-                                    color: '#2563eb',
+                                    color: '#E85C2C',
                                     marginBottom: '1rem',
-                                    boxShadow: '0 1px 3px rgba(37,99,235,0.1)',
+                                    boxShadow: '0 1px 3px rgba(232,92,44,0.1)',
                                     letterSpacing: '0.03em'
                                 }}>
                                     PREMIUM
@@ -590,7 +598,7 @@ export default function LandingPage() {
                                 style={{
                                     width: '100%',
                                     padding: '0.95rem',
-                                    background: '#0f172a',
+                                    background: 'linear-gradient(135deg, #FF9A5A 0%, #FF3D3D 100%)',
                                     color: '#ffffff',
                                     border: 'none',
                                     borderRadius: '16px',
@@ -600,15 +608,15 @@ export default function LandingPage() {
                                     cursor: 'pointer',
                                     marginBottom: '1.75rem',
                                     transition: 'transform 0.15s, background 0.2s',
-                                    boxShadow: '0 4px 15px rgba(15,23,42,0.3)',
+                                    boxShadow: '0 8px 24px rgba(232,92,44,0.25)',
                                 }}
                                 onMouseEnter={e => {
                                     e.currentTarget.style.transform = 'translateY(-1px)';
-                                    e.currentTarget.style.background = '#1e293b';
+                                    e.currentTarget.style.transform = 'translateY(-2px)';
                                 }}
                                 onMouseLeave={e => {
                                     e.currentTarget.style.transform = 'translateY(0)';
-                                    e.currentTarget.style.background = '#0f172a';
+                                    e.currentTarget.style.transform = 'translateY(0)';
                                 }}
                             >
                                 Upgrade Now
@@ -619,10 +627,11 @@ export default function LandingPage() {
                                     'Unlimited wishes',
                                     'Lifetime access',
                                     'Dark mode & themes',
-                                    'Priority support',
+                                    'Collection sharing',
+                                    'Auto fetch product information'
                                 ].map((feature, i) => (
                                     <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-                                        <Check size={18} color="#16a34a" strokeWidth={2.5} />
+                                        <Check size={18} color="#E85C2C" strokeWidth={2.5} />
                                         <span style={{ fontSize: '0.92rem', fontWeight: 600, color: '#1e293b' }}>{feature}</span>
                                     </div>
                                 ))}
@@ -650,12 +659,12 @@ export default function LandingPage() {
                         { Icon: Star, label: 'Completely Free', sub: 'Core features are free forever' },
                     ].map((b, i) => (
                         <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                            <div style={{ width: '42px', height: '42px', borderRadius: '12px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                                <b.Icon size={18} color="#a78bfa" />
+                            <div style={{ width: '42px', height: '42px', borderRadius: '12px', background: '#FFF5F2', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                <b.Icon size={18} color="#E85C2C" />
                             </div>
                             <div style={{ textAlign: 'left' }}>
-                                <div style={{ color: '#fff', fontWeight: 700, fontSize: '0.92rem', fontFamily: FONT }}>{b.label}</div>
-                                <div style={{ color: 'rgba(255,255,255,0.45)', fontSize: '0.8rem', fontFamily: FONT }}>{b.sub}</div>
+                                <div style={{ color: '#111', fontWeight: 700, fontSize: '0.92rem', fontFamily: FONT }}>{b.label}</div>
+                                <div style={{ color: '#666', fontSize: '0.8rem', fontFamily: FONT }}>{b.sub}</div>
                             </div>
                         </div>
                     ))}
@@ -663,13 +672,13 @@ export default function LandingPage() {
             </section>
 
             {/* ── FAQ ── */}
-            <section style={{ padding: isMobile ? '5rem 1.5rem' : '7rem 2rem', background: 'rgba(255,255,255,0.02)', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+            <section style={{ padding: isMobile ? '5rem 1.5rem' : '7rem 2rem', background: '#fafafa', borderTop: '1px solid rgba(0,0,0,0.04)' }}>
                 <div style={{ maxWidth: '720px', margin: '0 auto' }}>
                     <div style={{ textAlign: 'center', marginBottom: isMobile ? '2.5rem' : '3.5rem' }}>
-                        <h2 style={{ fontWeight: 900, fontSize: isMobile ? '2rem' : 'clamp(2rem, 3.5vw, 2.75rem)', color: '#fff', margin: '0 0 1rem', letterSpacing: '-0.02em', lineHeight: 1.15 }}>
+                        <h2 style={{ fontWeight: 900, fontSize: isMobile ? '2rem' : 'clamp(2rem, 3.5vw, 2.75rem)', color: '#111', margin: '0 0 1rem', letterSpacing: '-0.02em', lineHeight: 1.15 }}>
                             Frequently Asked Questions
                         </h2>
-                        <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: isMobile ? '0.95rem' : '1.05rem', margin: 0, lineHeight: 1.7 }}>
+                        <p style={{ color: '#666', fontSize: isMobile ? '0.95rem' : '1.05rem', margin: 0, lineHeight: 1.7 }}>
                             Everything you need to know about WishFlow.
                         </p>
                     </div>
@@ -682,19 +691,19 @@ export default function LandingPage() {
             {/* ── CTA BANNER ── */}
             <section style={{ padding: isMobile ? '5rem 1.5rem' : '7rem 2rem', textAlign: 'center' }}>
                 <div style={{ maxWidth: '600px', margin: '0 auto' }}>
-                    <h2 style={{ fontWeight: 900, fontSize: isMobile ? '2.2rem' : 'clamp(2.2rem, 4vw, 3.2rem)', color: '#fff', margin: '0 0 1rem', letterSpacing: '-0.02em', lineHeight: 1.15 }}>
+                    <h2 style={{ fontWeight: 900, fontSize: isMobile ? '2.2rem' : 'clamp(2.2rem, 4vw, 3.2rem)', color: '#111', margin: '0 0 1rem', letterSpacing: '-0.02em', lineHeight: 1.15 }}>
                         Start saving your wishlist today
                     </h2>
-                    <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '1.05rem', margin: '0 0 2rem', lineHeight: 1.7 }}>
+                    <p style={{ color: '#666', fontSize: '1.05rem', margin: '0 0 2rem', lineHeight: 1.7 }}>
                         Join thousands of smart shoppers who use WishFlow to never forget a product they love.
                     </p>
                     <button
                         onClick={() => navigate('/auth')}
                         style={{
-                            background: '#fff', color: '#111', border: 'none',
+                            background: '#E85C2C', color: '#fff', border: 'none',
                             borderRadius: '50px', padding: '1rem 2.75rem',
                             fontWeight: 700, fontSize: '1rem', cursor: 'pointer', fontFamily: FONT,
-                            boxShadow: '0 12px 40px rgba(0,0,0,0.5)',
+                            boxShadow: '0 12px 32px rgba(232,92,44,0.25)',
                             transition: 'transform 0.15s',
                         }}
                         onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
@@ -707,14 +716,14 @@ export default function LandingPage() {
 
             {/* ── FOOTER ── */}
             <footer style={{
-                borderTop: '1px solid rgba(255,255,255,0.06)',
+                borderTop: '1px solid rgba(0,0,0,0.04)',
                 padding: isMobile ? '2rem 1.5rem' : '2.5rem 2rem',
                 display: 'flex', flexWrap: 'wrap', gap: '1rem',
                 alignItems: 'center', justifyContent: 'space-between',
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                     <WFLogo size={22} />
-                    <span style={{ color: 'rgba(255,255,255,0.4)', fontFamily: FONT, fontSize: '0.85rem' }}>
+                    <span style={{ color: '#888', fontFamily: FONT, fontSize: '0.85rem' }}>
                         © {new Date().getFullYear()} WishFlow. All rights reserved.
                     </span>
                 </div>
@@ -724,9 +733,9 @@ export default function LandingPage() {
                         { label: 'Terms of Service', to: '/terms' },
                         { label: 'Refund Policy', to: '/refund' },
                     ].map(link => (
-                        <Link key={link.to} to={link.to} style={{ color: 'rgba(255,255,255,0.4)', fontFamily: FONT, fontSize: '0.85rem', textDecoration: 'none', transition: 'color 0.2s' }}
-                            onMouseEnter={e => e.currentTarget.style.color = 'rgba(255,255,255,0.85)'}
-                            onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.4)'}
+                        <Link key={link.to} to={link.to} style={{ color: '#888', fontFamily: FONT, fontSize: '0.85rem', textDecoration: 'none', transition: 'color 0.2s' }}
+                            onMouseEnter={e => e.currentTarget.style.color = '#111'}
+                            onMouseLeave={e => e.currentTarget.style.color = '#888'}
                         >
                             {link.label}
                         </Link>

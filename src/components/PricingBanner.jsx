@@ -83,7 +83,8 @@ export default function PricingBanner({ onUpgrade }) {
                     <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '0.65rem', flex: 1 }}>
                         {[
                             'Up to 5 wishes',
-                            'Basic support'
+                            'Basic support',
+                            'Auto fetch product information'
                         ].map((feature, i) => (
                             <li key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.75rem', color: '#0f172a', fontWeight: 700 }}>
                                 <Check size={15} color="#22c55e" strokeWidth={3} style={{ flexShrink: 0 }} />
@@ -169,7 +170,8 @@ export default function PricingBanner({ onUpgrade }) {
                             'Unlimited wishes',
                             'Lifetime access',
                             'Dark mode & themes',
-                            'Priority support'
+                            'Collection sharing',
+                            'Auto fetch product information'
                         ].map((feature, i) => (
                             <li key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.75rem', color: '#0f172a', fontWeight: 700 }}>
                                 <Check size={15} color="#22c55e" strokeWidth={3} style={{ flexShrink: 0 }} />

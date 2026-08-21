@@ -22,7 +22,7 @@ const SLIDES = [
     {
         id: 'premium',
         title: 'Unlimited\nWishes Await',
-        body: 'Upgrade to Premium for just ₹100. Unlock unlimited items, dark mode, and priority support.',
+        body: 'Upgrade to Premium for just ₹100. Unlock unlimited items, dark mode, and collection sharing.',
         icon: Sparkles,
         color: '#10b981', // Green
         gradient: 'linear-gradient(135deg, rgba(16,185,129,0.2) 0%, rgba(16,185,129,0.01) 100%)',
@@ -38,7 +38,7 @@ export default function OnboardingFlow({ onComplete }) {
     // Override body text for the premium slide with dynamic currency
     const slide = { ...SLIDES[step] };
     if (slide.id === 'premium') {
-        slide.body = `Upgrade to Premium for just ${new Intl.NumberFormat(undefined, { style: 'currency', currency: currency || 'INR', maximumFractionDigits: 0 }).format(100)}. Unlock unlimited items, dark mode, and priority support.`;
+        slide.body = `Upgrade to Premium for just ${new Intl.NumberFormat(undefined, { style: 'currency', currency: currency || 'INR', maximumFractionDigits: 0 }).format(100)}. Unlock unlimited items, dark mode, and collection sharing.`;
     }
 
     useEffect(() => {

@@ -41,6 +41,10 @@ export default function PremiumComparison({ inline = false }) {
                     <ul style={{ listStyle: 'none', padding: 0, margin: 0, flex: 1, display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                         <li style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.95rem', color: '#374151' }}>
                             <CheckCircle2 size={22} color={GREEN} style={{ flexShrink: 0 }} />
+                            <span>Auto fetch product information</span>
+                        </li>
+                        <li style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.95rem', color: '#374151' }}>
+                            <CheckCircle2 size={22} color={GREEN} style={{ flexShrink: 0 }} />
                             <span>Up to 5 wishes</span>
                         </li>
                         <li style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.95rem', color: '#374151' }}>
@@ -53,7 +57,7 @@ export default function PremiumComparison({ inline = false }) {
                         </li>
                         <li style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.95rem', color: '#374151' }}>
                             <XCircle size={22} color="#ef4444" style={{ flexShrink: 0 }} />
-                            <span>Priority support</span>
+                            <span>Collection sharing</span>
                         </li>
                     </ul>
                 </div>
@@ -95,6 +99,10 @@ export default function PremiumComparison({ inline = false }) {
                     <ul style={{ listStyle: 'none', padding: 0, margin: 0, flex: 1, display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                         <li style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.95rem', color: '#374151' }}>
                             <CheckCircle2 size={22} color={GREEN} style={{ flexShrink: 0 }} />
+                            <span>Auto fetch product information</span>
+                        </li>
+                        <li style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.95rem', color: '#374151' }}>
+                            <CheckCircle2 size={22} color={GREEN} style={{ flexShrink: 0 }} />
                             <span>Unlimited wishes</span>
                         </li>
                         <li style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.95rem', color: '#374151' }}>
@@ -107,7 +115,7 @@ export default function PremiumComparison({ inline = false }) {
                         </li>
                         <li style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.95rem', color: '#374151' }}>
                             <CheckCircle2 size={22} color={GREEN} style={{ flexShrink: 0 }} />
-                            <span>Priority support</span>
+                            <span>Collection sharing</span>
                         </li>
                     </ul>
                 </div>
