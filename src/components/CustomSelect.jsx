@@ -19,16 +19,17 @@ export default function CustomSelect({
     // Robust value normalization for matching numbers, strings, null, undefined
     const normalizeVal = (v) => (v === null || v === undefined) ? '' : String(v);
 
-    // Normalize options format: array of { value, label, icon } or simple strings/numbers
+    // Normalize options format: array of { value, label, icon, badge } or simple strings/numbers
     const normalizedOptions = options.map(opt => {
         if (typeof opt === 'object' && opt !== null) {
             return {
                 value: opt.value !== undefined ? opt.value : (opt.id !== undefined ? opt.id : opt),
                 label: opt.label !== undefined ? opt.label : (opt.name !== undefined ? opt.name : String(opt)),
                 icon: opt.icon || opt.emoji,
+                badge: opt.badge,
             };
         }
-        return { value: opt, label: String(opt), icon: null };
+        return { value: opt, label: String(opt), icon: null, badge: null };
     });
 
     const selectedOption = normalizedOptions.find(o => normalizeVal(o.value) === normalizeVal(value));
@@ -37,10 +38,18 @@ export default function CustomSelect({
     const updatePosition = () => {
         if (containerRef.current) {
             const rect = containerRef.current.getBoundingClientRect();
+            const minMenuWidth = 220;
+            let left = rect.left;
+            
+            if (left + minMenuWidth > window.innerWidth - 16) {
+                left = rect.right - minMenuWidth;
+                if (left < 16) left = 16;
+            }
+
             setCoords({
                 top: rect.bottom + 6,
-                left: rect.left,
-                width: rect.width,
+                left: left,
+                width: Math.max(rect.width, minMenuWidth),
             });
         }
     };
@@ -226,12 +235,28 @@ export default function CustomSelect({
                                         if (!isActive) e.currentTarget.style.background = 'transparent';
                                     }}
                                 >
-                                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', overflow: 'hidden', whiteSpace: 'nowrap', flex: 1 }}>
                                         {opt.icon && (
-                                            IconComp ? <IconComp size={16} color={isActive ? ORANGE : 'var(--text-muted)'} /> : <span>{opt.icon}</span>
+                                            IconComp ? <IconComp size={16} color={isActive ? ORANGE : 'var(--text-muted)'} style={{ flexShrink: 0 }} /> : <span style={{ flexShrink: 0 }}>{opt.icon}</span>
                                         )}
-                                        {opt.label}
+                                        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                            {opt.label}
+                                        </span>
                                     </span>
+                                    {opt.badge !== undefined && opt.badge !== null && (
+                                        <span style={{ 
+                                            background: isActive ? 'rgba(var(--primary-rgb), 0.15)' : 'var(--surface-3)', 
+                                            color: isActive ? ORANGE : 'var(--text-dim)', 
+                                            padding: '0.15rem 0.5rem', 
+                                            borderRadius: '99px', 
+                                            fontSize: '0.7rem', 
+                                            fontWeight: 700,
+                                            marginLeft: '0.5rem',
+                                            flexShrink: 0
+                                        }}>
+                                            {opt.badge}
+                                        </span>
+                                    )}
                                 </button>
                             );
                         })}

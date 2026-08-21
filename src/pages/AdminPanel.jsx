@@ -350,7 +350,12 @@ export default function AdminPanel() {
                                 onChange={val => { setSelectedUserFilter(val || null); setCurrentItemsPage(1); }}
                                 options={[
                                     { value: '', label: 'All Users', icon: (props) => <Filter {...props} color="#f97316" /> },
-                                    ...users.map(u => ({ value: u.id, label: u.name || u.email, icon: (props) => <Filter {...props} color="#f97316" /> }))
+                                    ...users.map(u => ({ 
+                                        value: u.id, 
+                                        label: u.name || u.email, 
+                                        badge: u.itemCount || 0,
+                                        icon: (props) => <Filter {...props} color="#f97316" /> 
+                                    }))
                                 ]}
                                 style={{ background: '#fff', border: '1px solid #e2e8f0', color: '#0f172a', borderRadius: '99px', height: '100%', padding: '0.875rem 1.25rem', boxShadow: '0 1px 2px rgba(0,0,0,0.01)', fontWeight: 600 }}
                             />
@@ -887,9 +892,9 @@ export default function AdminPanel() {
                         height: 16px !important;
                     }
                     .admin-filter-dropdown {
-                        flex: 0 0 120px !important;
-                        width: 120px !important;
-                        min-width: 120px !important;
+                        flex: 0 0 140px !important;
+                        width: 140px !important;
+                        min-width: 140px !important;
                     }
                     .admin-filter-dropdown > button {
                         width: 100% !important;
