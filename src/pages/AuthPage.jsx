@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
 import { Eye, EyeOff } from 'lucide-react';
 import { useResponsive } from '../hooks/useResponsive';
@@ -7,18 +7,6 @@ import { useResponsive } from '../hooks/useResponsive';
 /* ─────────────────────────────────────────
    Design tokens & Helpers
 ───────────────────────────────────────── */
-function useDisableAutoAds() {
-    useEffect(() => {
-        try {
-            (window.adsbygoogle = window.adsbygoogle || []).pauseAdRequests = 1;
-        } catch (e) { /* AdSense not loaded yet */ }
-        return () => {
-            try {
-                (window.adsbygoogle = window.adsbygoogle || []).pauseAdRequests = 0;
-            } catch (e) { /* ignore */ }
-        };
-    }, []);
-}
 
 const NOISE_SVG = `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`;
 
@@ -121,7 +109,6 @@ const GoogleButton = ({ onClick }) => (
    Main AuthPage
 ───────────────────────────────────────── */
 export default function AuthPage() {
-    useDisableAutoAds();
 
     const { isDesktop, isTablet } = useResponsive();
     const isLargeScreen = isDesktop || isTablet;
@@ -206,8 +193,18 @@ export default function AuthPage() {
 
         setLoading(false);
 
-        if (result.success) navigate('/home');
-        else setError(result.error);
+        // On success, check if user came from the landing page "Upgrade Now" button.
+        // Use window.location.replace so this redirect cannot be overridden by React Router.
+        if (result.success) {
+            const hasUpgradeIntent = sessionStorage.getItem('upgradeIntent') === '1';
+            if (hasUpgradeIntent) {
+                sessionStorage.removeItem('upgradeIntent');
+                window.location.replace('/profile?upgrade=true');
+            }
+            // If no upgrade intent, App.jsx routing will redirect to /home once user state updates.
+        } else {
+            setError(result.error);
+        }
     };
 
     const titleText = screen === 'signup' ? <>Create your<br />account</> :

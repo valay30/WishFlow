@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
 import { LogOut, User, ArrowLeft, Settings, Shield, ShieldCheck, Bell, LayoutGrid, List as ListIcon, FolderHeart, ChevronDown, ChevronUp, Crown, Lock } from 'lucide-react';
 import { useSettings } from '../context/SettingsContext';
@@ -30,6 +30,7 @@ export default function Profile() {
     const { user, logout } = useAuth();
     const { viewMode, setViewMode, colorTheme, setColorTheme, darkMode, setDarkMode, currency, setCurrency } = useSettings();
     const navigate = useNavigate();
+    const location = useLocation();
     const [showGeneral, setShowGeneral] = useState(() => typeof window !== 'undefined' ? window.innerWidth >= 768 : false);
     const [showAccount, setShowAccount] = useState(false);
     const [paymentStatus, setPaymentStatus] = useState({ isOpen: false, success: false, title: '', message: '' });
@@ -49,6 +50,20 @@ export default function Profile() {
         }
         setIsProfileLoading(false);
     }, [user?.username]);
+
+    // Auto-trigger upgrade flow when redirected from landing page pricing CTA
+    useEffect(() => {
+        const params = new URLSearchParams(location.search);
+        if (params.get('upgrade') === 'true' && !isProfileLoading && user && !user.is_premium) {
+            // Clean the URL without causing a reload
+            navigate('/profile', { replace: true });
+            // Small delay to let the page mount fully before opening Razorpay
+            const timer = setTimeout(() => {
+                handleUpgradeToPremium();
+            }, 600);
+            return () => clearTimeout(timer);
+        }
+    }, [location.search, isProfileLoading, user]);
 
     const handleSaveUsername = async () => {
         if (!username.trim()) return;

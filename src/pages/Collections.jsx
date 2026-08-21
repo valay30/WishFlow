@@ -61,6 +61,7 @@ export default function Collections() {
     const [showAddExistingModal, setShowAddExistingModal] = useState(false);
     const [showAddProductModal, setShowAddProductModal] = useState(false);
     const [showPremiumModal, setShowPremiumModal] = useState(false);
+    const [showPremiumShareModal, setShowPremiumShareModal] = useState(false);
     const [paymentStatus, setPaymentStatus] = useState({ isOpen: false, success: false, title: '', message: '' });
 
     // Drill-down state
@@ -69,7 +70,7 @@ export default function Collections() {
     const [showUsernameShareModal, setShowUsernameShareModal] = useState(false);
     const [shareUsername, setShareUsername] = useState('');
     const [isSharingUsername, setIsSharingUsername] = useState(false);
-    
+
     // Access Management State
     const [accessList, setAccessList] = useState([]);
     const [isLoadingAccess, setIsLoadingAccess] = useState(false);
@@ -139,6 +140,10 @@ export default function Collections() {
     };
 
     const openShareModal = () => {
+        if (user?.isPremium !== true) {
+            setShowPremiumShareModal(true);
+            return;
+        }
         loadAccessList();
         setShowUsernameShareModal(true);
     };
@@ -510,6 +515,49 @@ export default function Collections() {
                     document.body
                 )}
 
+                {showPremiumShareModal && createPortal(
+                    <div className="premium-modal-overlay" onClick={() => setShowPremiumShareModal(false)}>
+                        <div onClick={e => e.stopPropagation()} style={{
+                            background: 'var(--surface)', borderRadius: '24px', padding: '2.5rem',
+                            maxWidth: '400px', width: '90%', textAlign: 'center',
+                            boxShadow: '0 24px 48px rgba(0,0,0,0.2)', position: 'relative',
+                            animation: 'slideUp 0.25s cubic-bezier(0.2,0.8,0.4,1)'
+                        }}>
+                            <button
+                                onClick={() => setShowPremiumShareModal(false)}
+                                style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'none', border: 'none', cursor: 'pointer' }}
+                            >
+                                <X size={24} color="#666" />
+                            </button>
+
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '48px', height: '48px', borderRadius: '16px', background: 'rgba(217,119,6,0.1)', color: '#d97706', marginBottom: '1rem', flexShrink: 0, margin: '0 auto 1.5rem' }}>
+                                <Share2 size={32} />
+                            </div>
+
+                            <h2 style={{ fontSize: '1.8rem', fontWeight: 900, marginBottom: '0.5rem', color: 'var(--text)' }}>Unlock Sharing</h2>
+                            <p style={{ color: 'var(--text-dim)', marginBottom: '2rem', lineHeight: '1.5' }}>
+                                Sharing collections with friends and family is a Premium feature. Upgrade to WishFlow Premium for {fmt(100)} and share your wishlist!
+                            </p>
+
+                            <button
+                                onClick={handleUpgradeToPremium}
+                                style={{
+                                    width: '100%', padding: '1rem', background: 'linear-gradient(135deg, var(--primary), var(--primary-dk))',
+                                    color: '#fff', border: 'none', borderRadius: '14px', fontWeight: 800, fontSize: '1.1rem',
+                                    cursor: 'pointer', boxShadow: '0 8px 24px rgba(var(--primary-rgb),0.35)', transition: 'all 0.2s'
+                                }}
+                                onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
+                                onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
+                            >
+                                Upgrade for ₹100
+                            </button>
+
+                            <p style={{ marginTop: '1rem', fontSize: '0.8rem', color: 'var(--text-dim)' }}>One-time payment. Lifetime access.</p>
+                        </div>
+                    </div>,
+                    document.body
+                )}
+
                 {/* ── Username Share Modal ── */}
                 {showUsernameShareModal && (
                     <div style={{
@@ -530,7 +578,7 @@ export default function Collections() {
                             </button>
                             <h2 style={{ margin: '0 0 0.5rem', fontSize: '1.4rem', color: 'var(--text)', flexShrink: 0 }}>Invite Friend</h2>
                             <p style={{ margin: '0 0 1.25rem', fontSize: '0.9rem', color: 'var(--text-muted)', flexShrink: 0 }}>Enter their username to share this wishlist.</p>
-                            
+
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1.5rem', flexShrink: 0 }}>
                                 <input
                                     autoFocus
@@ -567,43 +615,43 @@ export default function Collections() {
                                     <p style={{ color: 'var(--text-muted)', textAlign: 'center', padding: '1.5rem 0', fontSize: '0.85rem' }}>Not shared with anyone yet.</p>
                                 ) : (
                                     accessList.map(share => (
-                                         <div key={share.id} style={{
-                                             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                                             padding: '0.75rem', background: SURFACE, borderRadius: '12px', border: `1px solid ${BORDER}`
-                                         }}>
-                                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                                                 <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: ORANGE, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '0.85rem' }}>
-                                                     {share.profiles?.username?.[0]?.toUpperCase() || '?'}
-                                                 </div>
-                                                 <div>
-                                                     <div style={{ fontWeight: 700, color: 'var(--text)', fontSize: '0.9rem' }}>@{share.profiles?.username || 'unknown'}</div>
-                                                     <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                                                         {new Date(share.created_at).toLocaleDateString()}
-                                                     </div>
-                                                 </div>
-                                             </div>
-                                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                                 <span style={{
-                                                     fontSize: '0.7rem', fontWeight: 700, padding: '0.2rem 0.5rem', borderRadius: '6px',
-                                                     background: share.status === 'accepted' ? 'rgba(34,197,94,0.1)' : share.status === 'pending' ? 'rgba(245,158,11,0.1)' : 'rgba(239,68,68,0.1)',
-                                                     color: share.status === 'accepted' ? '#22c55e' : share.status === 'pending' ? '#f59e0b' : '#ef4444'
-                                                 }}>
-                                                     {share.status.charAt(0).toUpperCase() + share.status.slice(1)}
-                                                 </span>
-                                                 <button
-                                                     onClick={() => handleRemoveShare(share.id)}
-                                                     style={{
-                                                         background: 'transparent', border: 'none', color: 'var(--text-muted)',
-                                                         cursor: 'pointer', padding: '0.2rem', display: 'flex', alignItems: 'center', justifyContent: 'center'
-                                                     }}
-                                                     title="Remove Access"
-                                                     onMouseEnter={e => e.currentTarget.style.color = '#ef4444'}
-                                                     onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}
-                                                 >
-                                                     <X size={16} />
-                                                 </button>
-                                             </div>
-                                         </div>
+                                        <div key={share.id} style={{
+                                            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                                            padding: '0.75rem', background: SURFACE, borderRadius: '12px', border: `1px solid ${BORDER}`
+                                        }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                                <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: ORANGE, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '0.85rem' }}>
+                                                    {share.profiles?.username?.[0]?.toUpperCase() || '?'}
+                                                </div>
+                                                <div>
+                                                    <div style={{ fontWeight: 700, color: 'var(--text)', fontSize: '0.9rem' }}>@{share.profiles?.username || 'unknown'}</div>
+                                                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                                                        {new Date(share.created_at).toLocaleDateString()}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                <span style={{
+                                                    fontSize: '0.7rem', fontWeight: 700, padding: '0.2rem 0.5rem', borderRadius: '6px',
+                                                    background: share.status === 'accepted' ? 'rgba(34,197,94,0.1)' : share.status === 'pending' ? 'rgba(245,158,11,0.1)' : 'rgba(239,68,68,0.1)',
+                                                    color: share.status === 'accepted' ? '#22c55e' : share.status === 'pending' ? '#f59e0b' : '#ef4444'
+                                                }}>
+                                                    {share.status.charAt(0).toUpperCase() + share.status.slice(1)}
+                                                </span>
+                                                <button
+                                                    onClick={() => handleRemoveShare(share.id)}
+                                                    style={{
+                                                        background: 'transparent', border: 'none', color: 'var(--text-muted)',
+                                                        cursor: 'pointer', padding: '0.2rem', display: 'flex', alignItems: 'center', justifyContent: 'center'
+                                                    }}
+                                                    title="Remove Access"
+                                                    onMouseEnter={e => e.currentTarget.style.color = '#ef4444'}
+                                                    onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}
+                                                >
+                                                    <X size={16} />
+                                                </button>
+                                            </div>
+                                        </div>
                                     ))
                                 )}
                             </div>
@@ -696,7 +744,7 @@ export default function Collections() {
                         {shareToast === 'copied' ? 'Link copied to clipboard!' : shareToast === 'shared' ? 'Invite sent!' : 'Could not copy link'}
                     </div>
                 )}
-                
+
                 <AlertModal
                     isOpen={removeShareConfirm.isOpen}
                     title="Remove Access"

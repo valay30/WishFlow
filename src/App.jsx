@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { useEffect, useState, useRef } from 'react';
+import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { processSyncQueue } from './db/syncQueue';
 import { Analytics } from '@vercel/analytics/react';
 import { AuthProvider } from './context/AuthContext';
@@ -38,6 +38,8 @@ function ScrollToTop() {
 
 function AppRoutes() {
   const { user, recoveryMode, isNewSignup, clearNewSignup } = useAuth();
+  const navigate = useNavigate();
+  const prevUserRef = useRef(null);
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
 
   const verifyOnlineStatus = async () => {
@@ -87,6 +89,21 @@ function AppRoutes() {
     };
   }, []);
 
+  // Fire upgrade intent redirect the moment user logs in
+  useEffect(() => {
+    const wasLoggedOut = prevUserRef.current === null;
+    const isNowLoggedIn = !!user;
+    prevUserRef.current = user;
+
+    if (wasLoggedOut && isNowLoggedIn) {
+      const hasUpgradeIntent = sessionStorage.getItem('upgradeIntent') === '1';
+      if (hasUpgradeIntent) {
+        sessionStorage.removeItem('upgradeIntent');
+        navigate('/profile?upgrade=true', { replace: true });
+      }
+    }
+  }, [user]);
+
   // Render offline overlay on top of everything
   if (isOffline) {
     return (
@@ -106,7 +123,18 @@ function AppRoutes() {
       <Routes>
         {/* ── Public routes ── */}
         <Route path="/" element={user ? <Navigate to="/home" replace /> : <LandingPage />} />
-        <Route path="/auth" element={(user && !recoveryMode) ? <Navigate to="/home" replace /> : <AuthPage />} />
+        <Route path="/auth" element={
+          (user && !recoveryMode)
+            ? (() => {
+                const hasUpgradeIntent = sessionStorage.getItem('upgradeIntent') === '1';
+                if (hasUpgradeIntent) {
+                  sessionStorage.removeItem('upgradeIntent');
+                  return <Navigate to="/profile?upgrade=true" replace />;
+                }
+                return <Navigate to="/home" replace />;
+              })()
+            : <AuthPage />
+        } />
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/terms" element={<Terms />} />
         <Route path="/refund" element={<Refund />} />
