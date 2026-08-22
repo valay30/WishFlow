@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Home, List, Plus, Package } from 'lucide-react';
+import { Home, List, Plus, Package, Compass } from 'lucide-react';
 
 const ORANGE = 'var(--primary)';
 
@@ -31,6 +31,11 @@ export default function BottomNav({ user }) {
                     </div>
                 </div>
                 <span>Add</span>
+            </Link>
+
+            <Link to="/discover" className={`bottom-nav-item${isActive('/discover') ? ' active' : ''}`}>
+                <Compass size={22} />
+                <span>Discover</span>
             </Link>
 
             <Link to="/profile" className={`bottom-nav-item${isActive('/profile') ? ' active' : ''}`}>

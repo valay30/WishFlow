@@ -24,6 +24,7 @@ import Refund from './pages/Refund';
 import OfflinePage from './pages/OfflinePage';
 import SharedCollection from './pages/SharedCollection';
 import ShareTargetPage from './pages/ShareTargetPage';
+import Discover from './pages/Discover';
 function ScrollToTop() {
   const { pathname } = useLocation();
 
@@ -148,6 +149,7 @@ function AppRoutes() {
             <Route path="/add" element={<AddProduct />} />
             <Route path="/categories" element={<Categories />} />
             <Route path="/collections" element={<Collections />} />
+            <Route path="/discover" element={<Discover />} />
             <Route path="/product/:id" element={<ProductDetails />} />
             <Route path="/archive" element={<Archive />} />
             <Route path="/profile" element={<Profile />} />

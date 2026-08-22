@@ -512,6 +512,10 @@ export default function Home() {
                                         key={item.id}
                                         item={item}
                                         categoryName={categories.find(c => c.id === item.category_id)?.name || 'Other'}
+                                        onTogglePublic={async (id, val) => {
+                                            await db.discover.setPublic(id, val);
+                                            setItems(prev => prev.map(i => i.id === id ? { ...i, is_public: val } : i));
+                                        }}
                                     />
                                 ) : (
                                     <ProductCard

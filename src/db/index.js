@@ -684,5 +684,70 @@ export const db = {
       }
       return { success: true };
     }
-  }
+  },
+
+  discover: {
+    // Fetch all individually public items for the Discover feed (anonymous)
+    getPublicFeed: async () => {
+      const { data: publicItems, error } = await supabase
+        .from('items')
+        .select('id, name, price, image, link, user_id')
+        .eq('is_public', true)
+        .order('created_at', { ascending: false })
+        .limit(200);
+
+      if (error) {
+        console.error('Discover feed error:', error);
+        return [];
+      }
+      
+      const currentUserId = await getUserId();
+      
+      return (publicItems || []).map(item => {
+        const { user_id, ...rest } = item;
+        return {
+          ...rest,
+          is_mine: user_id === currentUserId
+        };
+      });
+    },
+
+    // Toggle is_public on a single item (owner only)
+    setPublic: async (itemId, isPublic) => {
+      const id = await getUserId();
+      if (!id) return { success: false };
+      const { error } = await supabase
+        .from('items')
+        .update({ is_public: isPublic })
+        .eq('id', itemId)
+        .eq('user_id', id);
+      if (error) return { success: false, error: error.message };
+      // Update local cache
+      if (__itemCache) {
+        __itemCache = __itemCache.map(i => i.id === itemId ? { ...i, is_public: isPublic } : i);
+      }
+      return { success: true };
+    },
+
+    // Clone a discovered item directly into the current user's wishlist (no collection)
+    saveItem: async (item) => {
+      const id = await getUserId();
+      if (!id) return { success: false };
+      const newItem = {
+        user_id: id,
+        name: item.name,
+        price: item.price,
+        image: item.image,
+        link: item.link,
+      };
+      const { data, error } = await supabase.from('items').insert([newItem]).select();
+      if (error) return { success: false, error: error.message };
+      if (data?.[0] && __itemCache) {
+        __itemCache = [data[0], ...__itemCache];
+      }
+      return { success: true, item: data?.[0] };
+    },
+  },
 };
+
+

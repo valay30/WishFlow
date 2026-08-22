@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Home, List, Plus, Package, Crown, ShieldCheck, LogOut, ShoppingBag, FolderHeart } from 'lucide-react';
+import { Home, List, Plus, Package, Crown, ShieldCheck, LogOut, ShoppingBag, FolderHeart, Compass } from 'lucide-react';
 
 const ORANGE = 'var(--primary)';
 
@@ -7,6 +7,7 @@ const NAV_LINKS = [
     { to: '/home', icon: Home, label: 'Home' },
     { to: '/categories', icon: List, label: 'Categories' },
     { to: '/collections', icon: FolderHeart, label: 'Collections' },
+    { to: '/discover', icon: Compass, label: 'Discover' },
     { to: '/archive', icon: Package, label: 'Purchased' },
 ];
 
