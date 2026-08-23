@@ -350,7 +350,7 @@ export default function AddProduct() {
                             Upgrade for {new Intl.NumberFormat(undefined, { style: 'currency', currency: currency || 'INR', maximumFractionDigits: 0 }).format(100)}
                         </button>
 
-                        <p style={{ marginTop: '1rem', fontSize: '0.8rem', color: 'var(--text-dim)' }}>One-time payment. Lifetime access.</p>
+                        <p style={{ marginTop: '1rem', fontSize: '0.8rem', color: 'var(--text-dim)' }}>One time payment. Lifetime access.</p>
                     </div>
                 </div>,
                 document.body
