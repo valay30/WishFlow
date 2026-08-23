@@ -729,8 +729,26 @@ export const db = {
       }
       
       const currentUserId = await getUserId();
-      
-      return (publicItems || []).map(item => {
+
+      // Deduplicate: if the same product link appears more than once (e.g. someone
+      // saved an item from Discover and then re-shared it), only keep the first
+      // occurrence (oldest sharer, since we ordered DESC the array arrives newest-first,
+      // so we keep the LAST occurrence per key — i.e. the original sharer).
+      const seenKeys = new Set();
+      const unique = [];
+      // Iterate in reverse so the oldest entry wins when we reverse back
+      const reversed = [...(publicItems || [])].reverse();
+      for (const item of reversed) {
+        const key = item.link ? item.link.trim().toLowerCase() : `__nolink__${item.name?.trim().toLowerCase()}`;
+        if (!seenKeys.has(key)) {
+          seenKeys.add(key);
+          unique.push(item);
+        }
+      }
+      // Restore newest-first order
+      unique.reverse();
+
+      return unique.map(item => {
         const { user_id, ...rest } = item;
         return {
           ...rest,
