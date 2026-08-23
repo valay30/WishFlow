@@ -55,7 +55,7 @@ export const auth = {
         // Fetch username from profiles
         let username = null;
         try {
-          const { data: profile } = await supabase.from('profiles').select('username').eq('id', session.user.id).single();
+          const { data: profile } = await supabase.from('profiles').select('username').eq('id', session.user.id).maybeSingle();
           if (profile) username = profile.username;
         } catch (err) {
           console.error("Error fetching username:", err);
@@ -77,6 +77,7 @@ export const auth = {
   },
 
   signup: async ({ name, email, password }) => {
+    clearDbCache();
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -86,6 +87,7 @@ export const auth = {
     if (error) return { success: false, error: error.message };
 
     if (data.user) {
+      // Insert default categories directly (db is not yet in scope here)
       const defaultCategories = [
         { user_id: data.user.id, name: 'Gadgets' },
         { user_id: data.user.id, name: 'Clothes' },
@@ -162,6 +164,31 @@ const normalizeUrl = (url) => {
 // ─── Database helpers ─────────────────────────────────────────────────────────
 export const db = {
   categories: {
+    initializeDefaults: async (userId = null) => {
+      const id = userId || await getUserId();
+      console.log('[initializeDefaults] userId:', id);
+      if (!id) {
+        console.error('[initializeDefaults] No user ID found!');
+        return;
+      }
+      const defaultCategories = [
+        { user_id: id, name: 'Gadgets' },
+        { user_id: id, name: 'Clothes' },
+        { user_id: id, name: 'Footwear' },
+        { user_id: id, name: 'Accessories' },
+        { user_id: id, name: 'Perfume' },
+        { user_id: id, name: 'Other' },
+      ];
+      const { data, error } = await supabase.from('categories').insert(defaultCategories).select();
+      if (error) {
+        console.error('[initializeDefaults] Insert failed:', error);
+      } else {
+        console.log('[initializeDefaults] Inserted categories:', data);
+      }
+      __categoryCache = null; // force fresh fetch next time
+      return data;
+    },
+
     getAll: async () => {
       const id = await getUserId();
       if (!id) return [];
@@ -488,7 +515,7 @@ export const db = {
         .select('*')
         .eq('id', itemId)
         .eq('user_id', id)
-        .single();
+        .maybeSingle();
 
       if (error) return null;
       return data;
@@ -501,7 +528,7 @@ export const db = {
         .from('collections')
         .select('*')
         .eq('id', collectionId)
-        .single();
+        .maybeSingle();
       if (error) return null;
       return data;
     },
@@ -529,7 +556,7 @@ export const db = {
         .from('profiles')
         .select('id')
         .eq('username', username.toLowerCase())
-        .single();
+        .maybeSingle();
         
       if (profErr || !profile) return { success: false, error: 'User not found' };
       
@@ -554,8 +581,8 @@ export const db = {
 
       // Trigger push notification via backend
       try {
-        const { data: senderProfile } = await supabase.from('profiles').select('username').eq('id', senderId).single();
-        const { data: collection } = await supabase.from('collections').select('name').eq('id', collectionId).single();
+        const { data: senderProfile } = await supabase.from('profiles').select('username').eq('id', senderId).maybeSingle();
+        const { data: collection } = await supabase.from('collections').select('name').eq('id', collectionId).maybeSingle();
         
         await fetch(`${API_URL}/api/notifications/notify-share`, {
           method: 'POST',
@@ -664,9 +691,9 @@ export const db = {
         .from('profiles')
         .select('*')
         .eq('id', id)
-        .single();
+        .maybeSingle();
         
-      if (error && error.code !== 'PGRST116') return null; // PGRST116 is "No rows found"
+      if (error) return null;
       return data;
     },
     updateUsername: async (username) => {

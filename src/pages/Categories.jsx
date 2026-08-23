@@ -18,11 +18,29 @@ export default function Categories() {
     const [deleteTargetId, setDeleteTargetId] = useState(null);
     const navigate = useNavigate();
 
+    const [seedError, setSeedError] = useState('');
+    const [debugInfo, setDebugInfo] = useState('');
+
     const loadCategories = async () => {
         try {
-            setCategories(await db.categories.getAll());
+            let cats = await db.categories.getAll();
+            setDebugInfo(`getAll() returned: ${JSON.stringify(cats)}`);
+            // Auto-seed defaults for users who have no categories yet
+            if (!cats || cats.length === 0) {
+                setSeedError('');
+                const seeded = await db.categories.initializeDefaults();
+                setDebugInfo(prev => prev + ` | initializeDefaults() returned: ${JSON.stringify(seeded)}`);
+                if (!seeded) {
+                    setSeedError('Could not create default categories. Check browser console (F12) for the error.');
+                }
+                cats = await db.categories.getAll();
+                setDebugInfo(prev => prev + ` | getAll() after seed: ${JSON.stringify(cats)}`);
+            }
+            setCategories(cats || []);
         } catch (err) {
             console.error(err);
+            setDebugInfo(`ERROR: ${err.message}`);
+            setSeedError(err.message);
         }
     };
     useEffect(() => { loadCategories(); }, []);
@@ -273,11 +291,25 @@ export default function Categories() {
 
                     {categories.length === 0 && (
                         <div style={{
-                            textAlign: 'center', padding: '5rem 1rem', display: 'flex', flexDirection: 'column',
+                            textAlign: 'center', padding: '3rem 1rem', display: 'flex', flexDirection: 'column',
                             alignItems: 'center', gap: '1rem', opacity: 0.6
                         }}>
                             <Layers size={48} color="#999" strokeWidth={1} />
                             <p style={{ fontWeight: 600, fontSize: '0.95rem' }}>No categories yet. Create one above!</p>
+                            {seedError && (
+                                <p style={{ fontWeight: 600, fontSize: '0.8rem', color: '#ef4444', opacity: 1, maxWidth: '320px', lineHeight: 1.5 }}>
+                                    ⚠️ {seedError}
+                                </p>
+                            )}
+                            {debugInfo && (
+                                <pre style={{
+                                    fontSize: '0.7rem', color: '#555', background: '#f0f0f0',
+                                    padding: '0.75rem', borderRadius: '8px', textAlign: 'left',
+                                    whiteSpace: 'pre-wrap', wordBreak: 'break-all', maxWidth: '100%', opacity: 1
+                                }}>
+                                    {debugInfo}
+                                </pre>
+                            )}
                         </div>
                     )}
                 </div>

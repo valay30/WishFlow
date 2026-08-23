@@ -45,17 +45,31 @@ export function AuthProvider({ children }) {
                 };
                 setUser(baseUser);
 
-                supabase.from('profiles').select('username').eq('id', session.user.id).single().then(({ data }) => {
+                supabase.from('profiles').select('username').eq('id', session.user.id).maybeSingle().then(({ data }) => {
                     if (data?.username) {
                         setUser(prev => prev ? { ...prev, username: data.username } : null);
                     }
                 });
                 if (sessionStorage.getItem('isGoogleLoginRedirect') === 'true') {
                     sessionStorage.removeItem('isGoogleLoginRedirect');
-                    if (session.user.created_at && (Date.now() - new Date(session.user.created_at).getTime() < 60000)) {
-                        sessionStorage.setItem('showOnboarding', 'true');
-                    }
-                    window.location.reload();
+                    // Check if this Google user already has categories.
+                    // If not (new signup OR categories were never seeded), initialize them now.
+                    import('../db').then(async ({ db, supabase: sb }) => {
+                        const { data: existingCats } = await sb
+                            .from('categories')
+                            .select('id')
+                            .eq('user_id', session.user.id)
+                            .limit(1);
+
+                        const isNewUser = !existingCats || existingCats.length === 0;
+
+                        if (isNewUser) {
+                            sessionStorage.setItem('showOnboarding', 'true');
+                            await db.categories.initializeDefaults(session.user.id);
+                        }
+
+                        window.location.reload();
+                    });
                     return;
                 }
 
