@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
-import { LogOut, User, ArrowLeft, Settings, Shield, ShieldCheck, Bell, LayoutGrid, List as ListIcon, FolderHeart, ChevronDown, ChevronUp, Crown, Lock } from 'lucide-react';
+import { LogOut, User, ArrowLeft, Settings, Shield, ShieldCheck, Bell, LayoutGrid, List as ListIcon, FolderHeart, ChevronDown, ChevronUp, Crown, Lock, Check, X } from 'lucide-react';
 import { useSettings } from '../context/SettingsContext';
 import { db } from '../db';
 import TierBadgeCard from '../components/TierBadgeCard';
@@ -40,6 +40,12 @@ export default function Profile() {
     const [isSavingUsername, setIsSavingUsername] = useState(false);
     const [showUsernameModal, setShowUsernameModal] = useState(false);
     const [initialUsername, setInitialUsername] = useState('');
+    const [toast, setToast] = useState({ isOpen: false, type: 'success', message: '' });
+
+    const showToast = (message, type = 'success') => {
+        setToast({ isOpen: true, type, message });
+        setTimeout(() => setToast({ isOpen: false, type, message: '' }), 3000);
+    };
 
     const [isProfileLoading, setIsProfileLoading] = useState(true);
 
@@ -71,11 +77,11 @@ export default function Profile() {
         const res = await db.profiles.updateUsername(username.trim());
         setIsSavingUsername(false);
         if (!res.success) {
-            setGeneralAlert({ isOpen: true, title: 'Error', message: res.error });
+            showToast(res.error, 'error');
         } else {
             setInitialUsername(username.trim());
             setShowUsernameModal(false);
-            setGeneralAlert({ isOpen: true, title: 'Success', message: 'Username saved successfully!' });
+            showToast('Username saved successfully!', 'success');
         }
     };
 
@@ -278,11 +284,10 @@ export default function Profile() {
                                         if (item.id === 'general') setShowGeneral(!showGeneral);
                                         if (item.id === 'notifications') {
                                             const success = await subscribeToPushNotifications(user?.id);
-                                            setGeneralAlert({
-                                                isOpen: true,
-                                                title: success ? 'Success' : 'Notice',
-                                                message: success ? 'Notifications enabled successfully!' : 'Could not enable notifications. Ensure your browser supports it and permissions are granted.'
-                                            });
+                                            showToast(
+                                                success ? 'Notifications enabled successfully!' : 'Could not enable notifications. Check permissions.',
+                                                success ? 'success' : 'error'
+                                            );
                                         }
                                     }}
                                     style={{
@@ -619,10 +624,42 @@ export default function Profile() {
                     from { opacity: 0; transform: translateY(24px); }
                     to { opacity: 1; transform: translateY(0); }
                 }
+                @keyframes toastSlideUp {
+                    from { opacity: 0; transform: translate(-50%, 24px); }
+                    to { opacity: 1; transform: translate(-50%, 0); }
+                }
                 @media (min-width: 1024px) {
                     .hide-on-desktop { display: none !important; }
                 }
             `}</style>
+            {/* ── Toast Notification ── */}
+            {toast.isOpen && createPortal(
+                <div style={{
+                    position: 'fixed',
+                    bottom: '2rem',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    zIndex: 9999999,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.75rem',
+                    padding: '0.85rem 1.25rem',
+                    borderRadius: '16px',
+                    background: toast.type === 'success' ? 'rgba(34,197,94,0.95)' : 'rgba(239,68,68,0.95)',
+                    color: '#fff',
+                    fontWeight: 600,
+                    fontSize: '0.9rem',
+                    boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
+                    animation: 'toastSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+                    backdropFilter: 'blur(8px)',
+                    whiteSpace: 'nowrap'
+                }}>
+                    {toast.type === 'success' ? <Check size={18} /> : <X size={18} />}
+                    {toast.message}
+                </div>,
+                document.body
+            )}
+
             <AlertModal
                 isOpen={paymentStatus.isOpen}
                 title={paymentStatus.title}
