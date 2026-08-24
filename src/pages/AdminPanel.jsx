@@ -365,11 +365,11 @@ export default function AdminPanel() {
                                 onChange={val => { setSelectedUserFilter(val || null); setCurrentItemsPage(1); }}
                                 options={[
                                     { value: '', label: 'All Users', icon: (props) => <Filter {...props} color="#f97316" /> },
-                                    ...users.map(u => ({ 
-                                        value: u.id, 
-                                        label: u.name || u.email, 
+                                    ...users.map(u => ({
+                                        value: u.id,
+                                        label: u.name || u.email,
                                         badge: u.itemCount || 0,
-                                        icon: (props) => <Filter {...props} color="#f97316" /> 
+                                        icon: (props) => <Filter {...props} color="#f97316" />
                                     }))
                                 ]}
                                 style={{ background: '#fff', border: '1px solid #e2e8f0', color: '#0f172a', borderRadius: '99px', height: '100%', padding: '0.875rem 1.25rem', boxShadow: '0 1px 2px rgba(0,0,0,0.01)', fontWeight: 600 }}
@@ -569,7 +569,7 @@ export default function AdminPanel() {
                                             <CustomSelect
                                                 value={usersPerPage}
                                                 onChange={(val) => { setUsersPerPage(Number(val)); setCurrentPage(1); }}
-                                                options={[1, 5, 10, 20, 50]}
+                                                options={[5, 10, 20, 50]}
                                                 style={{ padding: '0.4rem 0.75rem', borderRadius: '8px', border: '1px solid #e2e8f0', background: '#fff', color: '#0f172a', fontSize: '0.85rem' }}
                                             />
                                         </div>
