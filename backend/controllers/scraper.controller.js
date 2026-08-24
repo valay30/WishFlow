@@ -47,23 +47,7 @@ const BROWSER_HEADERS = {
     'DNT': '1',
 };
 
-// ── Unshorten redirect chains (amzn.in, amzn.to, fkrt.it, etc.) ─────────────
-async function unshortenUrl(url) {
-    try {
-        const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 6000);
-        const res = await fetch(url, {
-            method: 'GET',
-            redirect: 'follow',
-            headers: BROWSER_HEADERS,
-            signal: controller.signal,
-        });
-        clearTimeout(timeout);
-        return res.url || url;
-    } catch {
-        return url;
-    }
-}
+// ── (unshortenUrl removed as it is now combined with main fetch) ─────────────
 
 // ── Proxy fallback for cloud datacenter IPs blocked by Amazon/Flipkart ───────
 async function fetchViaProxy(targetUrl) {
@@ -446,24 +430,30 @@ export const extractMetadata = async (req, res) => {
     if (!url) return res.status(400).json({ error: 'URL is required' });
 
     try {
-        // Step 1: Unshorten URL (for amzn.in, amzn.to, fkrt.it, bit.ly, etc.)
-        let resolvedUrl = await unshortenUrl(url);
+        // Optimization: Start proxy fetch concurrently for domains that aggressively block cloud IPs.
+        // This avoids waiting for a timeout or block on the direct fetch, saving 5-10 seconds in production.
+        const isDifficultDomain = /amazon|amzn|a\.co|flipkart|fkrt|myntra/i.test(url);
+        let proxyPromise = null;
+        if (isDifficultDomain) {
+            proxyPromise = fetchViaProxy(url);
+        }
 
-        // Step 2: Fetch HTML with browser headers, 7s timeout
+        // Fetch HTML with browser headers, 7s timeout
+        // (This automatically follows redirects, replacing unshortenUrl)
         const controller = new AbortController();
         const fetchTimeout = setTimeout(() => controller.abort(), 7000);
 
         let html = '';
-        let finalUrl = resolvedUrl;
+        let finalUrl = url;
         let hostname = '';
         try {
-            const fetchRes = await fetch(resolvedUrl, {
+            const fetchRes = await fetch(url, {
                 headers: BROWSER_HEADERS,
                 redirect: 'follow',
                 signal: controller.signal,
             });
             clearTimeout(fetchTimeout);
-            finalUrl = fetchRes.url || resolvedUrl;
+            finalUrl = fetchRes.url || url;
             try {
                 hostname = new URL(finalUrl).hostname.toLowerCase();
             } catch {
@@ -472,10 +462,13 @@ export const extractMetadata = async (req, res) => {
             html = await fetchRes.text();
         } catch (fetchErr) {
             clearTimeout(fetchTimeout);
-            if (fetchErr.name === 'AbortError') {
+            if (fetchErr.name === 'AbortError' && !isDifficultDomain) {
                 return res.status(408).json({ error: 'Site took too long to respond' });
             }
-            throw fetchErr;
+            // If it's a difficult domain, we ignore fetch errors and rely on the proxy fallback.
+            if (!isDifficultDomain) {
+                throw fetchErr;
+            }
         }
 
         // Step 3: Parse HTML
@@ -531,7 +524,7 @@ export const extractMetadata = async (req, res) => {
             (!raw.price && !raw.image);
 
         if (isBlocked) {
-            const proxyData = await fetchViaProxy(finalUrl);
+            const proxyData = proxyPromise ? await proxyPromise : await fetchViaProxy(finalUrl);
             if (proxyData) {
                 if (proxyData.title && (raw.title.toLowerCase() === 'amazon.in' || raw.title.toLowerCase().includes('robot check') || !raw.title)) {
                     raw.title = proxyData.title;
