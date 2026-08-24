@@ -8,7 +8,7 @@ import { db } from '../db';
 import TierBadgeCard from '../components/TierBadgeCard';
 import AlertModal from '../components/AlertModal';
 import CustomSelect from '../components/CustomSelect';
-import { API_URL } from '../config';
+import { API_URL, APP_VERSION } from '../config';
 import { subscribeToPushNotifications } from '../utils/pushNotifications';
 
 const ORANGE = 'var(--primary)';
@@ -539,6 +539,12 @@ export default function Profile() {
                     >
                         <LogOut size={22} /> Sign Out
                     </button>
+                    
+                    <div style={{ textAlign: 'center', marginTop: '1.5rem', marginBottom: '2rem' }}>
+                        <span style={{ fontSize: '0.85rem', color: 'var(--text-dim)', fontWeight: 600 }}>
+                            Version {APP_VERSION}
+                        </span>
+                    </div>
                 </div>
             </div>
 
