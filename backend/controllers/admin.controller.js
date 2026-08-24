@@ -209,7 +209,7 @@ export const getAllItems = async (req, res) => {
     try {
         const { data: items, error } = await supabase
             .from('items')
-            .select('*')
+            .select('id, name, image, user_id, price, currency, created_at, link, is_purchased')
             .order('created_at', { ascending: false });
 
         if (error) throw error;

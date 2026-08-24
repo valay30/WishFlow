@@ -19,7 +19,8 @@ export default function AdminPanel() {
     const navigate = useNavigate();
     const [users, setUsers] = useState([]);
     const [items, setItems] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [loadingUsers, setLoadingUsers] = useState(true);
+    const [loadingItems, setLoadingItems] = useState(true);
     const [search, setSearch] = useState('');
     const [actionLoading, setActionLoading] = useState(null);
     const [toast, setToast] = useState(null);
@@ -42,31 +43,45 @@ export default function AdminPanel() {
         if (user && !user.isAdmin) navigate('/', { replace: true });
     }, [user, navigate]);
 
-    const fetchData = useCallback(async () => {
-        setLoading(true);
+    const fetchUsers = useCallback(async () => {
+        setLoadingUsers(true);
         try {
-            const [usersRes, itemsRes] = await Promise.all([
-                fetch(`${API}/api/admin/users`, { headers }),
-                fetch(`${API}/api/admin/items`, { headers })
-            ]);
-
-            if (!usersRes.ok) throw new Error('Failed to fetch users');
-            if (!itemsRes.ok) throw new Error('Failed to fetch items');
-
-            const usersData = await usersRes.json();
-            const itemsData = await itemsRes.json();
-
-            setUsers(Array.isArray(usersData) ? usersData : []);
-            setItems(Array.isArray(itemsData) ? itemsData : []);
+            const res = await fetch(`${API}/api/admin/users`, { headers });
+            if (!res.ok) throw new Error('Failed to fetch users');
+            const data = await res.json();
+            setUsers(Array.isArray(data) ? data : []);
         } catch (err) {
-            console.error('fetchData error:', err);
-            showToast('Failed to load data: ' + err.message, 'error');
+            console.error('fetchUsers error:', err);
+            showToast('Failed to load users: ' + err.message, 'error');
         } finally {
-            setLoading(false);
+            setLoadingUsers(false);
         }
     }, []);
 
-    useEffect(() => { fetchData(); }, [fetchData]);
+    const fetchItems = useCallback(async () => {
+        setLoadingItems(true);
+        try {
+            const res = await fetch(`${API}/api/admin/items`, { headers });
+            if (!res.ok) throw new Error('Failed to fetch items');
+            const data = await res.json();
+            setItems(Array.isArray(data) ? data : []);
+        } catch (err) {
+            console.error('fetchItems error:', err);
+            showToast('Failed to load items: ' + err.message, 'error');
+        } finally {
+            setLoadingItems(false);
+        }
+    }, []);
+
+    const refreshData = () => {
+        fetchUsers();
+        fetchItems();
+    };
+
+    useEffect(() => {
+        fetchUsers();
+        fetchItems();
+    }, [fetchUsers, fetchItems]);
 
     const showToast = (msg, type = 'success') => {
         setToast({ msg, type });
@@ -314,11 +329,11 @@ export default function AdminPanel() {
                             {activeTab === 'users' ? 'Users' : 'Items'}
                         </h1>
                         <button
-                            onClick={fetchData}
-                            disabled={loading}
-                            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.75rem 1.25rem', background: '#fff', color: '#4f46e5', border: '1px solid #e0e7ff', borderRadius: '12px', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer', boxShadow: '0 1px 2px rgba(0,0,0,0.02)', opacity: loading ? 0.7 : 1 }}
+                            onClick={refreshData}
+                            disabled={loadingUsers || loadingItems}
+                            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.75rem 1.25rem', background: '#fff', color: '#4f46e5', border: '1px solid #e0e7ff', borderRadius: '12px', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer', boxShadow: '0 1px 2px rgba(0,0,0,0.02)', opacity: (loadingUsers || loadingItems) ? 0.7 : 1 }}
                         >
-                            <RefreshCw size={18} style={{ animation: loading ? 'spin 1s linear infinite' : 'none' }} />
+                            <RefreshCw size={18} style={{ animation: (loadingUsers || loadingItems) ? 'spin 1s linear infinite' : 'none' }} />
                             <span className="action-text">Refresh</span>
                         </button>
                     </div>
@@ -410,7 +425,7 @@ export default function AdminPanel() {
 
                             {/* Table Body */}
                             <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                {loading ? (
+                                {loadingUsers ? (
                                     <div style={{ padding: '3rem', textAlign: 'center', color: '#64748b' }}>Loading users...</div>
                                 ) : currentUsers.length === 0 ? (
                                     <div style={{ padding: '3rem', textAlign: 'center', color: '#64748b' }}>No users found</div>
@@ -511,7 +526,7 @@ export default function AdminPanel() {
                         </div>
 
                         {/* Pagination Footer Users */}
-                        {!loading && filteredUsers.length > 0 && (
+                        {!loadingUsers && filteredUsers.length > 0 && (
                             <div className="admin-pagination-container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1.5rem', padding: '0 0.5rem', paddingBottom: '2rem', flexWrap: 'nowrap', gap: '1rem' }}>
                                 <div style={{ display: 'flex', gap: '0.5rem' }}>
                                     <button
@@ -577,7 +592,7 @@ export default function AdminPanel() {
                             </div>
 
                             <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                {loading ? (
+                                {loadingItems ? (
                                     <div style={{ padding: '3rem', textAlign: 'center', color: '#64748b' }}>Loading items...</div>
                                 ) : currentItems.length === 0 ? (
                                     <div style={{ padding: '3rem', textAlign: 'center', color: '#64748b' }}>
@@ -712,7 +727,7 @@ export default function AdminPanel() {
                         </div>
 
                         {/* Pagination Footer Items */}
-                        {!loading && filteredItems.length > 0 && (
+                        {!loadingItems && filteredItems.length > 0 && (
                             <div className="admin-pagination-container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1.5rem', padding: '0 0.5rem', paddingBottom: '2rem', flexWrap: 'nowrap', gap: '1rem' }}>
                                 <div style={{ display: 'flex', gap: '0.5rem' }}>
                                     <button
