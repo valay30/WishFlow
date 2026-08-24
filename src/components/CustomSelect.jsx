@@ -14,7 +14,7 @@ export default function CustomSelect({
     const [isOpen, setIsOpen] = useState(false);
     const containerRef = useRef(null);
     const menuRef = useRef(null);
-    const [coords, setCoords] = useState({ top: 0, left: 0, width: 0 });
+    const [coords, setCoords] = useState({ top: 0, bottom: 'auto', left: 0, width: 0, maxHeight: 260 });
 
     // Robust value normalization for matching numbers, strings, null, undefined
     const normalizeVal = (v) => (v === null || v === undefined) ? '' : String(v);
@@ -39,6 +39,7 @@ export default function CustomSelect({
         if (containerRef.current) {
             const rect = containerRef.current.getBoundingClientRect();
             const minMenuWidth = 220;
+            const menuMaxHeight = 260;
             let left = rect.left;
             
             if (left + minMenuWidth > window.innerWidth - 16) {
@@ -46,10 +47,31 @@ export default function CustomSelect({
                 if (left < 16) left = 16;
             }
 
+            let topPos = rect.bottom + 6;
+            let bottomPos = 'auto';
+            let calcMaxHeight = menuMaxHeight;
+
+            // Check if there is enough space below
+            if (rect.bottom + menuMaxHeight + 16 > window.innerHeight) {
+                const spaceAbove = rect.top;
+                const spaceBelow = window.innerHeight - rect.bottom;
+                
+                // If there's more space above than below, open upwards
+                if (spaceAbove > spaceBelow) {
+                    topPos = 'auto';
+                    bottomPos = window.innerHeight - rect.top + 6;
+                    calcMaxHeight = Math.min(menuMaxHeight, spaceAbove - 20);
+                } else {
+                    calcMaxHeight = Math.min(menuMaxHeight, spaceBelow - 20);
+                }
+            }
+
             setCoords({
-                top: rect.bottom + 6,
+                top: topPos,
+                bottom: bottomPos,
                 left: left,
                 width: Math.max(rect.width, minMenuWidth),
+                maxHeight: calcMaxHeight
             });
         }
     };
@@ -180,10 +202,11 @@ export default function CustomSelect({
                         style={{
                             position: 'fixed',
                             top: coords.top,
+                            bottom: coords.bottom,
                             left: coords.left,
                             width: coords.width,
                             zIndex: 9999,
-                            maxHeight: '260px',
+                            maxHeight: coords.maxHeight ? `${coords.maxHeight}px` : '260px',
                             overflowY: 'auto',
                             scrollbarWidth: 'none',
                             msOverflowStyle: 'none',
