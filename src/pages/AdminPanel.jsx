@@ -1187,8 +1187,8 @@ export default function AdminPanel() {
                             <Package size={22} strokeWidth={activeTab === 'items' ? 2.5 : 2} />
                         </button>
                     </div>
-                    <button onClick={fetchData} disabled={loading} style={{ width: '56px', height: '56px', borderRadius: '50%', background: '#1d4ed8', color: '#fff', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 10px 25px -5px rgba(29, 78, 216, 0.5)' }}>
-                        <RefreshCw size={24} strokeWidth={2.5} style={{ animation: loading ? 'spin 1s linear infinite' : 'none' }} />
+                    <button onClick={refreshData} disabled={loadingUsers || loadingItems} style={{ width: '56px', height: '56px', borderRadius: '50%', background: '#1d4ed8', color: '#fff', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 10px 25px -5px rgba(29, 78, 216, 0.5)' }}>
+                        <RefreshCw size={24} strokeWidth={2.5} style={{ animation: (loadingUsers || loadingItems) ? 'spin 1s linear infinite' : 'none' }} />
                     </button>
                 </div>
             </div>
