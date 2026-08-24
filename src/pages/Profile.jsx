@@ -113,6 +113,14 @@ export default function Profile() {
                     });
                     const verificationData = await verificationRes.json();
                     if (verificationData.success) {
+                        // Force session refresh so the new JWT with is_premium=true is downloaded
+                        try {
+                            const { supabase } = await import('../db');
+                            await supabase.auth.refreshSession();
+                        } catch (err) {
+                            console.error('Failed to refresh session:', err);
+                        }
+
                         setPaymentStatus({
                             isOpen: true,
                             success: true,
