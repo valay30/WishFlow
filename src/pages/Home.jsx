@@ -8,6 +8,7 @@ import { useSettings } from '../context/SettingsContext';
 import ProductCard from '../components/ProductCard';
 import AddProductModal from '../components/AddProductModal';
 import ItemCard from '../components/ItemCard';
+import SkeletonCard from '../components/SkeletonCard';
 import confetti from 'canvas-confetti';
 import AlertModal from '../components/AlertModal';
 import { API_URL } from '../config';
@@ -43,6 +44,7 @@ export default function Home() {
 
     const [items, setItems] = useState([]);
     const [categories, setCats] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
     const [search, setSearch] = useState('');
     const [sortBy, setSortBy] = useState('default');
     const [isSortOpen, setIsSortOpen] = useState(false);
@@ -51,8 +53,14 @@ export default function Home() {
 
     useEffect(() => {
         const load = async () => {
-            setItems(await db.items.getAll());
-            setCats(await db.categories.getAll());
+            setIsLoading(true);
+            const [fetchedItems, fetchedCats] = await Promise.all([
+                db.items.getAll(),
+                db.categories.getAll(),
+            ]);
+            setItems(fetchedItems);
+            setCats(fetchedCats);
+            setIsLoading(false);
         };
         load();
     }, []);
@@ -504,7 +512,13 @@ export default function Home() {
                         <span style={{ fontSize: '0.8rem', color: 'var(--text-dim)' }}>{filtered.length} item{filtered.length !== 1 ? 's' : ''}</span>
                     </div>
 
-                    {filtered.length > 0 ? (
+                    {isLoading ? (
+                        <div className={viewMode === 'card' ? "category-grid" : "list-view-container"} style={viewMode === 'list' ? { display: 'flex', flexDirection: 'column', gap: '0.75rem' } : {}}>
+                            {Array.from({ length: 6 }).map((_, i) => (
+                                <SkeletonCard key={i} mode={viewMode} />
+                            ))}
+                        </div>
+                    ) : filtered.length > 0 ? (
                         <div className={viewMode === 'card' ? "category-grid" : "list-view-container"} style={viewMode === 'list' ? { display: 'flex', flexDirection: 'column', gap: '0.75rem' } : {}}>
                             {filtered.map(item => (
                                 viewMode === 'card' ? (

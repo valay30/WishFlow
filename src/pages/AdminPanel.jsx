@@ -393,23 +393,35 @@ export default function AdminPanel() {
                     <>
                         {/* Stats Cards */}
                         <div className="admin-stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1.5rem', marginBottom: '2.5rem' }}>
-                            {[
-                                { val: users.length, label: 'Total Users', icon: Users, bg: '#f5f3ff', color: '#7c3aed' },
-                                { val: totalItemsCount, label: 'Total Items', icon: Package, bg: '#ecfdf5', color: '#10b981' },
-                                { val: premiumCount, label: 'Premium Users', icon: Crown, bg: '#fff7ed', color: '#f59e0b' },
-                                { val: freeCount, label: 'Free Users', icon: Users, bg: '#eff6ff', color: '#3b82f6' },
-                            ].map((s, i) => (
-                                <div key={i} className="admin-stat-card" style={{ background: '#fff', border: '1px solid #f1f5f9', borderRadius: '16px', padding: '1.5rem', display: 'flex', gap: '1.25rem', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -2px rgba(0, 0, 0, 0.02)' }}>
-                                    <div className="admin-stat-icon-wrapper" style={{ width: '48px', height: '48px', borderRadius: '12px', background: s.bg, color: s.color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                                        <s.icon size={24} />
+                            {loadingUsers ? (
+                                Array.from({ length: 4 }).map((_, i) => (
+                                    <div key={i} className="admin-stat-card" style={{ background: '#fff', border: '1px solid #f1f5f9', borderRadius: '16px', padding: '1.5rem', display: 'flex', gap: '1.25rem', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.02)' }}>
+                                        <div className="skeleton-shimmer" style={{ width: '48px', height: '48px', borderRadius: '12px', flexShrink: 0 }} />
+                                        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.5rem', justifyContent: 'center' }}>
+                                            <div className="skeleton-shimmer" style={{ height: '28px', width: '50%' }} />
+                                            <div className="skeleton-shimmer" style={{ height: '14px', width: '80%' }} />
+                                        </div>
                                     </div>
-                                    <div className="admin-stat-text-wrapper" style={{ display: 'flex', flexDirection: 'column' }}>
-                                        <p className="admin-stat-val" style={{ margin: 0, fontSize: '1.75rem', fontWeight: 800, color: '#0f172a', lineHeight: 1 }}>{s.val}</p>
-                                        <p className="admin-stat-label" style={{ margin: '0.4rem 0 0', fontSize: '0.9rem', fontWeight: 700, color: '#334155', lineHeight: 1.2 }}>{s.label}</p>
-                                        {s.sub && <p style={{ margin: '0.2rem 0 0', fontSize: '0.75rem', color: '#64748b' }}>{s.sub}</p>}
+                                ))
+                            ) : (
+                                [
+                                    { val: users.length, label: 'Total Users', icon: Users, bg: '#f5f3ff', color: '#7c3aed' },
+                                    { val: totalItemsCount, label: 'Total Items', icon: Package, bg: '#ecfdf5', color: '#10b981' },
+                                    { val: premiumCount, label: 'Premium Users', icon: Crown, bg: '#fff7ed', color: '#f59e0b' },
+                                    { val: freeCount, label: 'Free Users', icon: Users, bg: '#eff6ff', color: '#3b82f6' },
+                                ].map((s, i) => (
+                                    <div key={i} className="admin-stat-card" style={{ background: '#fff', border: '1px solid #f1f5f9', borderRadius: '16px', padding: '1.5rem', display: 'flex', gap: '1.25rem', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -2px rgba(0, 0, 0, 0.02)' }}>
+                                        <div className="admin-stat-icon-wrapper" style={{ width: '48px', height: '48px', borderRadius: '12px', background: s.bg, color: s.color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                            <s.icon size={24} />
+                                        </div>
+                                        <div className="admin-stat-text-wrapper" style={{ display: 'flex', flexDirection: 'column' }}>
+                                            <p className="admin-stat-val" style={{ margin: 0, fontSize: '1.75rem', fontWeight: 800, color: '#0f172a', lineHeight: 1 }}>{s.val}</p>
+                                            <p className="admin-stat-label" style={{ margin: '0.4rem 0 0', fontSize: '0.9rem', fontWeight: 700, color: '#334155', lineHeight: 1.2 }}>{s.label}</p>
+                                            {s.sub && <p style={{ margin: '0.2rem 0 0', fontSize: '0.75rem', color: '#64748b' }}>{s.sub}</p>}
+                                        </div>
                                     </div>
-                                </div>
-                            ))}
+                                ))
+                            )}
                         </div>
 
                         {/* Table */}
@@ -426,7 +438,31 @@ export default function AdminPanel() {
                             {/* Table Body */}
                             <div style={{ display: 'flex', flexDirection: 'column' }}>
                                 {loadingUsers ? (
-                                    <div style={{ padding: '3rem', textAlign: 'center', color: '#64748b' }}>Loading users...</div>
+                                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                        {Array.from({ length: 6 }).map((_, i) => (
+                                            <div key={i} style={{ display: 'grid', gridTemplateColumns: '2.5fr 2fr 1fr 1fr 2.5fr', padding: '1.25rem 1.5rem', alignItems: 'center', borderBottom: i < 5 ? '1px solid #f1f5f9' : 'none', gap: '1rem' }}>
+                                                {/* User col */}
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                                                    <div className="skeleton-shimmer" style={{ width: '40px', height: '40px', borderRadius: '50%', flexShrink: 0 }} />
+                                                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                                                        <div className="skeleton-shimmer" style={{ height: '13px', width: '65%' }} />
+                                                        <div className="skeleton-shimmer" style={{ height: '11px', width: '40%' }} />
+                                                    </div>
+                                                </div>
+                                                {/* Email col */}
+                                                <div className="skeleton-shimmer" style={{ height: '13px', width: '80%' }} />
+                                                {/* Items col */}
+                                                <div className="skeleton-shimmer" style={{ height: '13px', width: '30px' }} />
+                                                {/* Status col */}
+                                                <div className="skeleton-shimmer" style={{ height: '24px', width: '60px', borderRadius: '99px' }} />
+                                                {/* Actions col */}
+                                                <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+                                                    <div className="skeleton-shimmer" style={{ height: '34px', width: '100px', borderRadius: '8px' }} />
+                                                    <div className="skeleton-shimmer" style={{ height: '34px', width: '80px', borderRadius: '8px' }} />
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
                                 ) : currentUsers.length === 0 ? (
                                     <div style={{ padding: '3rem', textAlign: 'center', color: '#64748b' }}>No users found</div>
                                 ) : (
@@ -593,7 +629,28 @@ export default function AdminPanel() {
 
                             <div style={{ display: 'flex', flexDirection: 'column' }}>
                                 {loadingItems ? (
-                                    <div style={{ padding: '3rem', textAlign: 'center', color: '#64748b' }}>Loading items...</div>
+                                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                        {Array.from({ length: 6 }).map((_, i) => (
+                                            <div key={i} style={{ display: 'grid', gridTemplateColumns: '2fr 1.5fr 1fr 1fr 1fr', padding: '1.25rem 1.5rem', alignItems: 'center', borderBottom: i < 5 ? '1px solid #f1f5f9' : 'none', gap: '1rem' }}>
+                                                {/* Item details col */}
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                                                    <div className="skeleton-shimmer" style={{ width: '48px', height: '48px', borderRadius: '8px', flexShrink: 0 }} />
+                                                    <div className="skeleton-shimmer" style={{ height: '13px', width: '60%' }} />
+                                                </div>
+                                                {/* Created by col */}
+                                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                                                    <div className="skeleton-shimmer" style={{ height: '13px', width: '70%' }} />
+                                                    <div className="skeleton-shimmer" style={{ height: '11px', width: '85%' }} />
+                                                </div>
+                                                {/* Price col */}
+                                                <div className="skeleton-shimmer" style={{ height: '13px', width: '50px' }} />
+                                                {/* Date col */}
+                                                <div className="skeleton-shimmer" style={{ height: '13px', width: '70px' }} />
+                                                {/* Link col */}
+                                                <div className="skeleton-shimmer" style={{ height: '30px', width: '70px', borderRadius: '8px' }} />
+                                            </div>
+                                        ))}
+                                    </div>
                                 ) : currentItems.length === 0 ? (
                                     <div style={{ padding: '3rem', textAlign: 'center', color: '#64748b' }}>
                                         {selectedUserFilter ? 'This user has no items' : 'No items found'}
