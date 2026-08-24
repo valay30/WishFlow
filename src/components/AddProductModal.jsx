@@ -180,7 +180,9 @@ export default function AddProductModal({ categories, onAdd, onClose, shareUrl =
                                 </div>
                             )}
                         </div>
+
                         {/* Collection picker — only shown if user has collections */}
+                        {/*
                         {collections.length > 0 && (
                             <div>
                                 <label style={LABEL_ST}>Add to Collection (optional)</label>
@@ -192,6 +194,8 @@ export default function AddProductModal({ categories, onAdd, onClose, shareUrl =
                                 />
                             </div>
                         )}
+                        */}
+
                         <div style={{ display: 'flex', gap: '0.75rem', paddingTop: '0.25rem' }}>
                             <button type="button" onClick={onClose} style={{ flex: 1, padding: '0.9rem', background: 'var(--surface-2)', color: 'var(--text-dim)', border: `1px solid ${BORDER}`, borderRadius: '14px', fontWeight: 600, fontSize: '0.95rem', cursor: 'pointer', fontFamily: 'inherit' }}>Cancel</button>
                             <button type="submit" disabled={isUploading} style={{ flex: 2, padding: '0.9rem', background: isUploading ? 'rgba(var(--primary-rgb),0.5)' : ORANGE, color: '#fff', border: 'none', borderRadius: '14px', fontWeight: 800, fontSize: '0.95rem', cursor: isUploading ? 'wait' : 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', boxShadow: '0 4px 16px rgba(var(--primary-rgb),0.4)' }}>
