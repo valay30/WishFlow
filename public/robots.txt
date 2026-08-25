@@ -10,4 +10,4 @@ Disallow: /archive
 Disallow: /profile
 Disallow: /admin
 
-Sitemap: https://wishflow.shop/sitemap.xml
+Sitemap: https://www.wishflow.shop/sitemap.xml
