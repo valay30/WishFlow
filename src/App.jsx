@@ -142,6 +142,11 @@ function AppRoutes() {
         <Route path="/shared/collection/:id" element={<SharedCollection />} />
         <Route path="/share-target" element={<ShareTargetPage />} />
 
+        {/* ── Public app routes (with Layout) ── */}
+        <Route element={<Layout />}>
+          <Route path="/discover" element={<Discover />} />
+        </Route>
+
         {/* ── Protected app routes (layout route — no path, uses Outlet) ── */}
         <Route element={<ProtectedRoute />}>
           <Route element={<Layout />}>
@@ -149,7 +154,6 @@ function AppRoutes() {
             <Route path="/add" element={<AddProduct />} />
             <Route path="/categories" element={<Categories />} />
             <Route path="/collections" element={<Collections />} />
-            <Route path="/discover" element={<Discover />} />
             <Route path="/product/:id" element={<ProductDetails />} />
             <Route path="/archive" element={<Archive />} />
             <Route path="/profile" element={<Profile />} />

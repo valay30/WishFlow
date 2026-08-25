@@ -1,6 +1,6 @@
 import { useNavigate, Link } from 'react-router-dom';
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { Bookmark, FolderHeart, Share2, Link2, Tag, Bell, ChevronDown, Star, Zap, Shield, Check } from 'lucide-react';
+import { Bookmark, FolderHeart, Share2, Link2, Tag, Bell, ChevronDown, Star, Zap, Shield, Check, Compass } from 'lucide-react';
 
 /* ─────────────────────────────────────────
    Fonts & Keyframes
@@ -233,16 +233,33 @@ export default function LandingPage() {
                     <WFLogo size={28} />
                     <span style={{ color: '#111', fontWeight: 800, fontSize: '1.1rem', letterSpacing: '-0.01em' }}>WishFlow</span>
                 </div>
-                <button
-                    onClick={() => navigate('/auth')}
-                    style={{
-                        background: '#E85C2C', color: '#fff', border: 'none',
-                        borderRadius: '50px', padding: '0.5rem 1.4rem',
-                        fontWeight: 700, fontSize: '0.9rem', cursor: 'pointer', fontFamily: FONT,
-                    }}
-                >
-                    Get Started
-                </button>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
+                    {!isMobile && (
+                        <Link
+                            to="/discover"
+                            style={{
+                                color: '#444', fontWeight: 600, fontSize: '0.95rem',
+                                textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.4rem',
+                                transition: 'color 0.2s', fontFamily: FONT
+                            }}
+                            onMouseEnter={e => e.currentTarget.style.color = '#E85C2C'}
+                            onMouseLeave={e => e.currentTarget.style.color = '#444'}
+                        >
+                            <Compass size={18} />
+                            Discover
+                        </Link>
+                    )}
+                    <button
+                        onClick={() => navigate('/auth')}
+                        style={{
+                            background: '#E85C2C', color: '#fff', border: 'none',
+                            borderRadius: '50px', padding: '0.5rem 1.4rem',
+                            fontWeight: 700, fontSize: '0.9rem', cursor: 'pointer', fontFamily: FONT,
+                        }}
+                    >
+                        Get Started
+                    </button>
+                </div>
             </nav>
 
             {/* ── HERO SECTION ── */}
@@ -295,12 +312,39 @@ export default function LandingPage() {
                             fontWeight: 700, fontSize: '1rem', cursor: 'pointer', fontFamily: FONT,
                             boxShadow: '0 12px 32px rgba(232,92,44,0.25)', letterSpacing: '-0.01em',
                             transition: 'transform 0.15s',
+                            display: 'block', margin: '0 auto'
                         }}
                         onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
                         onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
                     >
                         Start for Free — No Card Needed
                     </button>
+                    {isMobile && (
+                        <button
+                            onClick={() => navigate('/discover')}
+                            style={{
+                                marginTop: '1rem',
+                                background: '#fff',
+                                color: '#111',
+                                border: '2px solid rgba(0,0,0,0.08)',
+                                borderRadius: '50px',
+                                padding: '0.9rem 2.2rem',
+                                fontWeight: 700,
+                                fontSize: '0.95rem',
+                                cursor: 'pointer',
+                                fontFamily: FONT,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '0.5rem',
+                                margin: '1rem auto 0',
+                                boxShadow: '0 4px 12px rgba(0,0,0,0.03)',
+                            }}
+                        >
+                            <Compass size={18} color="#E85C2C" />
+                            Explore Discover Feed
+                        </button>
+                    )}
                 </div>
 
                 {/* Mobile: Carousel / Desktop: 3 cards row */}

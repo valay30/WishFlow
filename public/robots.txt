@@ -4,7 +4,6 @@ Disallow: /home
 Disallow: /add
 Disallow: /categories
 Disallow: /collections
-Disallow: /discover
 Disallow: /product/
 Disallow: /archive
 Disallow: /profile

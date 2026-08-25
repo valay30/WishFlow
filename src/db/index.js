@@ -730,19 +730,20 @@ export const db = {
       
       const currentUserId = await getUserId();
 
-      // Deduplicate: if the same product link appears more than once (e.g. someone
-      // saved an item from Discover and then re-shared it), only keep the first
-      // occurrence (oldest sharer, since we ordered DESC the array arrives newest-first,
-      // so we keep the LAST occurrence per key — i.e. the original sharer).
-      const seenKeys = new Set();
+      // Deduplicate and count saves: if the same product link appears more than once,
+      // we keep the FIRST occurrence (oldest sharer) and increment a saveCount.
+      const seenKeys = new Map();
       const unique = [];
+      
       // Iterate in reverse so the oldest entry wins when we reverse back
       const reversed = [...(publicItems || [])].reverse();
       for (const item of reversed) {
         const key = item.link ? item.link.trim().toLowerCase() : `__nolink__${item.name?.trim().toLowerCase()}`;
         if (!seenKeys.has(key)) {
-          seenKeys.add(key);
+          seenKeys.set(key, 1);
           unique.push(item);
+        } else {
+          seenKeys.set(key, seenKeys.get(key) + 1);
         }
       }
       // Restore newest-first order
@@ -750,9 +751,11 @@ export const db = {
 
       return unique.map(item => {
         const { user_id, ...rest } = item;
+        const key = item.link ? item.link.trim().toLowerCase() : `__nolink__${item.name?.trim().toLowerCase()}`;
         return {
           ...rest,
-          is_mine: user_id === currentUserId
+          is_mine: user_id === currentUserId,
+          saveCount: seenKeys.get(key) || 1
         };
       });
     },

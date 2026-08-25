@@ -1,6 +1,8 @@
 import { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/useAuth';
 import { db } from '../db';
-import { Search, Package, Compass, Bookmark, X, Globe, Check } from 'lucide-react';
+import { Search, Package, Compass, Bookmark, X, Globe, Check, SlidersHorizontal } from 'lucide-react';
 
 const ORANGE = 'var(--primary)';
 const FONT = "'Inter', 'Segoe UI', sans-serif";
@@ -98,7 +100,7 @@ function DiscoverCard({ item, onSave, isSaving, isSaved }) {
                     </div>
                 )}
 
-                {/* Save button (hidden if item belongs to current user) */}
+                {/* Save button */}
                 {!item.is_mine && (
                     <button
                         id={`save-item-${item.id}`}
@@ -193,10 +195,16 @@ function SkeletonCard() {
    DISCOVER PAGE
 ══════════════════════════════════════ */
 export default function Discover() {
+    const { user } = useAuth();
+    const navigate = useNavigate();
     const [feed, setFeed] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchQ, setSearchQ] = useState('');
     const [activeCategory, setActiveCategory] = useState('all');
+    const [activeSort, setActiveSort] = useState('trending');
+    const [activeStore, setActiveStore] = useState('all');
+    const [activeBudget, setActiveBudget] = useState('all');
+    const [showFilters, setShowFilters] = useState(false);
     const [myItems, setMyItems] = useState([]);
     const [savingItemId, setSavingItemId] = useState(null); // id of item currently saving
     const [showSavedToast, setShowSavedToast] = useState({ show: false, message: '' });
@@ -221,20 +229,54 @@ export default function Discover() {
         }));
     }, [feed]);
 
-    // Filter by search + category
+    // Filter by search + category + advanced filters + sorting
     const filtered = useMemo(() => {
-        let cards = allCards;
+        let cards = [...allCards];
+        
         if (activeCategory !== 'all') {
             cards = cards.filter(c => c.guessedCategory === activeCategory);
         }
+        
         if (searchQ.trim()) {
             const q = searchQ.toLowerCase();
             cards = cards.filter(c => c.name?.toLowerCase().includes(q));
         }
+
+        if (activeStore !== 'all') {
+            cards = cards.filter(c => getStoreName(c.link) === activeStore);
+        }
+
+        if (activeBudget !== 'all') {
+            cards = cards.filter(c => {
+                if (!c.price) return false;
+                if (activeBudget === 'under500') return c.price < 500;
+                if (activeBudget === '500to2000') return c.price >= 500 && c.price <= 2000;
+                if (activeBudget === '2000to5000') return c.price > 2000 && c.price <= 5000;
+                if (activeBudget === 'above5000') return c.price > 5000;
+                return true;
+            });
+        }
+
+        // Sort
+        if (activeSort === 'trending') {
+            cards.sort((a, b) => (b.saveCount || 1) - (a.saveCount || 1));
+        } else if (activeSort === 'newest') {
+            cards.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+        } else if (activeSort === 'priceAsc') {
+            cards.sort((a, b) => (a.price || 0) - (b.price || 0));
+        } else if (activeSort === 'priceDesc') {
+            cards.sort((a, b) => (b.price || 0) - (a.price || 0));
+        }
+
         return cards;
-    }, [allCards, activeCategory, searchQ]);
+    }, [allCards, activeCategory, searchQ, activeStore, activeBudget, activeSort]);
 
     const handleSave = async (item, isCurrentlySaved) => {
+        if (!user) {
+            navigate('/auth', { state: { message: '🔒 Please login / signup to save items' } });
+            return;
+        }
+
         if (savingItemId === item.id) return;
         setSavingItemId(item.id);
         setSaveError('');
@@ -316,34 +358,140 @@ export default function Discover() {
                         </div>
                     </div>
 
-                    {/* Search bar */}
-                    <div style={{ position: 'relative', marginBottom: '1rem' }}>
-                        <Search size={17} color="var(--text-dim)" style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
-                        <input
-                            id="discover-search"
-                            value={searchQ}
-                            onChange={e => setSearchQ(e.target.value)}
-                            placeholder="Search products…"
+                    {/* Search bar and Filters Toggle */}
+                    <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1rem' }}>
+                        <div style={{ position: 'relative', flex: 1 }}>
+                            <Search size={17} color="var(--text-dim)" style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
+                            <input
+                                id="discover-search"
+                                value={searchQ}
+                                onChange={e => setSearchQ(e.target.value)}
+                                placeholder="Search products…"
+                                style={{
+                                    width: '100%', boxSizing: 'border-box',
+                                    padding: '0.75rem 2.75rem 0.75rem 2.75rem',
+                                    borderRadius: '14px', border: '1.5px solid var(--border)',
+                                    background: 'var(--bg)', color: 'var(--text)',
+                                    fontSize: '0.95rem', fontFamily: 'inherit', outline: 'none',
+                                    transition: 'border-color 0.2s',
+                                }}
+                                onFocus={e => e.target.style.borderColor = ORANGE}
+                                onBlur={e => e.target.style.borderColor = 'var(--border)'}
+                            />
+                            {searchQ && (
+                                <button
+                                    onClick={() => setSearchQ('')}
+                                    style={{ position: 'absolute', right: '0.85rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-dim)', display: 'flex' }}
+                                >
+                                    <X size={16} />
+                                </button>
+                            )}
+                        </div>
+                        <button 
+                            onClick={() => setShowFilters(!showFilters)}
                             style={{
-                                width: '100%', boxSizing: 'border-box',
-                                padding: '0.75rem 2.75rem 0.75rem 2.75rem',
-                                borderRadius: '14px', border: '1.5px solid var(--border)',
-                                background: 'var(--bg)', color: 'var(--text)',
-                                fontSize: '0.95rem', fontFamily: 'inherit', outline: 'none',
-                                transition: 'border-color 0.2s',
+                                width: '46px', flexShrink: 0,
+                                borderRadius: '14px', border: `1.5px solid ${showFilters ? ORANGE : 'var(--border)'}`,
+                                background: showFilters ? `rgba(var(--primary-rgb),0.1)` : 'var(--bg)',
+                                color: showFilters ? ORANGE : 'var(--text-dim)',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                cursor: 'pointer', transition: 'all 0.2s',
                             }}
-                            onFocus={e => e.target.style.borderColor = ORANGE}
-                            onBlur={e => e.target.style.borderColor = 'var(--border)'}
-                        />
-                        {searchQ && (
-                            <button
-                                onClick={() => setSearchQ('')}
-                                style={{ position: 'absolute', right: '0.85rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-dim)', display: 'flex' }}
-                            >
-                                <X size={16} />
-                            </button>
-                        )}
+                            title="Advanced Filters"
+                        >
+                            <SlidersHorizontal size={18} />
+                        </button>
                     </div>
+
+                    {/* Advanced Filters Panel */}
+                    {showFilters && (
+                        <div style={{ 
+                            padding: '1.25rem', background: 'var(--bg)', 
+                            borderRadius: '16px', border: '1px solid var(--border)', 
+                            marginBottom: '1rem', display: 'flex', flexDirection: 'column', gap: '1.25rem',
+                            animation: 'disc-fadeIn 0.25s ease'
+                        }}>
+                            {/* Sort */}
+                            <div>
+                                <p style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-dim)', letterSpacing: '0.05em', marginBottom: '0.6rem', marginTop: 0 }}>SORT BY</p>
+                                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                                    {[
+                                        { id: 'trending', label: '🌟 Trending' },
+                                        { id: 'newest', label: '🕒 Newest' },
+                                        { id: 'priceAsc', label: '💵 Price: Low to High' },
+                                        { id: 'priceDesc', label: '💎 Price: High to Low' },
+                                    ].map(s => (
+                                        <button
+                                            key={s.id}
+                                            onClick={() => setActiveSort(s.id)}
+                                            style={{
+                                                padding: '0.4rem 0.85rem', borderRadius: '8px',
+                                                border: `1.5px solid ${activeSort === s.id ? ORANGE : 'var(--border)'}`,
+                                                background: activeSort === s.id ? ORANGE : 'var(--surface)',
+                                                color: activeSort === s.id ? '#fff' : 'var(--text)',
+                                                fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer',
+                                                transition: 'all 0.2s', fontFamily: 'inherit'
+                                            }}
+                                        >
+                                            {s.label}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                            
+                            {/* Budget */}
+                            <div>
+                                <p style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-dim)', letterSpacing: '0.05em', marginBottom: '0.6rem', marginTop: 0 }}>BUDGET</p>
+                                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                                    {[
+                                        { id: 'all', label: 'Any' },
+                                        { id: 'under500', label: 'Under ₹500' },
+                                        { id: '500to2000', label: '₹500 - ₹2,000' },
+                                        { id: '2000to5000', label: '₹2,000 - ₹5,000' },
+                                        { id: 'above5000', label: '₹5,000+' },
+                                    ].map(b => (
+                                        <button
+                                            key={b.id}
+                                            onClick={() => setActiveBudget(b.id)}
+                                            style={{
+                                                padding: '0.4rem 0.85rem', borderRadius: '8px',
+                                                border: `1.5px solid ${activeBudget === b.id ? ORANGE : 'var(--border)'}`,
+                                                background: activeBudget === b.id ? ORANGE : 'var(--surface)',
+                                                color: activeBudget === b.id ? '#fff' : 'var(--text)',
+                                                fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer',
+                                                transition: 'all 0.2s', fontFamily: 'inherit'
+                                            }}
+                                        >
+                                            {b.label}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Store */}
+                            <div>
+                                <p style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-dim)', letterSpacing: '0.05em', marginBottom: '0.6rem', marginTop: 0 }}>STORE</p>
+                                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                                    {['all', 'Amazon', 'Flipkart', 'Myntra', 'Ajio', 'Nykaa'].map(store => (
+                                        <button
+                                            key={store}
+                                            onClick={() => setActiveStore(store)}
+                                            style={{
+                                                padding: '0.4rem 0.85rem', borderRadius: '8px',
+                                                border: `1.5px solid ${activeStore === store ? ORANGE : 'var(--border)'}`,
+                                                background: activeStore === store ? ORANGE : 'var(--surface)',
+                                                color: activeStore === store ? '#fff' : 'var(--text)',
+                                                fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer',
+                                                transition: 'all 0.2s', fontFamily: 'inherit'
+                                            }}
+                                        >
+                                            {store === 'all' ? 'Any' : store}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    )}
 
                     {/* Category filter pills */}
                     <div style={{ display: 'flex', gap: '0.5rem', overflowX: 'auto', paddingBottom: '0.25rem', scrollbarWidth: 'none' }}>

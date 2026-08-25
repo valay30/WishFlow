@@ -109,7 +109,7 @@ const GoogleButton = ({ onClick }) => (
    Main AuthPage
 ───────────────────────────────────────── */
 export default function AuthPage() {
-
+    const location = useLocation();
     const { isDesktop, isTablet } = useResponsive();
     const isLargeScreen = isDesktop || isTablet;
 
@@ -130,6 +130,15 @@ export default function AuthPage() {
 
     const { login, signup, resetPassword, updatePassword, recoveryMode, signInWithGoogle } = useAuth();
     const navigate = useNavigate();
+
+    const [toastMessage, setToastMessage] = useState(location.state?.message || '');
+
+    useEffect(() => {
+        if (toastMessage) {
+            const timer = setTimeout(() => setToastMessage(''), 3000);
+            return () => clearTimeout(timer);
+        }
+    }, [toastMessage]);
 
     useEffect(() => {
         if (recoveryMode) setScreen('reset');
@@ -328,6 +337,24 @@ export default function AuthPage() {
         </div>
     );
 
+    const renderToast = () => {
+        if (!toastMessage) return null;
+        return (
+            <div style={{
+                position: 'fixed', bottom: '2rem', left: '50%', transform: 'translateX(-50%)',
+                background: '#111', color: '#fff', padding: '0.75rem 1.25rem',
+                borderRadius: '12px', fontSize: isLargeScreen ? '0.9rem' : '0.8rem', fontWeight: 600,
+                boxShadow: '0 8px 24px rgba(0,0,0,0.2)', zIndex: 100,
+                animation: 'disc-fadeIn 0.3s ease',
+                whiteSpace: 'nowrap',
+                width: 'max-content',
+                maxWidth: '90vw'
+            }}>
+                {toastMessage}
+            </div>
+        );
+    };
+
     /* ── Desktop Layout ── */
     if (isLargeScreen) {
         return (
@@ -361,6 +388,7 @@ export default function AuthPage() {
                 }}>
                     {renderForm()}
                 </div>
+                {renderToast()}
             </div>
         );
     }
@@ -433,6 +461,7 @@ export default function AuthPage() {
             }}>
                 {renderForm()}
             </div>
+            {renderToast()}
         </div>
     );
 }
