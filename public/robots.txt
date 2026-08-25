@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /
+Disallow: /home
+Disallow: /add
+Disallow: /categories
+Disallow: /collections
+Disallow: /discover
+Disallow: /product/
+Disallow: /archive
+Disallow: /profile
+Disallow: /admin
+
+Sitemap: https://wishflow.shop/sitemap.xml
