@@ -149,6 +149,7 @@ body {
   height: 100%;
   scroll-behavior: auto;
   overflow-x: hidden;
+  overscroll-behavior-y: none; /* Prevents pull-to-refresh in PWA */
 }
 
 body {
@@ -516,6 +517,7 @@ ins.adsbygoogle {
   padding: 1.25rem;
   flex: 1;
   overflow-y: auto;
+  overscroll-behavior-y: none;
 }
 
 @media (min-width: 1024px) {

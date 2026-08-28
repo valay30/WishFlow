@@ -7,59 +7,15 @@ import { Search, Package, Compass, Bookmark, X, Globe, Check, SlidersHorizontal 
 const ORANGE = 'var(--primary)';
 const FONT = "'Inter', 'Segoe UI', sans-serif";
 
-const CATEGORIES = [
-    { id: 'all', label: '✨ All' },
-    { id: 'tech', label: '💻 Tech' },
-    { id: 'fashion', label: '👗 Fashion' },
-    { id: 'home', label: '🏠 Home' },
-    { id: 'beauty', label: '💄 Beauty' },
-    { id: 'books', label: '📚 Books' },
-    { id: 'fitness', label: '🏋️ Fitness' },
-    { id: 'gifts', label: '🎁 Gifts' },
-];
-
-const CATEGORY_KEYWORDS = {
-    tech: ['laptop', 'phone', 'iphone', 'samsung', 'macbook', 'airpod', 'headphone', 'earphone', 'cable', 'charger', 'camera', 'tablet', 'keyboard', 'mouse', 'monitor', 'gpu', 'ram', 'speaker', 'gadget', 'electronic', 'watch', 'smartwatch'],
-    fashion: ['shirt', 'tshirt', 't-shirt', 'jeans', 'trouser', 'kurta', 'dress', 'saree', 'lehenga', 'jacket', 'hoodie', 'sneaker', 'shoe', 'sandal', 'bag', 'handbag', 'purse', 'wallet', 'belt', 'cap', 'hat', 'sunglasses', 'watch', 'jewellery', 'necklace', 'ring', 'earring', 'clothes', 'clothing', 'fashion', 'outfit', 'nike', 'adidas', 'puma', 'levi'],
-    home: ['lamp', 'light', 'bulb', 'sofa', 'chair', 'table', 'desk', 'shelf', 'bed', 'mattress', 'pillow', 'curtain', 'rug', 'carpet', 'decor', 'decoration', 'plant', 'pot', 'kitchen', 'cookware', 'pan', 'pressure cooker', 'blender', 'mixer', 'air purifier', 'fan', 'heater', 'organizer', 'storage'],
-    beauty: ['serum', 'moisturizer', 'sunscreen', 'lipstick', 'mascara', 'foundation', 'concealer', 'toner', 'cleanser', 'shampoo', 'conditioner', 'perfume', 'deodorant', 'lotion', 'cream', 'skincare', 'makeup', 'beauty', 'hair oil', 'face mask'],
-    books: ['book', 'novel', 'textbook', 'fiction', 'non-fiction', 'biography', 'autobiography', 'self-help', 'comic', 'manga', 'kindle', 'reader'],
-    fitness: ['protein', 'supplement', 'dumbbell', 'barbell', 'band', 'yoga mat', 'gym', 'fitness', 'treadmill', 'cycle', 'whey', 'creatine', 'pre-workout', 'bottle', 'shaker'],
-};
-
-function guessCategory(name) {
-    const lower = (name || '').toLowerCase();
-    for (const [cat, keywords] of Object.entries(CATEGORY_KEYWORDS)) {
-        if (keywords.some(kw => lower.includes(kw))) return cat;
-    }
-    return 'gifts'; // fallback
-}
-
 function fmt(n) {
     if (!n || n <= 0) return null;
     return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(n);
-}
-
-function getStoreName(link) {
-    if (!link) return null;
-    try {
-        const host = new URL(link).hostname.replace('www.', '');
-        if (host.includes('amazon')) return 'Amazon';
-        if (host.includes('flipkart')) return 'Flipkart';
-        if (host.includes('myntra')) return 'Myntra';
-        if (host.includes('meesho')) return 'Meesho';
-        if (host.includes('ajio')) return 'Ajio';
-        if (host.includes('nykaa')) return 'Nykaa';
-        if (host.includes('snapdeal')) return 'Snapdeal';
-        return host.split('.')[0].charAt(0).toUpperCase() + host.split('.')[0].slice(1);
-    } catch { return null; }
 }
 
 /* ── Product card for Discover feed ── */
 function DiscoverCard({ item, onSave, isSaving, isSaved }) {
     const [hovered, setHovered] = useState(false);
     const price = fmt(item.price);
-    const store = getStoreName(item.link);
 
     return (
         <div
@@ -88,17 +44,6 @@ function DiscoverCard({ item, onSave, isSaving, isSaved }) {
                     : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Package size={40} color="var(--border)" /></div>
                 }
 
-                {/* Store badge */}
-                {store && (
-                    <div style={{
-                        position: 'absolute', top: '0.6rem', left: '0.6rem',
-                        background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(6px)',
-                        color: '#fff', fontSize: '0.7rem', fontWeight: 700,
-                        padding: '0.2rem 0.55rem', borderRadius: '99px',
-                    }}>
-                        {store}
-                    </div>
-                )}
 
                 {/* Save button */}
                 {!item.is_mine && (
@@ -225,25 +170,16 @@ export default function Discover() {
     const allCards = useMemo(() => {
         return feed.map(item => ({
             ...item,
-            guessedCategory: guessCategory(item.name),
         }));
     }, [feed]);
 
     // Filter by search + category + advanced filters + sorting
     const filtered = useMemo(() => {
         let cards = [...allCards];
-        
-        if (activeCategory !== 'all') {
-            cards = cards.filter(c => c.guessedCategory === activeCategory);
-        }
-        
+
         if (searchQ.trim()) {
             const q = searchQ.toLowerCase();
             cards = cards.filter(c => c.name?.toLowerCase().includes(q));
-        }
-
-        if (activeStore !== 'all') {
-            cards = cards.filter(c => getStoreName(c.link) === activeStore);
         }
 
         if (activeBudget !== 'all') {
@@ -387,7 +323,7 @@ export default function Discover() {
                                 </button>
                             )}
                         </div>
-                        <button 
+                        <button
                             onClick={() => setShowFilters(!showFilters)}
                             style={{
                                 width: '46px', flexShrink: 0,
@@ -405,9 +341,9 @@ export default function Discover() {
 
                     {/* Advanced Filters Panel */}
                     {showFilters && (
-                        <div style={{ 
-                            padding: '1.25rem', background: 'var(--bg)', 
-                            borderRadius: '16px', border: '1px solid var(--border)', 
+                        <div style={{
+                            padding: '1.25rem', background: 'var(--bg)',
+                            borderRadius: '16px', border: '1px solid var(--border)',
                             marginBottom: '1rem', display: 'flex', flexDirection: 'column', gap: '1.25rem',
                             animation: 'disc-fadeIn 0.25s ease'
                         }}>
@@ -438,7 +374,7 @@ export default function Discover() {
                                     ))}
                                 </div>
                             </div>
-                            
+
                             {/* Budget */}
                             <div>
                                 <p style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-dim)', letterSpacing: '0.05em', marginBottom: '0.6rem', marginTop: 0 }}>BUDGET</p>
@@ -468,54 +404,11 @@ export default function Discover() {
                                 </div>
                             </div>
 
-                            {/* Store */}
-                            <div>
-                                <p style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-dim)', letterSpacing: '0.05em', marginBottom: '0.6rem', marginTop: 0 }}>STORE</p>
-                                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                                    {['all', 'Amazon', 'Flipkart', 'Myntra', 'Ajio', 'Nykaa'].map(store => (
-                                        <button
-                                            key={store}
-                                            onClick={() => setActiveStore(store)}
-                                            style={{
-                                                padding: '0.4rem 0.85rem', borderRadius: '8px',
-                                                border: `1.5px solid ${activeStore === store ? ORANGE : 'var(--border)'}`,
-                                                background: activeStore === store ? ORANGE : 'var(--surface)',
-                                                color: activeStore === store ? '#fff' : 'var(--text)',
-                                                fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer',
-                                                transition: 'all 0.2s', fontFamily: 'inherit'
-                                            }}
-                                        >
-                                            {store === 'all' ? 'Any' : store}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
+
                         </div>
                     )}
 
-                    {/* Category filter pills */}
-                    <div style={{ display: 'flex', gap: '0.5rem', overflowX: 'auto', paddingBottom: '0.25rem', scrollbarWidth: 'none' }}>
-                        {CATEGORIES.map(cat => (
-                            <button
-                                key={cat.id}
-                                onClick={() => setActiveCategory(cat.id)}
-                                style={{
-                                    padding: '0.4rem 0.9rem',
-                                    borderRadius: '99px',
-                                    border: `1.5px solid ${activeCategory === cat.id ? ORANGE : 'var(--border)'}`,
-                                    background: activeCategory === cat.id ? `rgba(var(--primary-rgb),0.1)` : 'var(--bg)',
-                                    color: activeCategory === cat.id ? ORANGE : 'var(--text-dim)',
-                                    fontWeight: activeCategory === cat.id ? 800 : 600,
-                                    fontSize: '0.8rem', cursor: 'pointer',
-                                    fontFamily: 'inherit', whiteSpace: 'nowrap',
-                                    transition: 'all 0.2s',
-                                    flexShrink: 0,
-                                }}
-                            >
-                                {cat.label}
-                            </button>
-                        ))}
-                    </div>
+
                 </div>
             </div>
 
