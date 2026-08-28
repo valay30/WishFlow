@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, lazy, Suspense } from 'react';
 import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { processSyncQueue } from './db/syncQueue';
 import { Analytics } from '@vercel/analytics/react';
@@ -7,24 +7,51 @@ import { useAuth } from './context/useAuth';
 import { SettingsProvider } from './context/SettingsContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout';
-import AuthPage from './pages/AuthPage';
-import Home from './pages/Home';
-import AddProduct from './pages/AddProduct';
-import Categories from './pages/Categories';
-import ProductDetails from './pages/ProductDetails';
-import Profile from './pages/Profile';
-import Archive from './pages/Archive';
-import AdminPanel from './pages/AdminPanel';
-import Collections from './pages/Collections';
-import OnboardingFlow from './components/OnboardingFlow';
-import LandingPage from './pages/LandingPage';
-import Privacy from './pages/Privacy';
-import Terms from './pages/Terms';
-import Refund from './pages/Refund';
 import OfflinePage from './pages/OfflinePage';
-import SharedCollection from './pages/SharedCollection';
-import ShareTargetPage from './pages/ShareTargetPage';
-import Discover from './pages/Discover';
+import OnboardingFlow from './components/OnboardingFlow';
+
+// ── Lazy-loaded page chunks ──────────────────────────────────────────────────
+// Each page is split into its own chunk and only downloaded when first visited.
+const AuthPage         = lazy(() => import('./pages/AuthPage'));
+const Home             = lazy(() => import('./pages/Home'));
+const AddProduct       = lazy(() => import('./pages/AddProduct'));
+const Categories       = lazy(() => import('./pages/Categories'));
+const ProductDetails   = lazy(() => import('./pages/ProductDetails'));
+const Profile          = lazy(() => import('./pages/Profile'));
+const Archive          = lazy(() => import('./pages/Archive'));
+const AdminPanel       = lazy(() => import('./pages/AdminPanel'));
+const Collections      = lazy(() => import('./pages/Collections'));
+const LandingPage      = lazy(() => import('./pages/LandingPage'));
+const Privacy          = lazy(() => import('./pages/Privacy'));
+const Terms            = lazy(() => import('./pages/Terms'));
+const Refund           = lazy(() => import('./pages/Refund'));
+const SharedCollection = lazy(() => import('./pages/SharedCollection'));
+const ShareTargetPage  = lazy(() => import('./pages/ShareTargetPage'));
+const Discover         = lazy(() => import('./pages/Discover'));
+// ────────────────────────────────────────────────────────────────────────────
+
+/** Minimal full-screen spinner shown while a lazy page chunk is loading */
+function PageLoader() {
+  return (
+    <div style={{
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      minHeight: '100dvh',
+      background: 'var(--bg)',
+    }}>
+      <div style={{
+        width: 36,
+        height: 36,
+        border: '3px solid var(--border)',
+        borderTopColor: 'var(--primary)',
+        borderRadius: '50%',
+        animation: 'spin 0.7s linear infinite',
+      }} />
+    </div>
+  );
+}
+
 function ScrollToTop() {
   const { pathname } = useLocation();
 
@@ -121,47 +148,49 @@ function AppRoutes() {
 
   return (
     <>
-      <Routes>
-        {/* ── Public routes ── */}
-        <Route path="/" element={user ? <Navigate to="/home" replace /> : <LandingPage />} />
-        <Route path="/auth" element={
-          (user && !recoveryMode)
-            ? (() => {
-                const hasUpgradeIntent = sessionStorage.getItem('upgradeIntent') === '1';
-                if (hasUpgradeIntent) {
-                  sessionStorage.removeItem('upgradeIntent');
-                  return <Navigate to="/profile?upgrade=true" replace />;
-                }
-                return <Navigate to="/home" replace />;
-              })()
-            : <AuthPage />
-        } />
-        <Route path="/privacy" element={<Privacy />} />
-        <Route path="/terms" element={<Terms />} />
-        <Route path="/refund" element={<Refund />} />
-        <Route path="/shared/collection/:id" element={<SharedCollection />} />
-        <Route path="/share-target" element={<ShareTargetPage />} />
+      <Suspense fallback={<PageLoader />}>
+        <Routes>
+          {/* ── Public routes ── */}
+          <Route path="/" element={user ? <Navigate to="/home" replace /> : <LandingPage />} />
+          <Route path="/auth" element={
+            (user && !recoveryMode)
+              ? (() => {
+                  const hasUpgradeIntent = sessionStorage.getItem('upgradeIntent') === '1';
+                  if (hasUpgradeIntent) {
+                    sessionStorage.removeItem('upgradeIntent');
+                    return <Navigate to="/profile?upgrade=true" replace />;
+                  }
+                  return <Navigate to="/home" replace />;
+                })()
+              : <AuthPage />
+          } />
+          <Route path="/privacy" element={<Privacy />} />
+          <Route path="/terms" element={<Terms />} />
+          <Route path="/refund" element={<Refund />} />
+          <Route path="/shared/collection/:id" element={<SharedCollection />} />
+          <Route path="/share-target" element={<ShareTargetPage />} />
 
-        {/* ── Public app routes (with Layout) ── */}
-        <Route element={<Layout />}>
-          <Route path="/discover" element={<Discover />} />
-        </Route>
-
-        {/* ── Protected app routes (layout route — no path, uses Outlet) ── */}
-        <Route element={<ProtectedRoute />}>
+          {/* ── Public app routes (with Layout) ── */}
           <Route element={<Layout />}>
-            <Route path="/home" element={<Home />} />
-            <Route path="/add" element={<AddProduct />} />
-            <Route path="/categories" element={<Categories />} />
-            <Route path="/collections" element={<Collections />} />
-            <Route path="/product/:id" element={<ProductDetails />} />
-            <Route path="/archive" element={<Archive />} />
-            <Route path="/profile" element={<Profile />} />
+            <Route path="/discover" element={<Discover />} />
           </Route>
-          {/* Admin — own full-page layout */}
-          <Route path="/admin" element={<AdminPanel />} />
-        </Route>
-      </Routes>
+
+          {/* ── Protected app routes (layout route — no path, uses Outlet) ── */}
+          <Route element={<ProtectedRoute />}>
+            <Route element={<Layout />}>
+              <Route path="/home" element={<Home />} />
+              <Route path="/add" element={<AddProduct />} />
+              <Route path="/categories" element={<Categories />} />
+              <Route path="/collections" element={<Collections />} />
+              <Route path="/product/:id" element={<ProductDetails />} />
+              <Route path="/archive" element={<Archive />} />
+              <Route path="/profile" element={<Profile />} />
+            </Route>
+            {/* Admin — own full-page layout */}
+            <Route path="/admin" element={<AdminPanel />} />
+          </Route>
+        </Routes>
+      </Suspense>
 
       {/* Onboarding overlay — shown only once after first signup */}
       {isNewSignup && <OnboardingFlow onComplete={clearNewSignup} />}
@@ -182,3 +211,5 @@ function App() {
 }
 
 export default App;
+
+

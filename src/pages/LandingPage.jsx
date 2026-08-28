@@ -6,13 +6,12 @@ import { Bookmark, FolderHeart, Share2, Link2, Tag, Bell, ChevronDown, Star, Zap
    Fonts & Keyframes
 ───────────────────────────────────────── */
 const KEYFRAMES = `
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap');
 @keyframes lp-fadeIn { from{opacity:0;transform:translateY(18px)} to{opacity:1;transform:translateY(0)} }
 @keyframes lp-glow { 0%,100%{opacity:.5;transform:scale(1)} 50%{opacity:.8;transform:scale(1.07)} }
 @keyframes lp-float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
 @keyframes lp-pulse { 0%,100%{opacity:1} 50%{opacity:0.6} }
 `;
-const FONT = '"Outfit", sans-serif';
+const FONT = '"Outfit Variable", "Outfit", sans-serif';
 
 /* ─────────────────────────────────────────
    Feature Cards Data
@@ -411,7 +410,7 @@ export default function LandingPage() {
                 {isMobile && (
                     <div style={{ display: 'flex', gap: '0.4rem', zIndex: 2, marginTop: '1rem', marginBottom: '1.5rem' }}>
                         {FEATURES.map((_, i) => (
-                            <button key={i} onClick={() => { setActiveSlide(i); resetAuto(); }} style={{ width: i === activeSlide ? '1.75rem' : '0.45rem', height: '0.45rem', borderRadius: '99px', background: i === activeSlide ? '#E85C2C' : 'rgba(0,0,0,0.1)', border: 'none', cursor: 'pointer', transition: 'all 0.3s ease', padding: 0 }} />
+                            <button key={i} onClick={() => { setActiveSlide(i); resetAuto(); }} aria-label={`Go to slide ${i + 1}`} aria-current={i === activeSlide ? 'true' : undefined} style={{ width: i === activeSlide ? '1.75rem' : '0.45rem', height: '0.45rem', borderRadius: '99px', background: i === activeSlide ? '#E85C2C' : 'rgba(0,0,0,0.1)', border: 'none', cursor: 'pointer', transition: 'all 0.3s ease', padding: 0 }} />
                         ))}
                     </div>
                 )}

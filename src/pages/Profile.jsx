@@ -4,12 +4,13 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
 import { LogOut, User, ArrowLeft, Settings, Shield, ShieldCheck, Bell, LayoutGrid, List as ListIcon, FolderHeart, ChevronDown, ChevronUp, Crown, Lock, Check, X } from 'lucide-react';
 import { useSettings } from '../context/SettingsContext';
-import { db } from '../db';
+import { db, supabase } from '../db';
 import TierBadgeCard from '../components/TierBadgeCard';
 import AlertModal from '../components/AlertModal';
 import CustomSelect from '../components/CustomSelect';
 import { API_URL, APP_VERSION } from '../config';
 import { subscribeToPushNotifications } from '../utils/pushNotifications';
+import { loadRazorpay } from '../utils/loadRazorpay';
 
 const ORANGE = 'var(--primary)';
 const SURFACE = 'var(--surface)';
@@ -95,6 +96,9 @@ export default function Profile() {
         if (isUpgrading) return;
         setIsUpgrading(true);
         try {
+            const loaded = await loadRazorpay();
+            if (!loaded) throw new Error('Failed to load Razorpay SDK');
+
             const orderRes = await fetch(`${API_URL}/api/payment/create-order`, { method: 'POST' });
             const orderData = await orderRes.json();
 
@@ -121,7 +125,6 @@ export default function Profile() {
                     if (verificationData.success) {
                         // Force session refresh so the new JWT with is_premium=true is downloaded
                         try {
-                            const { supabase } = await import('../db');
                             await supabase.auth.refreshSession();
                         } catch (err) {
                             console.error('Failed to refresh session:', err);

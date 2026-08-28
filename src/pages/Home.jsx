@@ -12,6 +12,7 @@ import SkeletonCard from '../components/SkeletonCard';
 import confetti from 'canvas-confetti';
 import AlertModal from '../components/AlertModal';
 import { API_URL } from '../config';
+import { loadRazorpay } from '../utils/loadRazorpay';
 
 const ORANGE = 'var(--primary)';
 const SURFACE = 'var(--surface)';
@@ -179,6 +180,9 @@ export default function Home() {
 
     const handleUpgradeToPremium = async () => {
         try {
+            const loaded = await loadRazorpay();
+            if (!loaded) throw new Error('Failed to load Razorpay SDK');
+
             const orderRes = await fetch(`${API_URL}/api/payment/create-order`, { method: 'POST' });
             const orderData = await orderRes.json();
 

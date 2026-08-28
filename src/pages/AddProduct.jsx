@@ -5,6 +5,7 @@ import { Upload, X, ArrowLeft, Sparkles, Crown } from 'lucide-react';
 import { useAuth } from '../context/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { API_URL } from '../config';
+import { loadRazorpay } from '../utils/loadRazorpay';
 import AlertModal from '../components/AlertModal';
 import { useSettings } from '../context/SettingsContext';
 import CustomSelect from '../components/CustomSelect';
@@ -62,6 +63,9 @@ export default function AddProduct() {
 
     const handleUpgradeToPremium = async () => {
         try {
+            const loaded = await loadRazorpay();
+            if (!loaded) throw new Error('Failed to load Razorpay SDK');
+
             const orderRes = await fetch(`${API_URL}/api/payment/create-order`, { method: 'POST' });
             const orderData = await orderRes.json();
 
