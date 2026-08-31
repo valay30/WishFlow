@@ -519,11 +519,13 @@ export const extractMetadata = async (req, res) => {
         // For difficult domains we race them — whoever returns usable data first wins.
         // For easy domains we only do a direct fetch (proxy is a costly no-op).
         const directPromise = fetchDirect(url, 7000).catch(() => null);
-        const proxyPromise  = isDifficultDomain ? fetchViaProxy(url) : Promise.resolve(null);
+        // CRITICAL: MUST have .catch() attached immediately to prevent UnhandledRejection crashes!
+        const proxyPromise  = isDifficultDomain ? fetchViaProxy(url).catch(() => null) : Promise.resolve(null);
 
         // ── Hard wall-clock timeout (13 s) — client should NEVER hang longer ──
+        let hardTimeoutId;
         const HARD_TIMEOUT = new Promise((_, reject) =>
-            setTimeout(() => reject(new Error('Hard timeout exceeded')), 13000)
+            hardTimeoutId = setTimeout(() => reject(new Error('Hard timeout exceeded')), 13000)
         );
 
         // ── Step 2: Await the direct fetch (proxy continues in background) ────
@@ -532,6 +534,8 @@ export const extractMetadata = async (req, res) => {
             directResult = await Promise.race([directPromise, HARD_TIMEOUT]);
         } catch {
             // Hard timeout hit or direct fetch failed
+        } finally {
+            clearTimeout(hardTimeoutId);
         }
 
         let html      = directResult?.html      || '';
@@ -564,7 +568,13 @@ export const extractMetadata = async (req, res) => {
         // ── Step 5: If page looks blocked, merge in proxy data ───────────────
         // The proxy was already running in background — just await it (cheap, not a new call)
         if (isPageBlocked(raw, html)) {
-            const proxyData = await Promise.race([proxyPromise, new Promise(res => setTimeout(() => res(null), 6000))]);
+            let proxyTimerId;
+            const proxyData = await Promise.race([
+                proxyPromise, 
+                new Promise(res => proxyTimerId = setTimeout(() => res(null), 6000))
+            ]);
+            clearTimeout(proxyTimerId);
+            
             if (proxyData) {
                 const titleIsGarbage = !raw.title || raw.title.toLowerCase() === 'amazon.in' || raw.title.toLowerCase().includes('robot check');
                 if (proxyData.title && titleIsGarbage)   raw.title       = proxyData.title;
@@ -575,12 +585,14 @@ export const extractMetadata = async (req, res) => {
         }
 
         // ── Step 6: Run Gemini with a 6s deadline (fail-fast, not fail-slow) ──
+        let geminiTimerId;
         const geminiWithTimeout = Promise.race([
-            geminiNormalize(raw, categories || [], collections || []),
-            new Promise(resolve => setTimeout(() => resolve(null), 6000)),
+            geminiNormalize(raw, categories || [], collections || []).catch(() => null),
+            new Promise(resolve => geminiTimerId = setTimeout(() => resolve(null), 6000)),
         ]);
 
         const geminiResult = await geminiWithTimeout;
+        clearTimeout(geminiTimerId);
 
         // ── Step 7: Build and cache the response ─────────────────────────────
         const matchedCat = (categories || []).find(c => c.id === geminiResult?.categoryId);
