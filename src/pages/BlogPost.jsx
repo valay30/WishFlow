@@ -267,6 +267,15 @@ export default function BlogPost() {
       {/* ── Article Body ── */}
       <div style={{ maxWidth: '780px', margin: '0 auto', padding: '3rem 1.5rem' }}>
         <article>
+          {/* Top-of-article ad — highest revenue position */}
+          <div style={{ margin: '0 0 2.5rem' }}>
+            <AdUnit
+              slot="5218446276"
+              format="horizontal"
+              style={{ minHeight: '90px', borderRadius: '12px' }}
+            />
+          </div>
+
           {post.content.map((section, i) => (
             <ContentSection key={i} section={section} postIndex={i} />
           ))}
@@ -315,7 +324,7 @@ export default function BlogPost() {
 
         {/* Bottom Ad */}
         <div style={{ margin: '2.5rem 0' }}>
-          <AdUnit slot="YOUR_AD_SLOT_ID" style={{ minHeight: '90px', borderRadius: '12px' }} />
+          <AdUnit slot="5218446276" style={{ minHeight: '90px', borderRadius: '12px' }} />
         </div>
       </div>
 
