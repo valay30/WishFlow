@@ -1,14 +1,11 @@
 import * as cheerio from 'cheerio';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
-// ── Gemini candidate models with automatic fallback ──────────────────────────
+// ── Gemini candidate models — race them ALL in parallel, take first success ───
 const CANDIDATE_MODELS = [
     'gemini-1.5-flash',
-    'gemini-1.5-flash-latest',
     'gemini-2.0-flash',
-    'gemini-2.0-flash-exp',
-    'gemini-1.5-pro',
-    'gemini-pro',
+    'gemini-1.5-flash-latest',
 ];
 
 async function generateWithGemini(prompt) {
@@ -17,18 +14,25 @@ async function generateWithGemini(prompt) {
 
     const genAI = new GoogleGenerativeAI(apiKey);
 
-    for (const modelName of CANDIDATE_MODELS) {
+    // Fire all models at the same time — return whichever responds first
+    const modelRaces = CANDIDATE_MODELS.map(async (modelName) => {
         try {
             const model = genAI.getGenerativeModel({ model: modelName });
             const result = await model.generateContent(prompt);
             const text = result.response.text().trim();
             if (text) return text;
+            throw new Error('empty response');
         } catch (err) {
-            // If model is 404 or unsupported on current API tier, try next candidate
-            console.warn(`Gemini model ${modelName} failed (${err.message}). Trying next candidate...`);
+            throw new Error(`${modelName}: ${err.message}`);
         }
+    });
+
+    try {
+        return await Promise.any(modelRaces);
+    } catch {
+        // All models failed
+        return null;
     }
-    return null;
 }
 
 // ── Browser-like headers to bypass anti-bot detection ────────────────────────
@@ -423,58 +427,120 @@ Return ONLY this JSON (no markdown, no explanation):
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// IN-MEMORY CACHE (TTL: 10 minutes)
+// ═══════════════════════════════════════════════════════════════════════════════
+const scrapeCache = new Map();
+const CACHE_TTL_MS = 10 * 60 * 1000;
+
+function getCached(url) {
+    const entry = scrapeCache.get(url);
+    if (!entry) return null;
+    if (Date.now() - entry.ts > CACHE_TTL_MS) { scrapeCache.delete(url); return null; }
+    return entry.data;
+}
+
+function setCached(url, data) {
+    scrapeCache.set(url, { data, ts: Date.now() });
+    // Prevent unbounded growth
+    if (scrapeCache.size > 500) {
+        const firstKey = scrapeCache.keys().next().value;
+        scrapeCache.delete(firstKey);
+    }
+}
+
+// ── Helper: fetch HTML directly ───────────────────────────────────────────────
+async function fetchDirect(url, timeoutMs = 7000) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+        const res = await fetch(url, {
+            headers: BROWSER_HEADERS,
+            redirect: 'follow',
+            signal: controller.signal,
+        });
+        clearTimeout(timer);
+        const finalUrl = res.url || url;
+        const hostname = (() => { try { return new URL(finalUrl).hostname.toLowerCase(); } catch { return new URL(url).hostname.toLowerCase(); } })();
+        const html = await res.text();
+        return { html, finalUrl, hostname };
+    } catch (err) {
+        clearTimeout(timer);
+        throw err;
+    }
+}
+
+// ── Assemble raw data from parsed HTML ───────────────────────────────────────
+function assembleRaw($, hostname, finalUrl) {
+    const jsonLd = extractJsonLd($);
+    const meta = extractMeta($);
+    const siteSpecific = extractSiteSpecific($, hostname, finalUrl);
+    const nextData = extractNextData($);
+
+    const raw = {
+        title: jsonLd.title || nextData.title || siteSpecific.title || meta.title || '',
+        price: jsonLd.price || nextData.price || parsePrice(siteSpecific.priceText) || parsePrice(meta.price) || null,
+        currency: jsonLd.currency || nextData.currency || meta.currency || null,
+        image: jsonLd.image || nextData.image || siteSpecific.image || meta.image || null,
+        description: meta.description || '',
+        priceText: siteSpecific.priceText || '',
+        site: hostname,
+    };
+    if (raw.image) raw.image = resolveImageUrl(raw.image, finalUrl);
+    return raw;
+}
+
+// ── Check if the page looks blocked / CAPTCHA ────────────────────────────────
+function isPageBlocked(raw, html) {
+    return !raw.title ||
+        raw.title.toLowerCase() === 'amazon.in' ||
+        raw.title.toLowerCase().includes('robot check') ||
+        html.includes('api-services-support@amazon.com') ||
+        html.includes('Enter the characters you see below') ||
+        (!raw.price && !raw.image);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // MAIN CONTROLLER
 // ═══════════════════════════════════════════════════════════════════════════════
 export const extractMetadata = async (req, res) => {
     let { url, categories, collections } = req.body;
     if (!url) return res.status(400).json({ error: 'URL is required' });
 
+    // ── Cache hit → instant response ─────────────────────────────────────────
+    const cached = getCached(url);
+    if (cached) {
+        return res.json({ ...cached, source: 'cache' });
+    }
+
     try {
-        // Optimization: Start proxy fetch concurrently for domains that aggressively block cloud IPs.
-        // This avoids waiting for a timeout or block on the direct fetch, saving 5-10 seconds in production.
         const isDifficultDomain = /amazon|amzn|a\.co|flipkart|fkrt|myntra/i.test(url);
-        let proxyPromise = null;
-        if (isDifficultDomain) {
-            proxyPromise = fetchViaProxy(url);
-        }
 
-        // Fetch HTML with browser headers, 7s timeout
-        // (This automatically follows redirects, replacing unshortenUrl)
-        const controller = new AbortController();
-        const fetchTimeout = setTimeout(() => controller.abort(), 7000);
+        // ── Step 1: Start BOTH direct fetch and proxy fetch in parallel ───────
+        // For difficult domains we race them — whoever returns usable data first wins.
+        // For easy domains we only do a direct fetch (proxy is a costly no-op).
+        const directPromise = fetchDirect(url, 7000).catch(() => null);
+        const proxyPromise  = isDifficultDomain ? fetchViaProxy(url) : Promise.resolve(null);
 
-        let html = '';
-        let finalUrl = url;
-        let hostname = '';
+        // ── Hard wall-clock timeout (13 s) — client should NEVER hang longer ──
+        const HARD_TIMEOUT = new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('Hard timeout exceeded')), 13000)
+        );
+
+        // ── Step 2: Await the direct fetch (proxy continues in background) ────
+        let directResult = null;
         try {
-            const fetchRes = await fetch(url, {
-                headers: BROWSER_HEADERS,
-                redirect: 'follow',
-                signal: controller.signal,
-            });
-            clearTimeout(fetchTimeout);
-            finalUrl = fetchRes.url || url;
-            try {
-                hostname = new URL(finalUrl).hostname.toLowerCase();
-            } catch {
-                hostname = new URL(url).hostname.toLowerCase();
-            }
-            html = await fetchRes.text();
-        } catch (fetchErr) {
-            clearTimeout(fetchTimeout);
-            if (fetchErr.name === 'AbortError' && !isDifficultDomain) {
-                return res.status(408).json({ error: 'Site took too long to respond' });
-            }
-            // If it's a difficult domain, we ignore fetch errors and rely on the proxy fallback.
-            if (!isDifficultDomain) {
-                throw fetchErr;
-            }
+            directResult = await Promise.race([directPromise, HARD_TIMEOUT]);
+        } catch {
+            // Hard timeout hit or direct fetch failed
         }
 
-        // Step 3: Parse HTML
+        let html      = directResult?.html      || '';
+        let finalUrl  = directResult?.finalUrl  || url;
+        let hostname  = directResult?.hostname  || (() => { try { return new URL(url).hostname.toLowerCase(); } catch { return ''; } })();
+
+        // ── Step 3: Parse HTML + check for meta-refresh redirect ─────────────
         let $ = cheerio.load(html);
 
-        // Check if page contains a meta refresh redirect
         const metaRefresh = $('meta[http-equiv="refresh"]').attr('content');
         if (metaRefresh) {
             const match = metaRefresh.match(/url=['"]?([^'"\s>]+)/i);
@@ -482,10 +548,7 @@ export const extractMetadata = async (req, res) => {
                 try {
                     const redirectTarget = new URL(match[1], finalUrl).href;
                     if (!redirectTarget.includes(finalUrl)) {
-                        const rRes = await fetch(redirectTarget, {
-                            headers: BROWSER_HEADERS,
-                            redirect: 'follow',
-                        });
+                        const rRes = await fetch(redirectTarget, { headers: BROWSER_HEADERS, redirect: 'follow' });
                         finalUrl = rRes.url || redirectTarget;
                         hostname = new URL(finalUrl).hostname.toLowerCase();
                         html = await rRes.text();
@@ -495,91 +558,69 @@ export const extractMetadata = async (req, res) => {
             }
         }
 
-        // Step 4: Multi-tiered extraction
-        const jsonLd = extractJsonLd($);
-        const meta = extractMeta($);
-        const siteSpecific = extractSiteSpecific($, hostname, finalUrl);
-        const nextData = extractNextData($);
+        // ── Step 4: Extract raw data from parsed HTML ────────────────────────
+        let raw = assembleRaw($, hostname, finalUrl);
 
-        // Step 5: Merge with priority: JSON-LD > Next.js data > Site selectors > OpenGraph
-        const raw = {
-            title: jsonLd.title || nextData.title || siteSpecific.title || meta.title || '',
-            price: jsonLd.price || nextData.price || parsePrice(siteSpecific.priceText) || parsePrice(meta.price) || null,
-            currency: jsonLd.currency || nextData.currency || meta.currency || null,
-            image: jsonLd.image || nextData.image || siteSpecific.image || meta.image || null,
-            description: meta.description || '',
-            priceText: siteSpecific.priceText || '',
-            site: hostname,
-        };
-
-        // Fix image URL
-        if (raw.image) raw.image = resolveImageUrl(raw.image, finalUrl);
-
-        // Step 5.1: If page is a CAPTCHA / anti-bot block (common on cloud servers like Render/AWS/Vercel)
-        const isBlocked = !raw.title ||
-            raw.title.toLowerCase() === 'amazon.in' ||
-            raw.title.toLowerCase().includes('robot check') ||
-            html.includes('api-services-support@amazon.com') ||
-            html.includes('Enter the characters you see below') ||
-            (!raw.price && !raw.image);
-
-        if (isBlocked) {
-            const proxyData = proxyPromise ? await proxyPromise : await fetchViaProxy(finalUrl);
+        // ── Step 5: If page looks blocked, merge in proxy data ───────────────
+        // The proxy was already running in background — just await it (cheap, not a new call)
+        if (isPageBlocked(raw, html)) {
+            const proxyData = await Promise.race([proxyPromise, new Promise(res => setTimeout(() => res(null), 6000))]);
             if (proxyData) {
-                if (proxyData.title && (raw.title.toLowerCase() === 'amazon.in' || raw.title.toLowerCase().includes('robot check') || !raw.title)) {
-                    raw.title = proxyData.title;
-                }
-                if (proxyData.description) {
-                    raw.description = proxyData.description;
-                }
-                if (proxyData.image && !raw.image) {
-                    raw.image = proxyData.image;
-                }
-                if (proxyData.price && !raw.price) {
-                    raw.price = proxyData.price;
-                }
+                const titleIsGarbage = !raw.title || raw.title.toLowerCase() === 'amazon.in' || raw.title.toLowerCase().includes('robot check');
+                if (proxyData.title && titleIsGarbage)   raw.title       = proxyData.title;
+                if (proxyData.description)               raw.description = proxyData.description;
+                if (proxyData.image   && !raw.image)     raw.image       = proxyData.image;
+                if (proxyData.price   && !raw.price)     raw.price       = proxyData.price;
             }
         }
 
-        // Step 6: Gemini normalizes, categorizes & matches collection
-        const geminiResult = await geminiNormalize(raw, categories || [], collections || []);
+        // ── Step 6: Run Gemini with a 6s deadline (fail-fast, not fail-slow) ──
+        const geminiWithTimeout = Promise.race([
+            geminiNormalize(raw, categories || [], collections || []),
+            new Promise(resolve => setTimeout(() => resolve(null), 6000)),
+        ]);
 
-        if (!geminiResult) {
-            // Gemini failed — return what we have from HTML (still trim the title)
-            return res.json({
-                title: trimTitle(raw.title),
-                price: raw.price,
-                currency: raw.currency || 'INR',
-                image: raw.image,
-                categoryId: -1,
-                collectionId: null,
-                url: finalUrl,
-                source: 'html',
-            });
+        const geminiResult = await geminiWithTimeout;
+
+        // ── Step 7: Build and cache the response ─────────────────────────────
+        const matchedCat = (categories || []).find(c => c.id === geminiResult?.categoryId);
+        const matchedCol = (collections || []).find(c => String(c.id) === String(geminiResult?.collectionId));
+
+        const finalTitle = trimTitle(geminiResult?.title || raw.title);
+        const response = geminiResult
+            ? {
+                title:          finalTitle,
+                price:          geminiResult.price       || raw.price,
+                currency:       geminiResult.currency    || raw.currency || 'INR',
+                image:          geminiResult.image       || raw.image,
+                categoryId:     geminiResult.categoryId  ?? -1,
+                categoryName:   matchedCat?.name         || 'Other',
+                collectionId:   matchedCol ? matchedCol.id : null,
+                collectionName: matchedCol?.name         || null,
+                url:            finalUrl,
+                source:         'gemini',
+              }
+            : {
+                title:          trimTitle(raw.title),
+                price:          raw.price,
+                currency:       raw.currency             || 'INR',
+                image:          raw.image,
+                categoryId:     -1,
+                collectionId:   null,
+                url:            finalUrl,
+                source:         'html',
+              };
+
+        // Only cache if we got something useful
+        if (response.title || response.image) {
+            setCached(url, response);
         }
 
-        // Find the matching category & collection name for the response
-        const matchedCat = (categories || []).find(c => c.id === geminiResult.categoryId);
-        const matchedCol = (collections || []).find(c => String(c.id) === String(geminiResult.collectionId));
-
-        // trimTitle is a guaranteed 5-word hard cap applied at EVERY exit point
-        const finalTitle = trimTitle(geminiResult.title || raw.title);
-
-        return res.json({
-            title: finalTitle,
-            price: geminiResult.price || raw.price,
-            currency: geminiResult.currency || raw.currency || 'INR',
-            image: geminiResult.image || raw.image,
-            categoryId: geminiResult.categoryId ?? -1,
-            categoryName: matchedCat?.name || 'Other',
-            collectionId: matchedCol ? matchedCol.id : null,
-            collectionName: matchedCol?.name || null,
-            url: finalUrl,
-            source: 'gemini',
-        });
+        return res.json(response);
 
     } catch (err) {
         console.error('Scraper error:', err.message);
         return res.status(500).json({ error: 'Failed to extract product data: ' + err.message });
     }
 };
+

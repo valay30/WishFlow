@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { Clock, ArrowRight, BookOpen } from 'lucide-react';
 import { API_URL as API } from '../config';
+import { blogPosts as staticPosts } from '../data/blogPosts';
 
 const PRIMARY = '#E97451';
 const FONT = "'Outfit', 'Inter', sans-serif";
@@ -173,14 +174,31 @@ function ArticleCard({ post, featured = false }) {
 import React from 'react';
 
 export default function Blog() {
-  const [posts, setPosts] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [posts, setPosts] = useState(() => {
+    try {
+      const cached = localStorage.getItem('wishflow_blog_cache');
+      if (cached) return JSON.parse(cached);
+    } catch (e) {}
+    // Fallback to static data if no cache, avoiding empty skeleton
+    return staticPosts || [];
+  });
+  
+  const [loading, setLoading] = useState(posts.length === 0);
 
   useEffect(() => {
     fetch(`${API}/api/blog`)
       .then(r => r.json())
-      .then(data => setPosts(Array.isArray(data) ? data : []))
-      .catch(() => setPosts([]))
+      .then(data => {
+        if (Array.isArray(data) && data.length > 0) {
+          setPosts(data);
+          localStorage.setItem('wishflow_blog_cache', JSON.stringify(data));
+        } else if (posts.length === 0) {
+          setPosts([]);
+        }
+      })
+      .catch(() => {
+        if (posts.length === 0) setPosts([]);
+      })
       .finally(() => setLoading(false));
   }, []);
 

@@ -3,6 +3,7 @@ import { Link, useParams, Navigate } from 'react-router-dom';
 import { API_URL as API } from '../config';
 import AdUnit from '../components/AdUnit';
 import { Clock, ArrowLeft, ArrowRight, BookOpen } from 'lucide-react';
+import { blogPosts as staticPosts } from '../data/blogPosts';
 
 const PRIMARY = '#E97451';
 const FONT = "'Outfit', 'Inter', sans-serif";
@@ -159,20 +160,42 @@ function RelatedCard({ post }) {
 /* ── BlogPost Page ───────────────────────────────────────────────────────── */
 export default function BlogPost() {
   const { slug } = useParams();
-  const [post, setPost] = useState(null);
-  const [related, setRelated] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [post, setPost] = useState(() => {
+    try {
+      const cached = localStorage.getItem(`wishflow_blog_post_${slug}`);
+      if (cached) return JSON.parse(cached);
+    } catch (e) {}
+    return staticPosts.find(p => p.slug === slug) || null;
+  });
+
+  const [related, setRelated] = useState(() => {
+    try {
+      const cached = localStorage.getItem('wishflow_blog_cache');
+      if (cached) {
+         return JSON.parse(cached).filter(p => p.slug !== slug).slice(0, 2);
+      }
+    } catch (e) {}
+    return staticPosts.filter(p => p.slug !== slug).slice(0, 2);
+  });
+
+  const [loading, setLoading] = useState(!post);
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'instant' });
-    setLoading(true);
+    if (!post) setLoading(true);
 
     Promise.all([
       fetch(`${API}/api/blog/${slug}`).then(r => r.ok ? r.json() : null),
       fetch(`${API}/api/blog`).then(r => r.ok ? r.json() : [])
     ]).then(([postData, allPosts]) => {
-      setPost(postData);
-      setRelated((allPosts || []).filter(p => p.slug !== slug).slice(0, 2));
+      if (postData && postData.slug) {
+        setPost(postData);
+        localStorage.setItem(`wishflow_blog_post_${slug}`, JSON.stringify(postData));
+      }
+      if (allPosts && allPosts.length > 0) {
+        setRelated(allPosts.filter(p => p.slug !== slug).slice(0, 2));
+        localStorage.setItem('wishflow_blog_cache', JSON.stringify(allPosts));
+      }
       setLoading(false);
     }).catch(() => {
       setLoading(false);
