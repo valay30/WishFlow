@@ -9,6 +9,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout';
 import OfflinePage from './pages/OfflinePage';
 import OnboardingFlow from './components/OnboardingFlow';
+import CookieBanner from './components/CookieBanner';
 
 // ── Lazy-loaded page chunks ──────────────────────────────────────────────────
 // Each page is split into its own chunk and only downloaded when first visited.
@@ -212,6 +213,7 @@ function App() {
       <SettingsProvider>
         <ScrollToTop />
         <AppRoutes />
+        <CookieBanner />
         <Analytics />
       </SettingsProvider>
     </AuthProvider>
