@@ -3,11 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
 import {
     Crown, Users, ArrowLeft, RefreshCw, Search, Trash2, Package,
-    Filter, Calendar, ChevronLeft, ChevronRight, ChevronDown, XCircle, Menu, X, Plus, Link as LinkIcon
+    Filter, Calendar, ChevronLeft, ChevronRight, ChevronDown, XCircle, Menu, X, Plus, Link as LinkIcon, BookOpen
 } from 'lucide-react';
 import { API_URL as API, ADMIN_SECRET } from '../config';
 import AlertModal from '../components/AlertModal';
 import CustomSelect from '../components/CustomSelect';
+import BlogAdminTab from '../components/BlogAdminTab';
 
 const headers = {
     'Content-Type': 'application/json',
@@ -280,6 +281,12 @@ export default function AdminPanel() {
                     >
                         <Package size={20} /> Items
                     </button>
+                    <button
+                        onClick={() => { setActiveTab('blog'); setSearch(''); setIsSidebarOpen(false); }}
+                        style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.875rem 1rem', background: activeTab === 'blog' ? '#f5f3ff' : 'transparent', color: activeTab === 'blog' ? '#6d28d9' : '#64748b', borderRadius: '12px', border: 'none', cursor: 'pointer', fontWeight: activeTab === 'blog' ? 700 : 600, fontSize: '0.95rem', transition: 'all 0.2s' }}
+                    >
+                        <BookOpen size={20} /> Blog
+                    </button>
                 </div>
 
                 {/* Back Button + User Profile */}
@@ -322,7 +329,8 @@ export default function AdminPanel() {
                     </div>
                 )}
 
-                {/* Header for both tabs */}
+                {/* Header — only shown for users/items tabs */}
+                {activeTab !== 'blog' && (
                 <div className="admin-desktop-header" style={{ marginBottom: '2.5rem' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
                         <h1 style={{ margin: 0, fontSize: '2.25rem', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.02em' }}>
@@ -341,8 +349,15 @@ export default function AdminPanel() {
                         {activeTab === 'users' ? 'Manage and monitor your platform users' : 'Monitor all items created by users'}
                     </p>
                 </div>
+                )}
 
-                {/* Search & Filter for both tabs */}
+                {/* Blog tab content */}
+                {activeTab === 'blog' && (
+                    <BlogAdminTab showToast={showToast} />
+                )}
+
+                {/* Search & Filter — only for users/items tabs */}
+                {activeTab !== 'blog' && (
                 <div className="admin-filter-bar" style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem' }}>
                     <div className="admin-search-container" style={{ position: 'relative', flex: 1 }}>
                         <Search className="admin-search-icon" size={18} style={{ position: 'absolute', left: '1.25rem', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
@@ -388,11 +403,14 @@ export default function AdminPanel() {
                         )}
                     </div>
                 </div>
+                )}
 
-                {activeTab === 'users' ? (
+                {activeTab !== 'blog' && (
                     <>
-                        {/* Stats Cards */}
-                        <div className="admin-stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1.5rem', marginBottom: '2.5rem' }}>
+                        {activeTab === 'users' ? (
+                            <>
+                                {/* Stats Cards */}
+                                <div className="admin-stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1.5rem', marginBottom: '2.5rem' }}>
                             {loadingUsers ? (
                                 Array.from({ length: 4 }).map((_, i) => (
                                     <div key={i} className="admin-stat-card" style={{ background: '#fff', border: '1px solid #f1f5f9', borderRadius: '16px', padding: '1.5rem', display: 'flex', gap: '1.25rem', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.02)' }}>
@@ -837,6 +855,8 @@ export default function AdminPanel() {
                         )}
                     </>
                 )}
+                    </>
+                )} {/* end activeTab !== 'blog' */}
             </div>
 
             <style>{`
@@ -1198,6 +1218,7 @@ export default function AdminPanel() {
                             font-size: 0.85rem !important;
                         }
                     }
+                    }
                 `}</style>
 
             <AlertModal
@@ -1242,6 +1263,9 @@ export default function AdminPanel() {
                         </button>
                         <button onClick={() => setActiveTab('items')} style={{ background: 'transparent', border: 'none', color: activeTab === 'items' ? '#fff' : 'rgba(255,255,255,0.6)', cursor: 'pointer', display: 'flex', padding: '0.5rem' }}>
                             <Package size={22} strokeWidth={activeTab === 'items' ? 2.5 : 2} />
+                        </button>
+                        <button onClick={() => setActiveTab('blog')} style={{ background: 'transparent', border: 'none', color: activeTab === 'blog' ? '#fff' : 'rgba(255,255,255,0.6)', cursor: 'pointer', display: 'flex', padding: '0.5rem' }}>
+                            <BookOpen size={22} strokeWidth={activeTab === 'blog' ? 2.5 : 2} />
                         </button>
                     </div>
                     <button onClick={refreshData} disabled={loadingUsers || loadingItems} style={{ width: '56px', height: '56px', borderRadius: '50%', background: '#1d4ed8', color: '#fff', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 10px 25px -5px rgba(29, 78, 216, 0.5)' }}>

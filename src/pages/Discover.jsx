@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
 import { db } from '../db';
 import { Search, Package, Compass, Bookmark, X, Globe, Check, SlidersHorizontal } from 'lucide-react';
+import AdUnit from '../components/AdUnit';
 
 const ORANGE = 'var(--primary)';
 const FONT = "'Inter', 'Segoe UI', sans-serif";
@@ -460,6 +461,17 @@ export default function Discover() {
                     <p style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.8rem', marginTop: '2rem' }}>
                         {filtered.length} product{filtered.length !== 1 ? 's' : ''} shared by the community
                     </p>
+                )}
+
+                {/* Ad Banner */}
+                {!loading && filtered.length > 0 && (
+                    <div style={{ maxWidth: '728px', margin: '1.5rem auto 0' }}>
+                        <AdUnit
+                            slot="1916178864"
+                            format="auto"
+                            style={{ minHeight: '90px', borderRadius: '14px' }}
+                        />
+                    </div>
                 )}
             </div>
 

@@ -219,3 +219,91 @@ export const getAllItems = async (req, res) => {
         res.status(500).json({ error: err?.message || 'Failed to list items' });
     }
 };
+
+/* ─── Blog Post Admin CRUD ──────────────────────────────────────────────── */
+
+function mapBlogPost(p) {
+    return {
+        id: p.id, slug: p.slug, title: p.title, excerpt: p.excerpt,
+        category: p.category, categoryColor: p.category_color,
+        readTime: p.read_time, publishedAt: p.published_at,
+        coverImage: p.cover_image, coverAlt: p.cover_alt,
+        author: p.author, metaDescription: p.meta_description,
+        content: p.content || [], isPublished: p.is_published,
+        createdAt: p.created_at, updatedAt: p.updated_at,
+    };
+}
+
+function toDb(post) {
+    return {
+        slug: post.slug, title: post.title, excerpt: post.excerpt,
+        category: post.category, category_color: post.categoryColor,
+        read_time: post.readTime, published_at: post.publishedAt,
+        cover_image: post.coverImage, cover_alt: post.coverAlt,
+        author: post.author, meta_description: post.metaDescription,
+        content: post.content, is_published: post.isPublished ?? false,
+    };
+}
+
+export const getAllBlogPosts = async (req, res) => {
+    try {
+        const { data, error } = await supabase
+            .from('blog_posts').select('*')
+            .order('created_at', { ascending: false });
+        if (error) throw error;
+        res.json((data || []).map(mapBlogPost));
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+
+export const createBlogPost = async (req, res) => {
+    try {
+        const { data, error } = await supabase
+            .from('blog_posts').insert([toDb(req.body)]).select().single();
+        if (error) throw error;
+        res.json(mapBlogPost(data));
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+
+export const updateBlogPost = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { data, error } = await supabase
+            .from('blog_posts')
+            .update({ ...toDb(req.body), updated_at: new Date().toISOString() })
+            .eq('id', id).select().single();
+        if (error) throw error;
+        res.json(mapBlogPost(data));
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+
+export const deleteBlogPost = async (req, res) => {
+    try {
+        const { error } = await supabase.from('blog_posts').delete().eq('id', req.params.id);
+        if (error) throw error;
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+
+export const toggleBlogPublish = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { data: cur } = await supabase.from('blog_posts').select('is_published').eq('id', id).single();
+        const { data, error } = await supabase
+            .from('blog_posts')
+            .update({ is_published: !cur.is_published, updated_at: new Date().toISOString() })
+            .eq('id', id).select().single();
+        if (error) throw error;
+        res.json(mapBlogPost(data));
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+

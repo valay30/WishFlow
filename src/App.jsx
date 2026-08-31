@@ -28,6 +28,8 @@ const Refund           = lazy(() => import('./pages/Refund'));
 const SharedCollection = lazy(() => import('./pages/SharedCollection'));
 const ShareTargetPage  = lazy(() => import('./pages/ShareTargetPage'));
 const Discover         = lazy(() => import('./pages/Discover'));
+const Blog             = lazy(() => import('./pages/Blog'));
+const BlogPost         = lazy(() => import('./pages/BlogPost'));
 // ────────────────────────────────────────────────────────────────────────────
 
 /** Minimal full-screen spinner shown while a lazy page chunk is loading */
@@ -169,6 +171,8 @@ function AppRoutes() {
           <Route path="/refund" element={<Refund />} />
           <Route path="/shared/collection/:id" element={<SharedCollection />} />
           <Route path="/share-target" element={<ShareTargetPage />} />
+          <Route path="/blog" element={<Blog />} />
+          <Route path="/blog/:slug" element={<BlogPost />} />
 
           {/* ── Public app routes (with Layout) ── */}
           <Route element={<Layout />}>

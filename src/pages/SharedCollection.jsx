@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { db } from '../db';
 import { Package, Search, Link2, Check, ChevronDown, ArrowRight, Calendar, X } from 'lucide-react';
+import AdUnit from '../components/AdUnit';
 
 /* ─── helpers ─────────────────────────────────────────────────────────────── */
 function fmt(n) {
@@ -1092,6 +1093,15 @@ export default function SharedCollection() {
               </div>
             </>
           )}
+
+          {/* Ad Banner — placed above CTA for natural content flow */}
+          <div style={{ margin: '0 0 1.5rem 0' }}>
+            <AdUnit
+              slot="6862700433"
+              format="auto"
+              style={{ minHeight: '90px', borderRadius: '14px' }}
+            />
+          </div>
 
           {/* CTA Banner */}
           <div className="sc-cta">

@@ -1,4 +1,4 @@
-export const uploadToImageKit = async (file) => {
+export const uploadToImageKit = async (file, folderPath = "/wishflow") => {
     const url = 'https://upload.imagekit.io/api/v1/files/upload';
 
     // Note: For a production app, uploading should be signed by a backend.
@@ -12,7 +12,7 @@ export const uploadToImageKit = async (file) => {
     const formData = new FormData();
     formData.append("file", file);
     formData.append("fileName", file.name || "wishflow_image_" + Date.now());
-    formData.append("folder", "/wishflow");
+    formData.append("folder", folderPath);
 
     const encodedKey = btoa(privateKey + ":");
 

@@ -1,6 +1,7 @@
 import { useNavigate, Link } from 'react-router-dom';
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { Bookmark, FolderHeart, Share2, Link2, Tag, Bell, ChevronDown, Star, Zap, Shield, Check, Compass } from 'lucide-react';
+import AdUnit from '../components/AdUnit';
 
 /* ─────────────────────────────────────────
    Fonts & Keyframes
@@ -731,6 +732,15 @@ export default function LandingPage() {
                 </div>
             </section>
 
+            {/* ── AD BANNER — between FAQ and CTA ── */}
+            <div style={{ padding: '0 2rem 1rem', maxWidth: '760px', margin: '0 auto' }}>
+                <AdUnit
+                    slot="6522849733"
+                    format="auto"
+                    style={{ minHeight: '90px', borderRadius: '16px' }}
+                />
+            </div>
+
             {/* ── CTA BANNER ── */}
             <section style={{ padding: isMobile ? '5rem 1.5rem' : '7rem 2rem', textAlign: 'center' }}>
                 <div style={{ maxWidth: '600px', margin: '0 auto' }}>
@@ -772,6 +782,7 @@ export default function LandingPage() {
                 </div>
                 <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap' }}>
                     {[
+                        { label: 'Blog', to: '/blog' },
                         { label: 'Privacy Policy', to: '/privacy' },
                         { label: 'Terms of Service', to: '/terms' },
                         { label: 'Refund Policy', to: '/refund' },
