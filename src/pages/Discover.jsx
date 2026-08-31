@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
 import { db } from '../db';
 import { Search, Package, Compass, Bookmark, X, Globe, Check, SlidersHorizontal } from 'lucide-react';
@@ -285,14 +285,39 @@ export default function Discover() {
                 position: 'sticky', top: 0, zIndex: 10,
             }}>
                 <div style={{ maxWidth: '900px', margin: '0 auto' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '1rem' }}>
-                        <div style={{ width: '36px', height: '36px', borderRadius: '12px', background: `rgba(var(--primary-rgb),0.1)`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            <Compass size={20} color={ORANGE} />
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.6rem', marginBottom: '1rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                            <div style={{ width: '36px', height: '36px', borderRadius: '12px', background: `rgba(var(--primary-rgb),0.1)`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <Compass size={20} color={ORANGE} />
+                            </div>
+                            <div>
+                                <h1 style={{ fontWeight: 900, fontSize: '1.4rem', color: 'var(--text)', margin: 0, letterSpacing: '-0.02em' }}>Discover</h1>
+                                <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: 0 }}>Browse public wishlists from the community</p>
+                            </div>
                         </div>
-                        <div>
-                            <h1 style={{ fontWeight: 900, fontSize: '1.4rem', color: 'var(--text)', margin: 0, letterSpacing: '-0.02em' }}>Discover</h1>
-                            <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: 0 }}>Browse public wishlists from the community</p>
-                        </div>
+                        <Link
+                            to="/blog"
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.4rem',
+                                background: `rgba(var(--primary-rgb),0.1)`,
+                                color: ORANGE,
+                                textDecoration: 'none',
+                                fontWeight: 700,
+                                fontSize: '0.85rem',
+                                padding: '0.5rem 1rem',
+                                borderRadius: '999px',
+                                border: `1px solid rgba(var(--primary-rgb),0.2)`,
+                                whiteSpace: 'nowrap',
+                                transition: 'background 0.2s, transform 0.15s',
+                                fontFamily: FONT,
+                            }}
+                            onMouseEnter={e => { e.currentTarget.style.background = ORANGE; e.currentTarget.style.color = '#fff'; e.currentTarget.style.transform = 'scale(1.03)'; }}
+                            onMouseLeave={e => { e.currentTarget.style.background = `rgba(var(--primary-rgb),0.1)`; e.currentTarget.style.color = ORANGE; e.currentTarget.style.transform = 'scale(1)'; }}
+                        >
+                            📝 Blog
+                        </Link>
                     </div>
 
                     {/* Search bar and Filters Toggle */}

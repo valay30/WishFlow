@@ -25,6 +25,8 @@ const LandingPage      = lazy(() => import('./pages/LandingPage'));
 const Privacy          = lazy(() => import('./pages/Privacy'));
 const Terms            = lazy(() => import('./pages/Terms'));
 const Refund           = lazy(() => import('./pages/Refund'));
+const About            = lazy(() => import('./pages/About'));
+const Contact          = lazy(() => import('./pages/Contact'));
 const SharedCollection = lazy(() => import('./pages/SharedCollection'));
 const ShareTargetPage  = lazy(() => import('./pages/ShareTargetPage'));
 const Discover         = lazy(() => import('./pages/Discover'));
@@ -169,6 +171,8 @@ function AppRoutes() {
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/terms" element={<Terms />} />
           <Route path="/refund" element={<Refund />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/contact" element={<Contact />} />
           <Route path="/shared/collection/:id" element={<SharedCollection />} />
           <Route path="/share-target" element={<ShareTargetPage />} />
           <Route path="/blog" element={<Blog />} />

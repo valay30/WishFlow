@@ -235,19 +235,43 @@ export default function LandingPage() {
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
                     {!isMobile && (
-                        <Link
-                            to="/discover"
-                            style={{
-                                color: '#444', fontWeight: 600, fontSize: '0.95rem',
-                                textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.4rem',
-                                transition: 'color 0.2s', fontFamily: FONT
-                            }}
-                            onMouseEnter={e => e.currentTarget.style.color = '#E85C2C'}
-                            onMouseLeave={e => e.currentTarget.style.color = '#444'}
-                        >
-                            <Compass size={18} />
-                            Discover
-                        </Link>
+                        <>
+                            <Link
+                                to="/discover"
+                                style={{
+                                    color: '#444', fontWeight: 600, fontSize: '0.95rem',
+                                    textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.4rem',
+                                    transition: 'color 0.2s', fontFamily: FONT
+                                }}
+                                onMouseEnter={e => e.currentTarget.style.color = '#E85C2C'}
+                                onMouseLeave={e => e.currentTarget.style.color = '#444'}
+                            >
+                                <Compass size={18} />
+                                Discover
+                            </Link>
+                            <Link
+                                to="/blog"
+                                style={{
+                                    color: '#444', fontWeight: 600, fontSize: '0.95rem',
+                                    textDecoration: 'none', transition: 'color 0.2s', fontFamily: FONT
+                                }}
+                                onMouseEnter={e => e.currentTarget.style.color = '#E85C2C'}
+                                onMouseLeave={e => e.currentTarget.style.color = '#444'}
+                            >
+                                Blog
+                            </Link>
+                            <Link
+                                to="/about"
+                                style={{
+                                    color: '#444', fontWeight: 600, fontSize: '0.95rem',
+                                    textDecoration: 'none', transition: 'color 0.2s', fontFamily: FONT
+                                }}
+                                onMouseEnter={e => e.currentTarget.style.color = '#E85C2C'}
+                                onMouseLeave={e => e.currentTarget.style.color = '#444'}
+                            >
+                                About
+                            </Link>
+                        </>
                     )}
                     <button
                         onClick={() => navigate('/auth')}
@@ -783,6 +807,8 @@ export default function LandingPage() {
                 <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap' }}>
                     {[
                         { label: 'Blog', to: '/blog' },
+                        { label: 'About Us', to: '/about' },
+                        { label: 'Contact Us', to: '/contact' },
                         { label: 'Privacy Policy', to: '/privacy' },
                         { label: 'Terms of Service', to: '/terms' },
                         { label: 'Refund Policy', to: '/refund' },
