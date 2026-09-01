@@ -1,6 +1,6 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import { Clock, ArrowRight, BookOpen } from 'lucide-react';
+import { Clock, ArrowRight, BookOpen, ArrowLeft } from 'lucide-react';
 import { API_URL as API } from '../config';
 import { blogPosts as staticPosts } from '../data/blogPosts';
 
@@ -13,16 +13,52 @@ const FONT = "'Outfit', 'Inter', sans-serif";
 
 /* ── Hero Section ────────────────────────────────────────────────────────── */
 function BlogHero() {
+  const navigate = useNavigate();
+
   return (
     <section
       style={{
         background: `linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)`,
-        padding: 'clamp(4rem, 10vw, 7rem) 1.5rem',
+        padding: 'clamp(5rem, 10vw, 7rem) 1.5rem',
         textAlign: 'center',
         position: 'relative',
         overflow: 'hidden',
       }}
     >
+      {/* Back Button */}
+      <button
+        onClick={() => navigate(-1)}
+        style={{
+          position: 'absolute',
+          top: 'clamp(1rem, 3vw, 2rem)',
+          left: 'clamp(1rem, 5vw, 3rem)',
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '8px',
+          background: 'rgba(255,255,255,0.1)',
+          border: '1px solid rgba(255,255,255,0.2)',
+          borderRadius: '999px',
+          padding: '8px 16px',
+          color: '#fff',
+          fontFamily: FONT,
+          fontSize: '0.9rem',
+          fontWeight: 600,
+          cursor: 'pointer',
+          zIndex: 10,
+          backdropFilter: 'blur(4px)',
+          transition: 'all 0.2s ease',
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.background = 'rgba(255,255,255,0.2)';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.background = 'rgba(255,255,255,0.1)';
+        }}
+      >
+        <ArrowLeft size={16} />
+        Back
+      </button>
+
       {/* Decorative blobs */}
       <div style={{
         position: 'absolute', top: '-60px', right: '-60px',
