@@ -2,6 +2,7 @@ import { useEffect, useState, useRef, lazy, Suspense } from 'react';
 import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { processSyncQueue } from './db/syncQueue';
 import { Analytics } from '@vercel/analytics/react';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 import { AuthProvider } from './context/AuthContext';
 import { useAuth } from './context/useAuth';
 import { SettingsProvider } from './context/SettingsContext';
@@ -215,6 +216,7 @@ function App() {
         <AppRoutes />
         <CookieBanner />
         <Analytics />
+        <SpeedInsights />
       </SettingsProvider>
     </AuthProvider>
   );
