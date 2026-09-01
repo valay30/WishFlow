@@ -25,17 +25,6 @@ export default function Categories() {
         try {
             let cats = await db.categories.getAll();
             setDebugInfo(`getAll() returned: ${JSON.stringify(cats)}`);
-            // Auto-seed defaults for users who have no categories yet
-            if (!cats || cats.length === 0) {
-                setSeedError('');
-                const seeded = await db.categories.initializeDefaults();
-                setDebugInfo(prev => prev + ` | initializeDefaults() returned: ${JSON.stringify(seeded)}`);
-                if (!seeded) {
-                    setSeedError('Could not create default categories. Check browser console (F12) for the error.');
-                }
-                cats = await db.categories.getAll();
-                setDebugInfo(prev => prev + ` | getAll() after seed: ${JSON.stringify(cats)}`);
-            }
             setCategories(cats || []);
         } catch (err) {
             console.error(err);

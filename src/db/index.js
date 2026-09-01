@@ -196,19 +196,42 @@ export const db = {
       if (__categoryCache !== null) return __categoryCache;
 
       if (!__fetchingCategories) {
-        __fetchingCategories = supabase
-          .from('categories')
-          .select('*')
-          .eq('user_id', id)
-          .order('id', { ascending: true })
-          .then(({ data, error }) => {
+        __fetchingCategories = (async () => {
+          const { data, error } = await supabase
+            .from('categories')
+            .select('*')
+            .eq('user_id', id)
+            .order('id', { ascending: true });
+
+          if (error) {
             __fetchingCategories = null;
-            if (!error) __categoryCache = data || [];
+            return [];
+          }
+
+          if (data && data.length > 0) {
+            __categoryCache = data;
+            __fetchingCategories = null;
             return __categoryCache;
-          });
+          }
+
+          try {
+            const seeded = await db.categories.initializeDefaults(id);
+            if (seeded && seeded.length > 0) {
+              __categoryCache = seeded;
+              __fetchingCategories = null;
+              return __categoryCache;
+            }
+          } catch (err) {
+            console.error('Auto-seed error:', err);
+          }
+
+          __categoryCache = [];
+          __fetchingCategories = null;
+          return __categoryCache;
+        })();
       }
 
-      return __categoryCache !== null ? __categoryCache : __fetchingCategories;
+      return __fetchingCategories;
     },
 
     add: async (name) => {
