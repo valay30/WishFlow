@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { db, supabase } from '../db';
-import { Search, X, Upload, ArrowRight, Sparkles, ShoppingBag, Crown, Monitor, Shirt, Watch, Tag, Footprints, SlidersHorizontal, ChevronDown, Check, RotateCcw, TrendingUp, TrendingDown, SortAsc, SortDesc } from 'lucide-react';
+import { Search, X, Upload, ArrowRight, Sparkles, ShoppingBag, Crown, Monitor, Shirt, Watch, Tag, Footprints, SlidersHorizontal, ChevronDown, Check, RotateCcw, TrendingUp, TrendingDown, SortAsc, SortDesc, Layers, ChevronRight, Trash2 } from 'lucide-react';
 import { useAuth } from '../context/useAuth';
 import { useSettings } from '../context/SettingsContext';
 import ProductCard from '../components/ProductCard';
@@ -13,6 +13,7 @@ import confetti from 'canvas-confetti';
 import AlertModal from '../components/AlertModal';
 import { API_URL } from '../config';
 import { loadRazorpay } from '../utils/loadRazorpay';
+import GroupNameModal from '../components/GroupNameModal';
 
 const ORANGE = 'var(--primary)';
 const SURFACE = 'var(--surface)';
@@ -51,6 +52,60 @@ export default function Home() {
     const [isSortOpen, setIsSortOpen] = useState(false);
     const [showPremiumModal, setShowPremiumModal] = useState(false);
     const [paymentStatus, setPaymentStatus] = useState({ isOpen: false, success: false, title: '', message: '' });
+
+    // ── Drag & group state ──
+    // Groups are initialized lazily from localStorage on first render to avoid
+    // the race condition where the persist effect fires with [] before the load effect runs.
+    const [groups, setGroups] = useState(() => {
+        try {
+            // We can't read user.id here yet (it's async), so we'll re-load once user is known.
+            return [];
+        } catch { return []; }
+    });
+    const [groupsLoaded, setGroupsLoaded] = useState(false);
+    const [draggedItemId, setDraggedItemId] = useState(null);
+    const [dragOverItemId, setDragOverItemId] = useState(null);
+    const [dragOverGroupId, setDragOverGroupId] = useState(null);
+    const [groupModal, setGroupModal] = useState({
+        open: false,
+        targetItemId: null,   // the item we dropped onto
+        sourceItemId: null,   // the item being dragged
+    });
+    const [openGroupId, setOpenGroupId] = useState(null);  // which group's bottom sheet is open
+    const dragRef = useRef(null);
+
+    // ── Load groups from Supabase (once, when user is known) ──
+    useEffect(() => {
+        if (!user?.id) return;
+        let isMounted = true;
+        const loadGroups = async () => {
+            try {
+                const saved = await db.groups.get();
+                if (isMounted && saved && Array.isArray(saved)) {
+                    setGroups(saved);
+                }
+            } catch (err) {
+                console.error('Failed to load groups:', err);
+            } finally {
+                if (isMounted) setGroupsLoaded(true);
+            }
+        };
+        loadGroups();
+        return () => { isMounted = false; };
+    }, [user?.id]);
+
+    // ── Persist groups to Supabase (only after initial load is complete) ──
+    useEffect(() => {
+        if (!user?.id || !groupsLoaded) return;
+        const saveGroups = async () => {
+            try {
+                await db.groups.save(groups);
+            } catch (err) {
+                console.error('Failed to save groups:', err);
+            }
+        };
+        saveGroups();
+    }, [groups, user?.id, groupsLoaded]);
 
     useEffect(() => {
         const load = async () => {
@@ -275,6 +330,144 @@ export default function Home() {
     const isFreeLimitReached = user?.isPremium !== true && items.length >= 5;
     const shouldShowAddModal = showAddModal && !isFreeLimitReached;
     const shouldShowPremiumModal = showPremiumModal || (showAddModal && isFreeLimitReached);
+
+    /* ── DRAG HANDLERS ── */
+    const handleDragStart = useCallback((itemId) => {
+        setDraggedItemId(itemId);
+        dragRef.current = itemId;
+    }, []);
+
+    const handleDragEnd = useCallback(() => {
+        setDraggedItemId(null);
+        setDragOverItemId(null);
+        setDragOverGroupId(null);
+        dragRef.current = null;
+    }, []);
+
+    // Failsafe: clear drag state globally on mouseup/dragend in case native events get swallowed
+    useEffect(() => {
+        window.addEventListener('dragend', handleDragEnd);
+        window.addEventListener('mouseup', handleDragEnd);
+        return () => {
+            window.removeEventListener('dragend', handleDragEnd);
+            window.removeEventListener('mouseup', handleDragEnd);
+        };
+    }, [handleDragEnd]);
+
+    const handleDragOverItem = useCallback((itemId) => {
+        if (dragRef.current && dragRef.current !== itemId) {
+            setDragOverItemId(itemId);
+        }
+    }, []);
+
+    const handleDragLeaveItem = useCallback(() => {
+        setDragOverItemId(null);
+    }, []);
+
+    const handleDropOnItem = useCallback((targetItemId) => {
+        const sourceId = dragRef.current;
+        if (!sourceId || sourceId === targetItemId) {
+            setDragOverItemId(null);
+            return;
+        }
+
+        // Check if source is already in a group that contains the target
+        const sourceGroup = groups.find(g => g.itemIds.includes(sourceId));
+        const targetGroup = groups.find(g => g.itemIds.includes(targetItemId));
+
+        if (sourceGroup && targetGroup && sourceGroup.id === targetGroup.id) {
+            // Same group — do nothing
+            setDragOverItemId(null);
+            return;
+        }
+
+        if (targetGroup) {
+            // Drop into an existing group: add the dragged item to it
+            setGroups(prev => prev.map(g =>
+                g.id === targetGroup.id
+                    ? { ...g, itemIds: g.itemIds.includes(sourceId) ? g.itemIds : [...g.itemIds, sourceId] }
+                    : { ...g, itemIds: g.itemIds.filter(id => id !== sourceId) }
+            ).filter(g => g.itemIds.length >= 2));
+            setDragOverItemId(null);
+        } else {
+            // Neither in a group: open name modal
+            setGroupModal({ open: true, sourceItemId: sourceId, targetItemId });
+            setDragOverItemId(null);
+        }
+    }, [groups]);
+
+    const handleGroupCreated = useCallback((name) => {
+        const { sourceItemId, targetItemId } = groupModal;
+        // Remove both items from any existing groups first
+        const newGroup = {
+            id: 'grp_' + Date.now(),
+            name,
+            itemIds: [sourceItemId, targetItemId],
+            collapsed: false,
+        };
+        setGroups(prev => [
+            ...prev
+                .map(g => ({ ...g, itemIds: g.itemIds.filter(id => id !== sourceItemId && id !== targetItemId) }))
+                .filter(g => g.itemIds.length >= 2),
+            newGroup,
+        ]);
+        setGroupModal({ open: false, sourceItemId: null, targetItemId: null });
+    }, [groupModal]);
+
+    const handleGroupModalCancel = useCallback(() => {
+        setGroupModal({ open: false, sourceItemId: null, targetItemId: null });
+    }, []);
+
+    const toggleGroupCollapse = useCallback((groupId) => {
+        setGroups(prev => prev.map(g => g.id === groupId ? { ...g, collapsed: !g.collapsed } : g));
+    }, []);
+
+    const removeItemFromGroup = useCallback((groupId, itemId, e) => {
+        e.stopPropagation();
+        setGroups(prev => prev
+            .map(g => g.id === groupId ? { ...g, itemIds: g.itemIds.filter(id => id !== itemId) } : g)
+            .filter(g => g.itemIds.length >= 2) // auto-dissolve if < 2
+        );
+    }, []);
+
+    const deleteGroup = useCallback((groupId, e) => {
+        e.stopPropagation();
+        setGroups(prev => prev.filter(g => g.id !== groupId));
+    }, []);
+
+    const handleDragOverGroup = useCallback((groupId) => {
+        setDragOverGroupId(groupId);
+    }, []);
+
+    const handleDragLeaveGroup = useCallback(() => {
+        setDragOverGroupId(null);
+    }, []);
+
+    const handleDropOnGroup = useCallback((groupId) => {
+        const sourceId = dragRef.current;
+        if (!sourceId) return;
+        setGroups(prev => prev.map(g =>
+            g.id === groupId
+                ? { ...g, itemIds: g.itemIds.includes(sourceId) ? g.itemIds : [...g.itemIds, sourceId] }
+                : { ...g, itemIds: g.itemIds.filter(id => id !== sourceId) }
+        ).filter(g => g.itemIds.length >= 2));
+        setDragOverGroupId(null);
+    }, []);
+
+    /* ── Derive grouped / ungrouped lists from filtered ── */
+    // Only count groups with 2+ items as real groups — dissolve single-item groups at render time
+    const validGroups = groups.filter(g => g.itemIds.length >= 2);
+    const groupedItemIds = new Set(validGroups.flatMap(g => g.itemIds));
+    const ungroupedFiltered = filtered.filter(i => !groupedItemIds.has(i.id));
+
+    // ── Auto-clean degenerate single-item groups from state ──
+    useEffect(() => {
+        if (!groupsLoaded) return;
+        const hasDegenerate = groups.some(g => g.itemIds.length < 2);
+        if (hasDegenerate) {
+            setGroups(prev => prev.filter(g => g.itemIds.length >= 2));
+        }
+    }, [groups, groupsLoaded]);
 
     const handleClosePremiumModal = () => {
         setShowPremiumModal(false);
@@ -508,13 +701,16 @@ export default function Home() {
                         </div>
                     </div>
 
-                    {/* ── Items list ── */}
+                    {/* ── Items list header ── */}
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.85rem' }}>
                         <h2 style={{ fontWeight: 800, fontSize: '1.05rem', color: 'var(--text)' }}>
                             {selectedCategory ? categories.find(c => c.id === selectedCategory)?.name : 'All Items'}
                         </h2>
-                        <span style={{ fontSize: '0.8rem', color: 'var(--text-dim)' }}>{filtered.length} item{filtered.length !== 1 ? 's' : ''}</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                            <span style={{ fontSize: '0.8rem', color: 'var(--text-dim)' }}>{filtered.length} item{filtered.length !== 1 ? 's' : ''}</span>
+                        </div>
                     </div>
+
 
                     {isLoading ? (
                         <div className={viewMode === 'card' ? "category-grid" : "list-view-container"} style={viewMode === 'list' ? { display: 'flex', flexDirection: 'column', gap: '0.75rem' } : {}}>
@@ -522,14 +718,186 @@ export default function Home() {
                                 <SkeletonCard key={i} mode={viewMode} />
                             ))}
                         </div>
-                    ) : filtered.length > 0 ? (
-                        <div className={viewMode === 'card' ? "category-grid" : "list-view-container"} style={viewMode === 'list' ? { display: 'flex', flexDirection: 'column', gap: '0.75rem' } : {}}>
-                            {filtered.map(item => (
+                    ) : (filtered.length > 0 || groups.some(g => g.itemIds.length > 0)) ? (
+                        /* ── Single unified grid: folder cards first, then ungrouped items ── */
+                        <div
+                            className={viewMode === 'card' ? 'category-grid' : 'list-view-container'}
+                            style={viewMode === 'list' ? { display: 'flex', flexDirection: 'column', gap: '0.75rem' } : {}}
+                        >
+                            {/* FOLDER CARDS — one per group, inline in the grid */}
+                            {viewMode === 'card' && groups.map(group => {
+                                const groupItems = group.itemIds
+                                    .map(id => items.find(i => i.id === id))
+                                    .filter(Boolean)
+                                    .filter(i => !i.is_purchased);
+
+                                if (groupItems.length === 0) return null;
+
+                                const isDropTarget = dragOverGroupId === group.id;
+                                const previews = groupItems.slice(0, 3);
+
+                                return (
+                                    <div
+                                        key={group.id}
+                                        onDragOver={e => { e.preventDefault(); handleDragOverGroup(group.id); }}
+                                        onDragLeave={handleDragLeaveGroup}
+                                        onDrop={e => { e.preventDefault(); handleDropOnGroup(group.id); }}
+                                        onClick={() => setOpenGroupId(group.id)}
+                                        style={{
+                                            cursor: 'pointer',
+                                            position: 'relative',
+                                            borderRadius: '16px',
+                                            background: isDropTarget ? 'rgba(var(--primary-rgb),0.06)' : 'transparent',
+                                            border: isDropTarget ? '2px dashed var(--primary)' : '2px solid transparent',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            padding: '0.5rem',
+                                            width: '100%',
+                                            height: '100%',
+                                            minHeight: '260px',
+                                            transition: 'all 0.22s cubic-bezier(0.4,0,0.2,1)',
+                                        }}
+                                        onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; }}
+                                        onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; }}
+                                    >
+                                        {/* Folder 3D Object */}
+                                        <div style={{ width: '90%', aspectRatio: '1.1', position: 'relative' }}>
+
+                                            {/* Back body of folder */}
+                                            <div style={{
+                                                position: 'absolute',
+                                                bottom: '8%', left: 0, right: 0,
+                                                height: '75%',
+                                                background: '#75BAF2',
+                                                borderRadius: '10px',
+                                                boxShadow: 'inset 0 -10px 20px rgba(0,0,0,0.05)',
+                                            }} />
+
+                                            {/* Documents */}
+                                            {previews.map((item, idx) => {
+                                                const configs = [
+                                                    { left: '12%', rotate: '-12deg', bottom: '25%', width: '35%', height: '58%', zIndex: 1 },
+                                                    { left: '32%', rotate: '0deg', bottom: '30%', width: '35%', height: '62%', zIndex: 3 },
+                                                    { left: '52%', rotate: '12deg', bottom: '24%', width: '35%', height: '58%', zIndex: 2 },
+                                                ];
+                                                const c = configs[idx] || configs[1];
+                                                return (
+                                                    <div key={item.id} style={{
+                                                        position: 'absolute',
+                                                        left: c.left, bottom: c.bottom,
+                                                        width: c.width, height: c.height,
+                                                        borderRadius: '6px',
+                                                        background: '#ffffff',
+                                                        boxShadow: '0 4px 12px rgba(0,0,0,0.12)',
+                                                        transform: `rotate(${c.rotate})`,
+                                                        transformOrigin: 'bottom center',
+                                                        zIndex: c.zIndex,
+                                                        padding: '10px 8px',
+                                                        display: 'flex', flexDirection: 'column', gap: '5px',
+                                                        overflow: 'hidden'
+                                                    }}>
+                                                        <div style={{ height: '4px', background: 'rgba(107, 179, 240, 0.4)', borderRadius: '2px', width: '85%' }} />
+                                                        <div style={{ height: '3px', background: 'rgba(107, 179, 240, 0.25)', borderRadius: '2px', width: '60%' }} />
+                                                        <div style={{ height: '3px', background: 'rgba(107, 179, 240, 0.25)', borderRadius: '2px', width: '75%' }} />
+                                                        <div style={{ height: '3px', background: 'rgba(107, 179, 240, 0.2)', borderRadius: '2px', width: '50%' }} />
+                                                    </div>
+                                                );
+                                            })}
+
+                                            {/* Front flap mask URL */}
+                                            <div style={{
+                                                position: 'absolute',
+                                                bottom: '8%', left: 0, right: 0, height: '60%',
+                                                background: 'linear-gradient(135deg, rgba(144, 202, 250, 0.65), rgba(107, 179, 240, 0.4))',
+                                                backdropFilter: 'blur(10px)',
+                                                WebkitBackdropFilter: 'blur(10px)',
+                                                maskImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 100 65' preserveAspectRatio='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M5 0h30q5 0 8 4l3 5q3 4 8 4h41q5 0 5 5v42q0 5-5 5H5q-5 0-5-5V5q0-5 5-5z' fill='black'/%3E%3C/svg%3E")`,
+                                                WebkitMaskImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 100 65' preserveAspectRatio='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M5 0h30q5 0 8 4l3 5q3 4 8 4h41q5 0 5 5v42q0 5-5 5H5q-5 0-5-5V5q0-5 5-5z' fill='black'/%3E%3C/svg%3E")`,
+                                                maskSize: '100% 100%',
+                                                WebkitMaskSize: '100% 100%',
+                                                zIndex: 5,
+                                                boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.6)',
+                                            }}>
+                                                {/* Top highlight */}
+                                                <div style={{
+                                                    position: 'absolute', top: 0, left: 0, right: 0, height: '1.5px',
+                                                    background: 'linear-gradient(90deg, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0.1) 100%)',
+                                                }} />
+                                            </div>
+
+                                            {/* Group Name Text (placed securely on the folder) */}
+                                            <div style={{
+                                                position: 'absolute',
+                                                bottom: '16%', left: '8%', right: '8%',
+                                                textAlign: 'center',
+                                                color: '#fff',
+                                                zIndex: 6,
+                                                display: 'flex', flexDirection: 'column', gap: '3px'
+                                            }}>
+                                                <span style={{ fontWeight: 800, fontSize: '1.25rem', textShadow: '0 1px 4px rgba(0,0,0,0.25)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                                    {group.name}
+                                                </span>
+                                                <span style={{ fontWeight: 700, fontSize: '0.8rem', textShadow: '0 1px 3px rgba(0,0,0,0.3)', opacity: 0.9 }}>
+                                                    {groupItems.length} ITEM{groupItems.length !== 1 ? 'S' : ''}
+                                                </span>
+                                            </div>
+
+                                            {/* Delete button (small, top right of folder) */}
+                                            <button
+                                                onClick={e => deleteGroup(group.id, e)}
+                                                title="Dissolve group"
+                                                style={{
+                                                    position: 'absolute', top: '10%', right: '-4%',
+                                                    width: '26px', height: '26px', borderRadius: '50%',
+                                                    background: 'rgba(255,255,255,0.95)',
+                                                    border: '1px solid rgba(0,0,0,0.05)',
+                                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                    cursor: 'pointer', color: '#ef4444',
+                                                    boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
+                                                    zIndex: 10,
+                                                    transition: 'all 0.15s'
+                                                }}
+                                                onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.1)'; e.currentTarget.style.background = '#fff'; }}
+                                                onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.background = 'rgba(255,255,255,0.95)'; }}
+                                            >
+                                                <Trash2 size={13} />
+                                            </button>
+
+                                            {/* Drop hint overlay */}
+                                            {isDropTarget && (
+                                                <div style={{
+                                                    position: 'absolute', bottom: '8%', left: 0, right: 0, height: '75%',
+                                                    zIndex: 20,
+                                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                    background: 'rgba(var(--primary-rgb),0.15)',
+                                                    borderRadius: '10px'
+                                                }}>
+                                                    <span style={{ background: 'var(--primary)', color: '#fff', fontSize: '0.7rem', fontWeight: 800, padding: '0.3rem 0.7rem', borderRadius: '99px', boxShadow: '0 2px 8px rgba(0,0,0,0.2)' }}>
+                                                        + Add
+                                                    </span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                );
+                            })}
+
+                            {/* UNGROUPED ITEM CARDS */}
+                            {ungroupedFiltered.map(item => (
                                 viewMode === 'card' ? (
                                     <ItemCard
                                         key={item.id}
                                         item={item}
                                         categoryName={categories.find(c => c.id === item.category_id)?.name || 'Other'}
+                                        draggable
+                                        isDragActive={draggedItemId === item.id}
+                                        isDragOver={dragOverItemId === item.id}
+                                        onDragStart={() => handleDragStart(item.id)}
+                                        onDragEnd={handleDragEnd}
+                                        onDragOver={() => handleDragOverItem(item.id)}
+                                        onDragLeave={handleDragLeaveItem}
+                                        onDrop={() => handleDropOnItem(item.id)}
                                         onTogglePublic={async (id, val) => {
                                             await db.discover.setPublic(id, val);
                                             setItems(prev => prev.map(i => i.id === id ? { ...i, is_public: val } : i));
@@ -560,6 +928,149 @@ export default function Home() {
                             )}
                         </div>
                     )}
+
+                    {/* Group Name Modal */}
+                    <GroupNameModal
+                        isOpen={groupModal.open}
+                        onConfirm={handleGroupCreated}
+                        onCancel={handleGroupModalCancel}
+                    />
+
+                    {/* ── GROUP BOTTOM SHEET ── */}
+                    {openGroupId && (() => {
+                        const group = groups.find(g => g.id === openGroupId);
+                        if (!group) return null;
+                        const groupItems = group.itemIds
+                            .map(id => items.find(i => i.id === id))
+                            .filter(Boolean)
+                            .filter(i => !i.is_purchased);
+                        return createPortal(
+                            <div
+                                onClick={() => setOpenGroupId(null)}
+                                onDragOver={e => {
+                                    if (draggedItemId) e.preventDefault();
+                                }}
+                                onDrop={e => {
+                                    e.preventDefault();
+                                    if (!draggedItemId) return;
+                                    const itemToRemove = draggedItemId;
+                                    const currentGroupId = openGroupId; // capture before state clears
+                                    // Remove item from its group; dissolve group if empty
+                                    setGroups(prev => {
+                                        const updated = prev
+                                            .map(g => g.id === currentGroupId
+                                                ? { ...g, itemIds: g.itemIds.filter(id => id !== itemToRemove) }
+                                                : g
+                                            )
+                                            .filter(g => g.itemIds.length > 0);
+                                        return updated;
+                                    });
+                                    // Always close the sheet — item now appears free on home screen
+                                    setOpenGroupId(null);
+                                    setDraggedItemId(null);
+                                }}
+                                style={{
+                                    position: 'fixed', inset: 0, zIndex: 8000,
+                                    background: 'rgba(0,0,0,0.52)',
+                                    backdropFilter: 'blur(6px)',
+                                    WebkitBackdropFilter: 'blur(6px)',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    padding: '1.5rem',
+                                    animation: 'fadeIn 0.18s ease-out',
+                                }}
+                            >
+                                <div
+                                    onClick={e => e.stopPropagation()}
+                                    style={{
+                                        width: '100%', maxWidth: '640px',
+                                        background: 'var(--surface)',
+                                        borderRadius: '28px',
+                                        padding: '0',
+                                        maxHeight: '85vh',
+                                        display: 'flex', flexDirection: 'column',
+                                        overflow: 'hidden',
+                                        boxShadow: '0 24px 48px rgba(0,0,0,0.3)',
+                                        transformOrigin: 'center',
+                                        animation: 'popIn 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+                                    }}
+                                >
+
+                                    <div style={{
+                                        display: 'flex', alignItems: 'center', gap: '0.85rem',
+                                        padding: '0.85rem 1.25rem 1rem',
+                                        borderBottom: '1px solid var(--border)',
+                                    }}>
+                                        <div style={{
+                                            width: '40px', height: '40px', borderRadius: '12px',
+                                            background: 'linear-gradient(135deg, var(--primary), var(--primary-dk))',
+                                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                            flexShrink: 0,
+                                            boxShadow: '0 4px 12px rgba(var(--primary-rgb),0.35)',
+                                        }}>
+                                            <Layers size={18} color="#fff" />
+                                        </div>
+                                        <div style={{ flex: 1, minWidth: 0 }}>
+                                            <p style={{ fontWeight: 900, fontSize: '1.5rem', color: 'var(--text)', margin: 0, lineHeight: 1.2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                                {group.name}
+                                            </p>
+
+                                        </div>
+                                        <button
+                                            onClick={() => setOpenGroupId(null)}
+                                            style={{
+                                                width: '34px', height: '34px', borderRadius: '50%',
+                                                background: 'var(--surface-2)', border: '1px solid var(--border)',
+                                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                cursor: 'pointer', color: 'var(--text-muted)',
+                                                flexShrink: 0, transition: 'background 0.15s',
+                                            }}
+                                            onMouseEnter={e => { e.currentTarget.style.background = 'var(--surface-3)'; }}
+                                            onMouseLeave={e => { e.currentTarget.style.background = 'var(--surface-2)'; }}
+                                        >
+                                            <X size={16} />
+                                        </button>
+                                    </div>
+
+                                    {/* Items grid inside the sheet */}
+                                    <div style={{ overflowY: 'auto', padding: '1.25rem', flex: 1, background: 'var(--surface-2)' }}>
+                                        <div style={{
+                                            display: 'grid',
+                                            gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))',
+                                            gap: '1rem',
+                                            alignItems: 'start'
+                                        }}>
+                                            {groupItems.map(item => (
+                                                <div key={item.id} style={{
+                                                    transform: 'scale(0.95)',
+                                                    transformOrigin: 'top center',
+                                                    width: '100%',
+                                                    margin: '-2.5% 0' // Compensate for scale empty space
+                                                }}>
+                                                    <ItemCard
+                                                        item={item}
+                                                        categoryName={categories.find(c => c.id === item.category_id)?.name || 'Other'}
+                                                        draggable
+                                                        isDragActive={draggedItemId === item.id}
+                                                        isDragOver={dragOverItemId === item.id}
+                                                        onDragStart={() => handleDragStart(item.id)}
+                                                        onDragEnd={handleDragEnd}
+                                                        onDragOver={() => handleDragOverItem(item.id)}
+                                                        onDragLeave={handleDragLeaveItem}
+                                                        onDrop={() => handleDropOnItem(item.id)}
+                                                        onTogglePublic={async (id, val) => {
+                                                            await db.discover.setPublic(id, val);
+                                                            setItems(prev => prev.map(i => i.id === id ? { ...i, is_public: val } : i));
+                                                        }}
+                                                    />
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>,
+                            document.body
+                        );
+                    })()}
                 </div>
             </div>
 

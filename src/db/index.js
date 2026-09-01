@@ -397,6 +397,33 @@ export const db = {
     }
   },
 
+  groups: {
+    get: async () => {
+      const { data: { user }, error } = await supabase.auth.getUser();
+      if (error || !user) return [];
+      
+      // Attempt to fetch from user_metadata (the new reliable source)
+      if (user.user_metadata?.groups && Array.isArray(user.user_metadata.groups)) {
+          return user.user_metadata.groups;
+      }
+      return [];
+    },
+    save: async (groupsArray) => {
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError || !user) return;
+      
+      // Save directly to user_metadata to avoid profiles table RLS / missing row issues
+      const { error } = await supabase.auth.updateUser({
+          data: { groups: groupsArray }
+      });
+      
+      if (error) {
+        console.error("Groups save error:", error);
+        throw error;
+      }
+    }
+  },
+
   items: {
     getAll: async () => {
       const id = await getUserId();

@@ -8,7 +8,18 @@ const ORANGE = 'var(--primary)';
 const SURFACE = 'var(--surface)';
 const BORDER = 'var(--border)';
 
-export default function ItemCard({ item, categoryName, onRemove, onTogglePurchased, onTogglePublic }) {
+export default function ItemCard({
+    item, categoryName, onRemove, onTogglePurchased, onTogglePublic,
+    // Drag & drop
+    draggable: isDraggable = false,
+    isDragActive = false,    // this card is being dragged
+    isDragOver = false,      // another card is being dragged over this one
+    onDragStart,
+    onDragEnd,
+    onDragOver,
+    onDragLeave,
+    onDrop,
+}) {
     const navigate = useNavigate();
     const { currency } = useSettings();
     const price = new Intl.NumberFormat(undefined, { style: 'currency', currency: currency || 'INR', maximumFractionDigits: 2 }).format(item.price);
@@ -17,31 +28,68 @@ export default function ItemCard({ item, categoryName, onRemove, onTogglePurchas
     return (
         <>
         <div
+            draggable={isDraggable}
             onClick={() => navigate(`/product/${item.id}`)}
+            onDragStart={onDragStart}
+            onDragEnd={onDragEnd}
+            onDragOver={e => { e.preventDefault(); onDragOver?.(e); }}
+            onDragLeave={onDragLeave}
+            onDrop={e => { e.preventDefault(); onDrop?.(e); }}
             style={{
                 background: SURFACE,
-                border: `1.5px solid ${BORDER}`,
+                border: isDragOver
+                    ? `2.5px dashed var(--primary)`
+                    : `1.5px solid ${BORDER}`,
                 borderRadius: '24px',
-                cursor: 'pointer',
+                cursor: isDraggable ? 'grab' : 'pointer',
                 display: 'flex',
                 flexDirection: 'column',
                 transition: 'all 0.22s cubic-bezier(0.4,0,0.2,1)',
                 overflow: 'hidden',
                 position: 'relative',
-                opacity: item.is_purchased ? 0.65 : 1,
+                opacity: isDragActive ? 0.45 : item.is_purchased ? 0.65 : 1,
                 filter: item.is_purchased ? 'grayscale(0.6)' : 'none',
+                boxShadow: isDragOver
+                    ? '0 0 0 4px rgba(var(--primary-rgb),0.18), 0 8px 28px rgba(var(--primary-rgb),0.2)'
+                    : 'none',
+                transform: isDragOver ? 'scale(1.02)' : 'none',
             }}
             onMouseEnter={e => {
+                if (isDragActive) return;
                 e.currentTarget.style.borderColor = ORANGE;
                 e.currentTarget.style.boxShadow = `0 8px 28px rgba(var(--primary-rgb),0.15)`;
                 e.currentTarget.style.transform = 'translateY(-4px)';
             }}
             onMouseLeave={e => {
+                if (isDragOver) return;
                 e.currentTarget.style.borderColor = BORDER;
                 e.currentTarget.style.boxShadow = 'none';
                 e.currentTarget.style.transform = 'translateY(0)';
             }}
         >
+            {/* Drop-to-group overlay */}
+            {isDragOver && (
+                <div style={{
+                    position: 'absolute', inset: 0, zIndex: 20,
+                    background: 'rgba(var(--primary-rgb),0.1)',
+                    borderRadius: '22px',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    pointerEvents: 'none',
+                }}>
+                    <div style={{
+                        background: 'var(--primary)',
+                        color: '#fff',
+                        fontSize: '0.72rem',
+                        fontWeight: 800,
+                        padding: '0.35rem 0.8rem',
+                        borderRadius: '99px',
+                        letterSpacing: '0.04em',
+                        boxShadow: '0 4px 12px rgba(var(--primary-rgb),0.4)',
+                    }}>
+                        📦 Drop to Group
+                    </div>
+                </div>
+            )}
 
 
             {/* ── Inset image box (padded, rounded inner corners) ── */}
