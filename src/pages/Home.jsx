@@ -744,140 +744,176 @@ export default function Home() {
                                         onDrop={e => { e.preventDefault(); handleDropOnGroup(group.id); }}
                                         onClick={() => setOpenGroupId(group.id)}
                                         style={{
+                                            background: SURFACE,
+                                            border: isDropTarget ? `2.5px dashed var(--primary)` : `1.5px solid ${BORDER}`,
+                                            borderRadius: '24px',
                                             cursor: 'pointer',
-                                            position: 'relative',
-                                            borderRadius: '16px',
-                                            background: isDropTarget ? 'rgba(var(--primary-rgb),0.06)' : 'transparent',
-                                            border: isDropTarget ? '2px dashed var(--primary)' : '2px solid transparent',
                                             display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            padding: '0.5rem',
-                                            width: '100%',
-                                            height: '100%',
-                                            minHeight: '260px',
+                                            flexDirection: 'column',
                                             transition: 'all 0.22s cubic-bezier(0.4,0,0.2,1)',
+                                            overflow: 'hidden',
+                                            position: 'relative',
+                                            boxShadow: isDropTarget ? '0 0 0 4px rgba(var(--primary-rgb),0.18), 0 8px 28px rgba(var(--primary-rgb),0.2)' : 'none',
+                                            transform: isDropTarget ? 'scale(1.02)' : 'none',
                                         }}
-                                        onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; }}
-                                        onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; }}
+                                        onMouseEnter={e => {
+                                            if (isDropTarget) return;
+                                            e.currentTarget.style.borderColor = ORANGE;
+                                            e.currentTarget.style.boxShadow = `0 8px 28px rgba(var(--primary-rgb),0.15)`;
+                                            e.currentTarget.style.transform = 'translateY(-4px)';
+                                        }}
+                                        onMouseLeave={e => {
+                                            if (isDropTarget) return;
+                                            e.currentTarget.style.borderColor = BORDER;
+                                            e.currentTarget.style.boxShadow = 'none';
+                                            e.currentTarget.style.transform = 'translateY(0)';
+                                        }}
                                     >
-                                        {/* Folder 3D Object */}
-                                        <div style={{ width: '90%', aspectRatio: '1.1', position: 'relative' }}>
-
-                                            {/* Back body of folder */}
+                                        <div style={{ padding: '0.8rem 0.8rem 0.4rem', position: 'relative' }}>
                                             <div style={{
-                                                position: 'absolute',
-                                                bottom: '8%', left: 0, right: 0,
-                                                height: '75%',
-                                                background: '#75BAF2',
-                                                borderRadius: '10px',
-                                                boxShadow: 'inset 0 -10px 20px rgba(0,0,0,0.05)',
-                                            }} />
-
-                                            {/* Documents */}
-                                            {previews.map((item, idx) => {
-                                                const configs = [
-                                                    { left: '12%', rotate: '-12deg', bottom: '25%', width: '35%', height: '58%', zIndex: 1 },
-                                                    { left: '32%', rotate: '0deg', bottom: '30%', width: '35%', height: '62%', zIndex: 3 },
-                                                    { left: '52%', rotate: '12deg', bottom: '24%', width: '35%', height: '58%', zIndex: 2 },
-                                                ];
-                                                const c = configs[idx] || configs[1];
-                                                return (
-                                                    <div key={item.id} style={{
+                                                background: 'var(--surface-2)',
+                                                borderRadius: '16px',
+                                                aspectRatio: '1 / 1',
+                                                overflow: 'hidden',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                width: '100%',
+                                                boxShadow: '0 6px 16px rgba(0, 0, 0, 0.08)',
+                                                border: '1px solid var(--border)',
+                                                position: 'relative'
+                                            }}>
+                                                {/* Folder 3D Object */}
+                                                <div style={{ width: '85%', aspectRatio: '1.1', position: 'relative', transform: 'translateY(5%)' }}>
+                                                    {/* Back body of folder */}
+                                                    <div style={{
                                                         position: 'absolute',
-                                                        left: c.left, bottom: c.bottom,
-                                                        width: c.width, height: c.height,
-                                                        borderRadius: '6px',
-                                                        background: '#ffffff',
-                                                        boxShadow: '0 4px 12px rgba(0,0,0,0.12)',
-                                                        transform: `rotate(${c.rotate})`,
-                                                        transformOrigin: 'bottom center',
-                                                        zIndex: c.zIndex,
-                                                        padding: '10px 8px',
-                                                        display: 'flex', flexDirection: 'column', gap: '5px',
-                                                        overflow: 'hidden'
+                                                        bottom: '8%', left: 0, right: 0,
+                                                        height: '75%',
+                                                        background: '#75BAF2',
+                                                        borderRadius: '10px',
+                                                        boxShadow: 'inset 0 -10px 20px rgba(0,0,0,0.05)',
+                                                    }} />
+
+                                                    {/* Documents */}
+                                                    {previews.map((item, idx) => {
+                                                        const configs = [
+                                                            { left: '12%', rotate: '-12deg', bottom: '25%', width: '35%', height: '58%', zIndex: 1 },
+                                                            { left: '32%', rotate: '0deg', bottom: '30%', width: '35%', height: '62%', zIndex: 3 },
+                                                            { left: '52%', rotate: '12deg', bottom: '24%', width: '35%', height: '58%', zIndex: 2 },
+                                                        ];
+                                                        const c = configs[idx] || configs[1];
+                                                        return (
+                                                            <div key={item.id} style={{
+                                                                position: 'absolute',
+                                                                left: c.left, bottom: c.bottom,
+                                                                width: c.width, height: c.height,
+                                                                borderRadius: '6px',
+                                                                background: '#ffffff',
+                                                                boxShadow: '0 4px 12px rgba(0,0,0,0.12)',
+                                                                transform: `rotate(${c.rotate})`,
+                                                                transformOrigin: 'bottom center',
+                                                                zIndex: c.zIndex,
+                                                                padding: '10px 8px',
+                                                                display: 'flex', flexDirection: 'column', gap: '5px',
+                                                                overflow: 'hidden'
+                                                            }}>
+                                                                <div style={{ height: '4px', background: 'rgba(107, 179, 240, 0.4)', borderRadius: '2px', width: '85%' }} />
+                                                                <div style={{ height: '3px', background: 'rgba(107, 179, 240, 0.25)', borderRadius: '2px', width: '60%' }} />
+                                                                <div style={{ height: '3px', background: 'rgba(107, 179, 240, 0.25)', borderRadius: '2px', width: '75%' }} />
+                                                                <div style={{ height: '3px', background: 'rgba(107, 179, 240, 0.2)', borderRadius: '2px', width: '50%' }} />
+                                                            </div>
+                                                        );
+                                                    })}
+
+                                                    {/* Front flap mask URL */}
+                                                    <div style={{
+                                                        position: 'absolute',
+                                                        bottom: '8%', left: 0, right: 0, height: '60%',
+                                                        background: 'linear-gradient(135deg, rgba(144, 202, 250, 0.65), rgba(107, 179, 240, 0.4))',
+                                                        backdropFilter: 'blur(10px)',
+                                                        WebkitBackdropFilter: 'blur(10px)',
+                                                        maskImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 100 65' preserveAspectRatio='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M5 0h30q5 0 8 4l3 5q3 4 8 4h41q5 0 5 5v42q0 5-5 5H5q-5 0-5-5V5q0-5 5-5z' fill='black'/%3E%3C/svg%3E")`,
+                                                        WebkitMaskImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 100 65' preserveAspectRatio='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M5 0h30q5 0 8 4l3 5q3 4 8 4h41q5 0 5 5v42q0 5-5 5H5q-5 0-5-5V5q0-5 5-5z' fill='black'/%3E%3C/svg%3E")`,
+                                                        maskSize: '100% 100%',
+                                                        WebkitMaskSize: '100% 100%',
+                                                        zIndex: 5,
+                                                        boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.6)',
                                                     }}>
-                                                        <div style={{ height: '4px', background: 'rgba(107, 179, 240, 0.4)', borderRadius: '2px', width: '85%' }} />
-                                                        <div style={{ height: '3px', background: 'rgba(107, 179, 240, 0.25)', borderRadius: '2px', width: '60%' }} />
-                                                        <div style={{ height: '3px', background: 'rgba(107, 179, 240, 0.25)', borderRadius: '2px', width: '75%' }} />
-                                                        <div style={{ height: '3px', background: 'rgba(107, 179, 240, 0.2)', borderRadius: '2px', width: '50%' }} />
+                                                        {/* Top highlight */}
+                                                        <div style={{
+                                                            position: 'absolute', top: 0, left: 0, right: 0, height: '1.5px',
+                                                            background: 'linear-gradient(90deg, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0.1) 100%)',
+                                                        }} />
                                                     </div>
-                                                );
-                                            })}
 
-                                            {/* Front flap mask URL */}
-                                            <div style={{
-                                                position: 'absolute',
-                                                bottom: '8%', left: 0, right: 0, height: '60%',
-                                                background: 'linear-gradient(135deg, rgba(144, 202, 250, 0.65), rgba(107, 179, 240, 0.4))',
-                                                backdropFilter: 'blur(10px)',
-                                                WebkitBackdropFilter: 'blur(10px)',
-                                                maskImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 100 65' preserveAspectRatio='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M5 0h30q5 0 8 4l3 5q3 4 8 4h41q5 0 5 5v42q0 5-5 5H5q-5 0-5-5V5q0-5 5-5z' fill='black'/%3E%3C/svg%3E")`,
-                                                WebkitMaskImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 100 65' preserveAspectRatio='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M5 0h30q5 0 8 4l3 5q3 4 8 4h41q5 0 5 5v42q0 5-5 5H5q-5 0-5-5V5q0-5 5-5z' fill='black'/%3E%3C/svg%3E")`,
-                                                maskSize: '100% 100%',
-                                                WebkitMaskSize: '100% 100%',
-                                                zIndex: 5,
-                                                boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.6)',
-                                            }}>
-                                                {/* Top highlight */}
-                                                <div style={{
-                                                    position: 'absolute', top: 0, left: 0, right: 0, height: '1.5px',
-                                                    background: 'linear-gradient(90deg, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0.1) 100%)',
-                                                }} />
+                                                    {/* Drop hint overlay */}
+                                                    {isDropTarget && (
+                                                        <div style={{
+                                                            position: 'absolute', bottom: '8%', left: 0, right: 0, height: '75%',
+                                                            zIndex: 20,
+                                                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                            background: 'rgba(var(--primary-rgb),0.15)',
+                                                            borderRadius: '10px'
+                                                        }}>
+                                                            <span style={{ background: 'var(--primary)', color: '#fff', fontSize: '0.7rem', fontWeight: 800, padding: '0.3rem 0.7rem', borderRadius: '99px', boxShadow: '0 2px 8px rgba(0,0,0,0.2)' }}>
+                                                                + Add
+                                                            </span>
+                                                        </div>
+                                                    )}
+                                                </div>
+
+                                                {/* Delete button placed top right of the image box, identical to ItemCard */}
+                                                <button
+                                                    onClick={e => deleteGroup(group.id, e)}
+                                                    title="Dissolve group"
+                                                    style={{
+                                                        position: 'absolute', top: '0.5rem', right: '0.5rem',
+                                                        width: '28px', height: '28px', borderRadius: '50%',
+                                                        background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(8px)',
+                                                        color: '#fff', border: '1px solid rgba(255,255,255,0.2)',
+                                                        cursor: 'pointer', zIndex: 10,
+                                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                        transition: 'all 0.2s', padding: 0
+                                                    }}
+                                                    onMouseEnter={e => { e.currentTarget.style.background = '#ef4444'; e.currentTarget.style.borderColor = '#ef4444'; e.currentTarget.style.transform = 'scale(1.1)'; }}
+                                                    onMouseLeave={e => { e.currentTarget.style.background = 'rgba(0,0,0,0.5)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)'; e.currentTarget.style.transform = 'scale(1)'; }}
+                                                >
+                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>
+                                                </button>
                                             </div>
+                                        </div>
 
-                                            {/* Group Name Text (placed securely on the folder) */}
-                                            <div style={{
-                                                position: 'absolute',
-                                                bottom: '16%', left: '8%', right: '8%',
-                                                textAlign: 'center',
-                                                color: '#fff',
-                                                zIndex: 6,
-                                                display: 'flex', flexDirection: 'column', gap: '3px'
-                                            }}>
-                                                <span style={{ fontWeight: 800, fontSize: '1.25rem', textShadow: '0 1px 4px rgba(0,0,0,0.25)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                        {/* Content below image */}
+                                        <div style={{ padding: '0.75rem 0.9rem 1rem', flex: 1, display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '0.4rem', flex: 1 }}>
+                                                <p style={{
+                                                    fontWeight: 800,
+                                                    fontSize: '1.05rem',
+                                                    color: 'var(--text)',
+                                                    lineHeight: 1.3,
+                                                    margin: 0,
+                                                    display: '-webkit-box',
+                                                    WebkitLineClamp: 2,
+                                                    WebkitBoxOrient: 'vertical',
+                                                    overflow: 'hidden',
+                                                }}>
                                                     {group.name}
-                                                </span>
-                                                <span style={{ fontWeight: 700, fontSize: '0.8rem', textShadow: '0 1px 3px rgba(0,0,0,0.3)', opacity: 0.9 }}>
+                                                </p>
+                                                <span style={{
+                                                    display: 'inline-block',
+                                                    fontSize: '0.65rem', fontWeight: 800,
+                                                    color: 'var(--text-muted)',
+                                                    background: 'var(--surface-2)',
+                                                    padding: '0.2rem 0.55rem',
+                                                    borderRadius: '6px',
+                                                    textTransform: 'uppercase', letterSpacing: '0.05em',
+                                                    border: '1px solid var(--border)',
+                                                    whiteSpace: 'nowrap',
+                                                }}>
                                                     {groupItems.length} ITEM{groupItems.length !== 1 ? 'S' : ''}
                                                 </span>
                                             </div>
-
-                                            {/* Delete button (small, top right of folder) */}
-                                            <button
-                                                onClick={e => deleteGroup(group.id, e)}
-                                                title="Dissolve group"
-                                                style={{
-                                                    position: 'absolute', top: '10%', right: '-4%',
-                                                    width: '26px', height: '26px', borderRadius: '50%',
-                                                    background: 'rgba(255,255,255,0.95)',
-                                                    border: '1px solid rgba(0,0,0,0.05)',
-                                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                                    cursor: 'pointer', color: '#ef4444',
-                                                    boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
-                                                    zIndex: 10,
-                                                    transition: 'all 0.15s'
-                                                }}
-                                                onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.1)'; e.currentTarget.style.background = '#fff'; }}
-                                                onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.background = 'rgba(255,255,255,0.95)'; }}
-                                            >
-                                                <Trash2 size={13} />
-                                            </button>
-
-                                            {/* Drop hint overlay */}
-                                            {isDropTarget && (
-                                                <div style={{
-                                                    position: 'absolute', bottom: '8%', left: 0, right: 0, height: '75%',
-                                                    zIndex: 20,
-                                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                                    background: 'rgba(var(--primary-rgb),0.15)',
-                                                    borderRadius: '10px'
-                                                }}>
-                                                    <span style={{ background: 'var(--primary)', color: '#fff', fontSize: '0.7rem', fontWeight: 800, padding: '0.3rem 0.7rem', borderRadius: '99px', boxShadow: '0 2px 8px rgba(0,0,0,0.2)' }}>
-                                                        + Add
-                                                    </span>
-                                                </div>
-                                            )}
                                         </div>
                                     </div>
                                 );
@@ -1035,8 +1071,8 @@ export default function Home() {
                                     <div style={{ overflowY: 'auto', padding: '1.25rem', flex: 1, background: 'var(--surface-2)' }}>
                                         <div style={{
                                             display: 'grid',
-                                            gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))',
-                                            gap: '1rem',
+                                            gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))',
+                                            gap: '0.75rem',
                                             alignItems: 'start'
                                         }}>
                                             {groupItems.map(item => (
