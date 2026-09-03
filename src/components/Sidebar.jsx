@@ -1,5 +1,6 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Home, List, Plus, Package, Crown, ShieldCheck, LogOut, ShoppingBag, FolderHeart, Compass, Lock } from 'lucide-react';
+import MagneticButton from './MagneticButton';
 
 const ORANGE = 'var(--primary)';
 
@@ -37,26 +38,28 @@ function GuestLockOverlay({ onLogin }) {
                 <p style={{ fontWeight: 800, fontSize: '0.85rem', color: 'var(--text)', margin: '0 0 0.3rem' }}>Login Required</p>
                 <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: 0, lineHeight: 1.4 }}>Login to access your wishflow</p>
             </div>
-            <button
-                onClick={onLogin}
-                style={{
-                    padding: '0.55rem 1.25rem',
-                    borderRadius: '10px',
-                    background: ORANGE,
-                    color: '#fff',
-                    fontWeight: 700,
-                    fontSize: '0.82rem',
-                    border: 'none',
-                    cursor: 'pointer',
-                    fontFamily: 'inherit',
-                    boxShadow: '0 4px 12px rgba(var(--primary-rgb),0.35)',
-                    transition: 'opacity 0.2s',
-                }}
-                onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
-                onMouseLeave={e => e.currentTarget.style.opacity = '1'}
-            >
-                Login / Sign Up
-            </button>
+            <MagneticButton>
+                <button
+                    onClick={onLogin}
+                    style={{
+                        padding: '0.55rem 1.25rem',
+                        borderRadius: '10px',
+                        background: ORANGE,
+                        color: '#fff',
+                        fontWeight: 700,
+                        fontSize: '0.82rem',
+                        border: 'none',
+                        cursor: 'pointer',
+                        fontFamily: 'inherit',
+                        boxShadow: '0 4px 12px rgba(var(--primary-rgb),0.35)',
+                        transition: 'opacity 0.2s',
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
+                    onMouseLeave={e => e.currentTarget.style.opacity = '1'}
+                >
+                    Login / Sign Up
+                </button>
+            </MagneticButton>
         </div>
     );
 }
@@ -127,14 +130,16 @@ export default function Sidebar({ user, onLogout }) {
                             <p style={{ fontSize: '0.74rem', color: 'var(--text-dim)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user?.email || ''}</p>
                         </div>
                     </Link>
-                    <button
-                        onClick={onLogout}
-                        style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.7rem 1rem', borderRadius: '12px', color: '#ef4444', fontWeight: 600, fontSize: '0.9rem', border: 'none', cursor: 'pointer', background: 'transparent', fontFamily: 'inherit', transition: 'background 0.2s' }}
-                        onMouseEnter={e => e.currentTarget.style.background = 'rgba(239,68,68,0.1)'}
-                        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-                    >
-                        <LogOut size={18} /> Sign out
-                    </button>
+                    <MagneticButton style={{ width: '100%' }}>
+                        <button
+                            onClick={onLogout}
+                            style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.7rem 1rem', borderRadius: '12px', color: '#ef4444', fontWeight: 600, fontSize: '0.9rem', border: 'none', cursor: 'pointer', background: 'transparent', fontFamily: 'inherit', transition: 'background 0.2s' }}
+                            onMouseEnter={e => e.currentTarget.style.background = 'rgba(239,68,68,0.1)'}
+                            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                        >
+                            <LogOut size={18} /> Sign out
+                        </button>
+                    </MagneticButton>
                 </div>
             )}
         </aside>

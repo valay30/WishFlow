@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, Check, Globe } from 'lucide-react';
+import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
+import MagneticButton from './MagneticButton';
 import { useSettings } from '../context/SettingsContext';
 
 const ORANGE = 'var(--primary)';
@@ -21,50 +23,75 @@ export default function ItemCard({
     onDrop,
 }) {
     const navigate = useNavigate();
-    const { currency } = useSettings();
+    const { currency, viewMode } = useSettings();
     const price = new Intl.NumberFormat(undefined, { style: 'currency', currency: currency || 'INR', maximumFractionDigits: 2 }).format(item.price);
     const [showPublicConfirm, setShowPublicConfirm] = useState(false);
+    const [isHovered, setIsHovered] = useState(false);
+
+    // Parallax Tilt Setup
+    const x = useMotionValue(0);
+    const y = useMotionValue(0);
+    const mouseXSpring = useSpring(x, { stiffness: 300, damping: 20 });
+    const mouseYSpring = useSpring(y, { stiffness: 300, damping: 20 });
+    const rotateX = useTransform(mouseYSpring, [-0.5, 0.5], ["7.5deg", "-7.5deg"]);
+    const rotateY = useTransform(mouseXSpring, [-0.5, 0.5], ["-7.5deg", "7.5deg"]);
+
+    const handleMouseMove = (e) => {
+        if (isDragActive) return;
+        const rect = e.currentTarget.getBoundingClientRect();
+        const width = rect.width;
+        const height = rect.height;
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
+        x.set(mouseX / width - 0.5);
+        y.set(mouseY / height - 0.5);
+    };
+
+    const handleMouseLeaveInner = () => {
+        setIsHovered(false);
+        x.set(0);
+        y.set(0);
+        if (onDragLeave) onDragLeave();
+    };
 
     return (
         <>
-        <div
+        <motion.div
             draggable={isDraggable}
             onClick={() => navigate(`/product/${item.id}`)}
             onDragStart={onDragStart}
             onDragEnd={onDragEnd}
             onDragOver={e => { e.preventDefault(); onDragOver?.(e); }}
-            onDragLeave={onDragLeave}
+            onDragLeave={handleMouseLeaveInner}
             onDrop={e => { e.preventDefault(); onDrop?.(e); }}
+            onMouseEnter={() => { if (!isDragActive) setIsHovered(true); }}
+            onMouseMove={handleMouseMove}
+            onMouseLeave={handleMouseLeaveInner}
+            animate={{
+                y: isHovered && !isDragActive && !isDragOver ? -6 : 0,
+            }}
             style={{
+                rotateX,
+                rotateY,
+                transformStyle: "preserve-3d",
                 background: SURFACE,
-                border: isDragOver
-                    ? `2.5px dashed var(--primary)`
-                    : `1.5px solid ${BORDER}`,
+                border: isHovered && !isDragActive && !isDragOver
+                    ? `1.5px solid ${ORANGE}`
+                    : isDragOver ? `2.5px dashed var(--primary)` : `1.5px solid ${BORDER}`,
                 borderRadius: '24px',
                 cursor: isDraggable ? 'grab' : 'pointer',
                 display: 'flex',
                 flexDirection: 'column',
-                transition: 'all 0.22s cubic-bezier(0.4,0,0.2,1)',
+                transition: 'border-color 0.22s ease, box-shadow 0.22s ease', // don't transition transform since framer handles it
                 overflow: 'hidden',
                 position: 'relative',
                 opacity: isDragActive ? 0.45 : item.is_purchased ? 0.65 : 1,
                 filter: item.is_purchased ? 'grayscale(0.6)' : 'none',
-                boxShadow: isDragOver
+                boxShadow: isHovered && !isDragActive && !isDragOver
+                    ? `0 12px 32px rgba(var(--primary-rgb),0.18)`
+                    : isDragOver
                     ? '0 0 0 4px rgba(var(--primary-rgb),0.18), 0 8px 28px rgba(var(--primary-rgb),0.2)'
                     : 'none',
-                transform: isDragOver ? 'scale(1.02)' : 'none',
-            }}
-            onMouseEnter={e => {
-                if (isDragActive) return;
-                e.currentTarget.style.borderColor = ORANGE;
-                e.currentTarget.style.boxShadow = `0 8px 28px rgba(var(--primary-rgb),0.15)`;
-                e.currentTarget.style.transform = 'translateY(-4px)';
-            }}
-            onMouseLeave={e => {
-                if (isDragOver) return;
-                e.currentTarget.style.borderColor = BORDER;
-                e.currentTarget.style.boxShadow = 'none';
-                e.currentTarget.style.transform = 'translateY(0)';
             }}
         >
             {/* Drop-to-group overlay */}
@@ -97,7 +124,7 @@ export default function ItemCard({
                 <div style={{
                     background: 'var(--surface-2)',
                     borderRadius: '16px',
-                    aspectRatio: '1 / 1',
+                    aspectRatio: viewMode === 'masonry' ? 'auto' : '1 / 1',
                     overflow: 'hidden',
                     display: 'flex',
                     alignItems: 'center',
@@ -108,9 +135,9 @@ export default function ItemCard({
                     position: 'relative'
                 }}>
                     {item.image ? (
-                        <img src={item.image} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        <img src={item.image} alt={item.name} style={{ width: '100%', height: viewMode === 'masonry' ? 'auto' : '100%', objectFit: 'cover', display: 'block' }} />
                     ) : (
-                        <span style={{ fontSize: '2.5rem', color: 'var(--text-muted)' }}>📦</span>
+                        <span style={{ fontSize: '2.5rem', color: 'var(--text-muted)', padding: viewMode === 'masonry' ? '3rem 0' : 0 }}>📦</span>
                     )}
                     {onRemove && (
                         <button
@@ -185,36 +212,41 @@ export default function ItemCard({
             </div>
 
             {/* ── Content below image ── */}
-            <div style={{ padding: '0.75rem 0.9rem 1rem', flex: 1, display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                {/* Top section: Product name + Category chip */}
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '0.4rem', flex: 1 }}>
-                    <p style={{
-                        fontWeight: 800,
-                        fontSize: '1.05rem',
-                        color: 'var(--text)',
-                        lineHeight: 1.3,
-                        display: '-webkit-box',
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: 'vertical',
-                        overflow: 'hidden',
-                        margin: 0,
-                    }}>
-                        {item.name}
-                    </p>
-                    <span style={{
-                        display: 'inline-block',
-                        fontSize: '0.65rem', fontWeight: 800,
-                        color: 'var(--text-muted)',
-                        background: 'var(--surface-2)',
-                        padding: '0.2rem 0.55rem',
-                        borderRadius: '6px',
-                        textTransform: 'uppercase', letterSpacing: '0.05em',
-                        border: '1px solid var(--border)',
-                        whiteSpace: 'nowrap',
-                    }}>
-                        {categoryName}
-                    </span>
-                </div>
+            <div style={{ padding: '0.75rem 0.9rem 1rem', flex: 1, display: 'flex', flexDirection: 'column' }}>
+                {/* Product name (flex: 1 pushes everything below to the bottom) */}
+                <p style={{
+                    fontWeight: 800,
+                    fontSize: '1.05rem',
+                    color: 'var(--text)',
+                    lineHeight: 1.3,
+                    minHeight: '2.6em',
+                    display: '-webkit-box',
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: 'vertical',
+                    overflow: 'hidden',
+                    margin: '0 0 0.5rem 0',
+                    flex: 1,
+                }}>
+                    {item.name}
+                </p>
+
+                {/* Bottom section (Category + Price row) */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'flex-start' }}>
+                        <span style={{
+                            display: 'inline-block',
+                            fontSize: '0.65rem', fontWeight: 800,
+                            color: 'var(--text-muted)',
+                            background: 'var(--surface-2)',
+                            padding: '0.2rem 0.55rem',
+                            borderRadius: '6px',
+                            textTransform: 'uppercase', letterSpacing: '0.05em',
+                            border: '1px solid var(--border)',
+                            whiteSpace: 'nowrap',
+                        }}>
+                            {categoryName}
+                        </span>
+                    </div>
 
                 {/* Bottom row: price + arrow button */}
                 <div style={{
@@ -234,44 +266,46 @@ export default function ItemCard({
 
                 {/* Arrow button — opens external product link or details */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                    <a
-                        href={item.link || '#'}
-                        target={item.link ? '_blank' : '_self'}
-                        rel="noopener noreferrer"
-                        onClick={e => {
-                            if (!item.link) {
-                                e.stopPropagation();
-                                e.preventDefault();
-                                navigate(`/product/${item.id}`);
-                            } else {
-                                e.stopPropagation();
-                            }
-                        }}
-                        style={{
-                            width: '36px',
-                            height: '36px',
-                            borderRadius: '50%',
-                            background: ORANGE,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            flexShrink: 0,
-                            boxShadow: '0 4px 12px rgba(var(--primary-rgb),0.28)',
-                            transition: 'transform 0.18s ease, background 0.18s ease',
-                            textDecoration: 'none',
-                            cursor: 'pointer',
-                        }}
-                        onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.12)'; }}
-                        onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
-                        title={item.link ? 'Open product link' : 'View details'}
-                    >
-                        <ArrowRight size={17} color="#fff" strokeWidth={2.5} />
-                    </a>
+                    <MagneticButton>
+                        <a
+                            href={item.link || '#'}
+                            target={item.link ? '_blank' : '_self'}
+                            rel="noopener noreferrer"
+                            onClick={e => {
+                                if (!item.link) {
+                                    e.stopPropagation();
+                                    e.preventDefault();
+                                    navigate(`/product/${item.id}`);
+                                } else {
+                                    e.stopPropagation();
+                                }
+                            }}
+                            style={{
+                                width: '36px',
+                                height: '36px',
+                                borderRadius: '50%',
+                                background: ORANGE,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                flexShrink: 0,
+                                boxShadow: '0 4px 12px rgba(var(--primary-rgb),0.28)',
+                                transition: 'transform 0.18s ease, background 0.18s ease',
+                                textDecoration: 'none',
+                                cursor: 'pointer',
+                            }}
+                            onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.12)'; }}
+                            onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+                            title={item.link ? 'Open product link' : 'View details'}
+                        >
+                            <ArrowRight size={17} color="#fff" strokeWidth={2.5} />
+                        </a>
+                    </MagneticButton>
+                </div>
                 </div>
                 </div>
             </div>
-
-        </div>
+            </motion.div>
             {/* Confirmation Modal */}
             {showPublicConfirm && createPortal(
                 <div

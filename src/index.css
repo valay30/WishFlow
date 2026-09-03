@@ -1120,4 +1120,25 @@ body::before {
   background-size: 200% 100%;
   animation: skeleton-shimmer 1.5s ease-in-out infinite;
   border-radius: 8px;
-}
+}
+/* ══════════════════════════════════════
+   MASONRY LAYOUT
+══════════════════════════════════════ */
+.my-masonry-grid {
+  display: flex;
+  margin-left: -0.85rem; /* gutter size offset */
+  width: auto;
+}
+.my-masonry-grid_column {
+  padding-left: 0.85rem; /* gutter size */
+  background-clip: padding-box;
+}
+.my-masonry-grid_column > div {
+  margin-bottom: 0.85rem; /* space between items */
+}
+@media (min-width: 1024px) {
+  .my-masonry-grid { margin-left: -1rem; }
+  .my-masonry-grid_column { padding-left: 1rem; }
+  .my-masonry-grid_column > div { margin-bottom: 1rem; }
+}
+

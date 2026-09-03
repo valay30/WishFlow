@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
-import { LogOut, User, ArrowLeft, Settings, Shield, ShieldCheck, Bell, LayoutGrid, List as ListIcon, FolderHeart, ChevronDown, ChevronUp, Crown, Lock, Check, X } from 'lucide-react';
+import { LogOut, User, ArrowLeft, Settings, Shield, ShieldCheck, Bell, LayoutGrid, List as ListIcon, FolderHeart, ChevronDown, ChevronUp, Crown, Lock, Check, X, Columns } from 'lucide-react';
 import { useSettings } from '../context/SettingsContext';
 import { db, supabase } from '../db';
 import TierBadgeCard from '../components/TierBadgeCard';
@@ -371,6 +371,22 @@ export default function Profile() {
                                                     }}
                                                 >
                                                     <LayoutGrid size={16} /> Card
+                                                </button>
+                                                <button
+                                                    onClick={() => setViewMode('masonry')}
+                                                    style={{
+                                                        display: 'flex', alignItems: 'center', gap: '0.4rem',
+                                                        padding: '0.55rem 1rem', borderRadius: '10px',
+                                                        border: 'none', cursor: 'pointer',
+                                                        background: viewMode === 'masonry' ? 'var(--surface)' : 'transparent',
+                                                        color: viewMode === 'masonry' ? ORANGE : 'var(--text-dim)',
+                                                        fontWeight: 800, fontSize: '0.85rem',
+                                                        boxShadow: viewMode === 'masonry' ? '0 3px 8px rgba(0,0,0,0.08)' : 'none',
+                                                        transition: 'all 0.2s',
+                                                        fontFamily: 'inherit'
+                                                    }}
+                                                >
+                                                    <Columns size={16} /> Masonry
                                                 </button>
                                                 <button
                                                     onClick={() => setViewMode('list')}

@@ -14,11 +14,46 @@ import AlertModal from '../components/AlertModal';
 import { API_URL } from '../config';
 import { loadRazorpay } from '../utils/loadRazorpay';
 import GroupNameModal from '../components/GroupNameModal';
+import Masonry from 'react-masonry-css';
 
 const ORANGE = 'var(--primary)';
 const SURFACE = 'var(--surface)';
 const SURFACE2 = 'var(--surface-2)';
 const BORDER = 'var(--border)';
+
+/* ── Folder Themes Map ── */
+const FOLDER_THEMES = {
+    blue: {
+        back: '#75BAF2',
+        front: 'linear-gradient(135deg, rgba(144, 202, 250, 0.65), rgba(107, 179, 240, 0.4))',
+        highlight: 'linear-gradient(90deg, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0.1) 100%)'
+    },
+    purple: {
+        back: '#8B5CF6',
+        front: 'linear-gradient(135deg, rgba(167, 139, 250, 0.65), rgba(139, 92, 246, 0.4))',
+        highlight: 'linear-gradient(90deg, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0.1) 100%)'
+    },
+    emerald: {
+        back: '#10B981',
+        front: 'linear-gradient(135deg, rgba(52, 211, 153, 0.65), rgba(16, 185, 129, 0.4))',
+        highlight: 'linear-gradient(90deg, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0.1) 100%)'
+    },
+    rose: {
+        back: '#F43F5E',
+        front: 'linear-gradient(135deg, rgba(251, 113, 133, 0.65), rgba(244, 63, 94, 0.4))',
+        highlight: 'linear-gradient(90deg, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0.1) 100%)'
+    },
+    orange: {
+        back: '#C25600',
+        front: 'linear-gradient(135deg, rgba(245, 132, 38, 0.65), rgba(200, 80, 0, 0.4))',
+        highlight: 'linear-gradient(90deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.1) 100%)'
+    },
+    slate: {
+        back: '#64748B',
+        front: 'linear-gradient(135deg, rgba(148, 163, 184, 0.65), rgba(100, 116, 139, 0.4))',
+        highlight: 'linear-gradient(90deg, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0.1) 100%)'
+    }
+};
 
 /* ── Category icon map ── */
 const GetCategoryIcon = ({ name, size = 16, color, className }) => {
@@ -36,7 +71,7 @@ const GetCategoryIcon = ({ name, size = 16, color, className }) => {
 ══════════════════════════════════════ */
 export default function Home() {
     const { user } = useAuth();
-    const { viewMode, currency } = useSettings();
+    const { viewMode, currency, darkMode, colorTheme } = useSettings();
     const [searchParams, setSearchParams] = useSearchParams();
     const navigate = useNavigate();
 
@@ -474,6 +509,22 @@ export default function Home() {
         if (showAddModal) closeModal();
     };
 
+    const breakpointColumnsObj = {
+        default: 4,
+        1024: 3,
+        768: 2
+    };
+
+    const GridWrapper = viewMode === 'masonry' ? Masonry : 'div';
+    const gridProps = viewMode === 'masonry' ? {
+        breakpointCols: breakpointColumnsObj,
+        className: 'my-masonry-grid',
+        columnClassName: 'my-masonry-grid_column'
+    } : {
+        className: viewMode === 'card' ? 'category-grid' : 'list-view-container',
+        style: viewMode === 'list' ? { display: 'flex', flexDirection: 'column', gap: '0.75rem' } : {}
+    };
+
     return (
         <>
             {/* ── Modal ── */}
@@ -720,12 +771,9 @@ export default function Home() {
                         </div>
                     ) : (filtered.length > 0 || groups.some(g => g.itemIds.length > 0)) ? (
                         /* ── Single unified grid: folder cards first, then ungrouped items ── */
-                        <div
-                            className={viewMode === 'card' ? 'category-grid' : 'list-view-container'}
-                            style={viewMode === 'list' ? { display: 'flex', flexDirection: 'column', gap: '0.75rem' } : {}}
-                        >
+                        <GridWrapper {...gridProps}>
                             {/* FOLDER CARDS — one per group, inline in the grid */}
-                            {viewMode === 'card' && groups.map(group => {
+                            {(viewMode === 'card' || viewMode === 'masonry') && groups.map(group => {
                                 const groupItems = group.itemIds
                                     .map(id => items.find(i => i.id === id))
                                     .filter(Boolean)
@@ -790,9 +838,9 @@ export default function Home() {
                                                         position: 'absolute',
                                                         bottom: '8%', left: 0, right: 0,
                                                         height: '75%',
-                                                        background: '#75BAF2',
+                                                        background: darkMode ? '#1a1a1a' : (FOLDER_THEMES[colorTheme]?.back || FOLDER_THEMES.blue.back),
                                                         borderRadius: '10px',
-                                                        boxShadow: 'inset 0 -10px 20px rgba(0,0,0,0.05)',
+                                                        boxShadow: darkMode ? 'inset 0 -10px 20px rgba(0,0,0,0.4)' : 'inset 0 -10px 20px rgba(0,0,0,0.05)',
                                                     }} />
 
                                                     {/* Documents */}
@@ -809,8 +857,8 @@ export default function Home() {
                                                                 left: c.left, bottom: c.bottom,
                                                                 width: c.width, height: c.height,
                                                                 borderRadius: '6px',
-                                                                background: '#ffffff',
-                                                                boxShadow: '0 4px 12px rgba(0,0,0,0.12)',
+                                                                background: darkMode ? '#e5e5e5' : '#ffffff',
+                                                                boxShadow: darkMode ? '0 4px 12px rgba(0,0,0,0.4)' : '0 4px 12px rgba(0,0,0,0.12)',
                                                                 transform: `rotate(${c.rotate})`,
                                                                 transformOrigin: 'bottom center',
                                                                 zIndex: c.zIndex,
@@ -818,10 +866,10 @@ export default function Home() {
                                                                 display: 'flex', flexDirection: 'column', gap: '5px',
                                                                 overflow: 'hidden'
                                                             }}>
-                                                                <div style={{ height: '4px', background: 'rgba(107, 179, 240, 0.4)', borderRadius: '2px', width: '85%' }} />
-                                                                <div style={{ height: '3px', background: 'rgba(107, 179, 240, 0.25)', borderRadius: '2px', width: '60%' }} />
-                                                                <div style={{ height: '3px', background: 'rgba(107, 179, 240, 0.25)', borderRadius: '2px', width: '75%' }} />
-                                                                <div style={{ height: '3px', background: 'rgba(107, 179, 240, 0.2)', borderRadius: '2px', width: '50%' }} />
+                                                                <div style={{ height: '4px', background: darkMode ? 'rgba(0, 0, 0, 0.2)' : 'rgba(107, 179, 240, 0.4)', borderRadius: '2px', width: '85%' }} />
+                                                                <div style={{ height: '3px', background: darkMode ? 'rgba(0, 0, 0, 0.15)' : 'rgba(107, 179, 240, 0.25)', borderRadius: '2px', width: '60%' }} />
+                                                                <div style={{ height: '3px', background: darkMode ? 'rgba(0, 0, 0, 0.15)' : 'rgba(107, 179, 240, 0.25)', borderRadius: '2px', width: '75%' }} />
+                                                                <div style={{ height: '3px', background: darkMode ? 'rgba(0, 0, 0, 0.1)' : 'rgba(107, 179, 240, 0.2)', borderRadius: '2px', width: '50%' }} />
                                                             </div>
                                                         );
                                                     })}
@@ -830,7 +878,7 @@ export default function Home() {
                                                     <div style={{
                                                         position: 'absolute',
                                                         bottom: '8%', left: 0, right: 0, height: '60%',
-                                                        background: 'linear-gradient(135deg, rgba(144, 202, 250, 0.65), rgba(107, 179, 240, 0.4))',
+                                                        background: darkMode ? 'linear-gradient(135deg, rgba(80, 80, 80, 0.65), rgba(40, 40, 40, 0.8))' : (FOLDER_THEMES[colorTheme]?.front || FOLDER_THEMES.blue.front),
                                                         backdropFilter: 'blur(10px)',
                                                         WebkitBackdropFilter: 'blur(10px)',
                                                         maskImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 100 65' preserveAspectRatio='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M5 0h30q5 0 8 4l3 5q3 4 8 4h41q5 0 5 5v42q0 5-5 5H5q-5 0-5-5V5q0-5 5-5z' fill='black'/%3E%3C/svg%3E")`,
@@ -838,12 +886,12 @@ export default function Home() {
                                                         maskSize: '100% 100%',
                                                         WebkitMaskSize: '100% 100%',
                                                         zIndex: 5,
-                                                        boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.6)',
+                                                        boxShadow: darkMode ? 'inset 0 1px 1px rgba(255,255,255,0.15)' : 'inset 0 1px 1px rgba(255,255,255,0.6)',
                                                     }}>
                                                         {/* Top highlight */}
                                                         <div style={{
                                                             position: 'absolute', top: 0, left: 0, right: 0, height: '1.5px',
-                                                            background: 'linear-gradient(90deg, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0.1) 100%)',
+                                                            background: darkMode ? 'linear-gradient(90deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.05) 100%)' : (FOLDER_THEMES[colorTheme]?.highlight || FOLDER_THEMES.blue.highlight),
                                                         }} />
                                                     </div>
 
@@ -921,7 +969,7 @@ export default function Home() {
 
                             {/* UNGROUPED ITEM CARDS */}
                             {ungroupedFiltered.map(item => (
-                                viewMode === 'card' ? (
+                                (viewMode === 'card' || viewMode === 'masonry') ? (
                                     <ItemCard
                                         key={item.id}
                                         item={item}
@@ -947,11 +995,11 @@ export default function Home() {
                                     />
                                 )
                             ))}
-                        </div>
+                        </GridWrapper>
                     ) : (
                         <div style={{ textAlign: 'center', padding: '3rem 1rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.85rem' }}>
-                            <div style={{ width: '70px', height: '70px', borderRadius: '50%', background: 'var(--surface-2)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: `1px solid ${BORDER}` }}>
-                                <ShoppingBag size={28} color={ORANGE} />
+                            <div style={{ width: '180px', height: '180px', marginBottom: '0.5rem', borderRadius: '32px', overflow: 'hidden', boxShadow: '0 16px 40px rgba(0,0,0,0.12)', border: '1px solid rgba(255,255,255,0.4)', background: 'var(--surface)' }}>
+                                <img src="/empty_state.png" alt="Empty State" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                             </div>
                             <p style={{ fontWeight: 700, color: 'var(--text)', fontSize: '1rem' }}>Nothing here yet!</p>
                             <p style={{ fontSize: '0.82rem', color: 'var(--text-dim)', maxWidth: '235px' }}>
