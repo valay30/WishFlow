@@ -3,6 +3,7 @@ import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
 import { Eye, EyeOff } from 'lucide-react';
 import { useResponsive } from '../hooks/useResponsive';
+import { useIsland } from '../context/IslandContext';
 
 /* ─────────────────────────────────────────
    Design tokens & Helpers
@@ -121,12 +122,8 @@ export default function AuthPage() {
     const [password, setPassword] = useState('');
     const [showPass, setShowPass] = useState(false);
 
-    const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
-
-    const [forgotSent, setForgotSent] = useState(false);
-    const [resetConfirm, setResetConfirm] = useState('');
-    const [resetSuccess, setResetSuccess] = useState(false);
+    const { showIsland } = useIsland();
 
     const { login, signup, resetPassword, updatePassword, recoveryMode, signInWithGoogle } = useAuth();
     const navigate = useNavigate();
@@ -149,49 +146,50 @@ export default function AuthPage() {
         const result = await signInWithGoogle();
         if (!result.success) {
             setLoading(false);
-            setError(result.error);
+            showIsland({ title: 'Error', subtitle: result.error, type: 'error' });
+        } else {
+            showIsland({ title: 'Logged In', type: 'success' });
         }
     };
 
     const go = (s) => {
-        setError('');
-        setForgotSent(false);
-        setResetSuccess(false);
         setScreen(s);
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setError('');
 
         if (screen === 'forgot') {
-            if (!email.trim()) return setError('Please enter your email.');
+            if (!email.trim()) return showIsland({ title: 'Error', subtitle: 'Please enter your email.', type: 'error' });
             setLoading(true);
             const res = await resetPassword(email.trim());
             setLoading(false);
-            if (res.success) setForgotSent(true);
-            else setError(res.error);
-            return;
-        }
-
-        if (screen === 'reset') {
-            if (password.length < 8) return setError('Password must be at least 8 characters.');
-            if (password !== resetConfirm) return setError('Passwords do not match.');
-            setLoading(true);
-            const res = await updatePassword(password);
-            setLoading(false);
             if (res.success) {
-                setResetSuccess(true);
-                setTimeout(() => navigate('/home'), 2500);
+                showIsland({ title: 'Reset Link Sent', subtitle: 'Check your email.', type: 'success' });
             } else {
-                setError(res.error);
+                showIsland({ title: 'Error', subtitle: res.error, type: 'error' });
             }
             return;
         }
 
-        if (!email || !password) return setError('Please fill in all fields.');
-        if (screen === 'signup' && (!firstName.trim() || !lastName.trim())) return setError('Please enter your full name.');
-        if (password.length < 6) return setError('Password must be at least 6 characters.');
+        if (screen === 'reset') {
+            if (password.length < 8) return showIsland({ title: 'Error', subtitle: 'Password must be at least 8 characters.', type: 'error' });
+            if (password !== resetConfirm) return showIsland({ title: 'Error', subtitle: 'Passwords do not match.', type: 'error' });
+            setLoading(true);
+            const res = await updatePassword(password);
+            setLoading(false);
+            if (res.success) {
+                showIsland({ title: 'Password Updated', subtitle: 'Redirecting...', type: 'success' });
+                setTimeout(() => navigate('/home'), 2500);
+            } else {
+                showIsland({ title: 'Error', subtitle: res.error, type: 'error' });
+            }
+            return;
+        }
+
+        if (!email || !password) return showIsland({ title: 'Error', subtitle: 'Please fill in all fields.', type: 'error' });
+        if (screen === 'signup' && (!firstName.trim() || !lastName.trim())) return showIsland({ title: 'Error', subtitle: 'Please enter your full name.', type: 'error' });
+        if (password.length < 6) return showIsland({ title: 'Error', subtitle: 'Password must be at least 6 characters.', type: 'error' });
 
         setLoading(true);
         await new Promise(r => setTimeout(r, 400));
@@ -205,6 +203,7 @@ export default function AuthPage() {
         // On success, check if user came from the landing page "Upgrade Now" button.
         // Use window.location.replace so this redirect cannot be overridden by React Router.
         if (result.success) {
+            showIsland({ title: screen === 'signup' ? 'Account Created' : 'Logged In', type: 'success' });
             const hasUpgradeIntent = sessionStorage.getItem('upgradeIntent') === '1';
             if (hasUpgradeIntent) {
                 sessionStorage.removeItem('upgradeIntent');
@@ -212,7 +211,7 @@ export default function AuthPage() {
             }
             // If no upgrade intent, App.jsx routing will redirect to /home once user state updates.
         } else {
-            setError(result.error);
+            showIsland({ title: 'Error', subtitle: result.error, type: 'error' });
         }
     };
 
@@ -275,24 +274,6 @@ export default function AuthPage() {
                             onChange={e => setResetConfirm(e.target.value)}
                         />
                         <div style={{ width: '56px', flexShrink: 0 }} />
-                    </div>
-                )}
-
-                {error && (
-                    <div style={{ color: '#E97451', fontSize: '0.85rem', textAlign: 'center', fontWeight: 500, marginTop: '0.25rem' }}>
-                        {error}
-                    </div>
-                )}
-
-                {forgotSent && screen === 'forgot' && (
-                    <div style={{ color: '#6BC492', fontSize: '0.85rem', textAlign: 'center', fontWeight: 500, marginTop: '0.25rem' }}>
-                        Reset link sent! Check your email.
-                    </div>
-                )}
-
-                {resetSuccess && screen === 'reset' && (
-                    <div style={{ color: '#6BC492', fontSize: '0.85rem', textAlign: 'center', fontWeight: 500, marginTop: '0.25rem' }}>
-                        Password updated successfully! Redirecting...
                     </div>
                 )}
 

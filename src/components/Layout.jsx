@@ -17,7 +17,6 @@ export default function Layout({ children }) {
             <Sidebar user={user} onLogout={handleLogout} />
 
             <div className="main-content">
-
                 <main className="animate-fade-in" style={{ flex: 1 }}>
                     {children ?? <Outlet />}
                 </main>

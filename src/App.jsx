@@ -6,6 +6,7 @@ import { SpeedInsights } from '@vercel/speed-insights/react';
 import { AuthProvider } from './context/AuthContext';
 import { useAuth } from './context/useAuth';
 import { SettingsProvider } from './context/SettingsContext';
+import { IslandProvider } from './context/IslandContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout';
 import OfflinePage from './pages/OfflinePage';
@@ -212,11 +213,13 @@ function App() {
   return (
     <AuthProvider>
       <SettingsProvider>
-        <ScrollToTop />
-        <AppRoutes />
-        <CookieBanner />
-        <Analytics />
-        <SpeedInsights />
+        <IslandProvider>
+          <ScrollToTop />
+          <AppRoutes />
+          <CookieBanner />
+          <Analytics />
+          <SpeedInsights />
+        </IslandProvider>
       </SettingsProvider>
     </AuthProvider>
   );

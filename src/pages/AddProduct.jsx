@@ -10,6 +10,7 @@ import AlertModal from '../components/AlertModal';
 import { useSettings } from '../context/SettingsContext';
 import CustomSelect from '../components/CustomSelect';
 import LinkScraper from '../components/LinkScraper';
+import { useIsland } from '../context/IslandContext';
 
 export default function AddProduct() {
     const navigate = useNavigate();
@@ -25,6 +26,7 @@ export default function AddProduct() {
     const [showPremiumModal, setShowPremiumModal] = useState(false);
     const [paymentStatus, setPaymentStatus] = useState({ isOpen: false, success: false, title: '', message: '' });
     const [flashFields, setFlashFields] = useState({});
+    const { showIsland } = useIsland();
 
     // Flash highlight auto-filled fields briefly
     const flashField = (fields) => {
@@ -152,12 +154,16 @@ export default function AddProduct() {
 
         if (!name || !price || !categoryId) return;
         await db.items.add({ name, price: parseFloat(price), link, image, category_id: parseInt(categoryId) });
+        showIsland({ title: 'Success', subtitle: 'Product saved successfully!', type: 'success' });
         navigate('/');
     };
 
     const handleImageUpload = (e) => {
         const file = e.target.files[0]; if (!file) return;
-        if (file.size > 500000) { alert('Image too large. Please use < 500 KB or a URL.'); return; }
+        if (file.size > 500000) { 
+            showIsland({ title: 'Image Too Large', subtitle: 'Please use < 500 KB or a URL.', type: 'error' });
+            return; 
+        }
         const reader = new FileReader();
         reader.onloadend = () => setImage(reader.result);
         reader.readAsDataURL(file);

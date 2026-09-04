@@ -10,6 +10,7 @@ import AddExistingItemsModal from '../components/AddExistingItemsModal';
 import AddProductModal from '../components/AddProductModal';
 import AlertModal from '../components/AlertModal';
 import { useSettings } from '../context/SettingsContext';
+import { useIsland } from '../context/IslandContext';
 import { useAuth } from '../context/useAuth';
 import { API_URL } from '../config';
 import { loadRazorpay } from '../utils/loadRazorpay';
@@ -67,7 +68,6 @@ export default function Collections() {
 
     // Drill-down state
     const [activeCollection, setActiveCollection] = useState(null);
-    const [shareToast, setShareToast] = useState(''); // '' | 'copied' | 'shared'
     const [showUsernameShareModal, setShowUsernameShareModal] = useState(false);
     const [shareUsername, setShareUsername] = useState('');
     const [isSharingUsername, setIsSharingUsername] = useState(false);
@@ -90,11 +90,9 @@ export default function Collections() {
         }
         try {
             await navigator.clipboard.writeText(url);
-            setShareToast('copied');
-            setTimeout(() => setShareToast(''), 2500);
+            showIsland({ title: 'Link Copied', subtitle: 'Copied to clipboard!', type: 'success' });
         } catch {
-            setShareToast('error');
-            setTimeout(() => setShareToast(''), 2500);
+            showIsland({ title: 'Error', subtitle: 'Could not copy link', type: 'error' });
         }
     };
 
@@ -105,11 +103,9 @@ export default function Collections() {
         const url = `${window.location.origin}/shared/collection/${targetCol.id}`;
         try {
             await navigator.clipboard.writeText(url);
-            setShareToast('copied');
-            setTimeout(() => setShareToast(''), 2500);
+            showIsland({ title: 'Link Copied', subtitle: 'Copied to clipboard!', type: 'success' });
         } catch {
-            setShareToast('error');
-            setTimeout(() => setShareToast(''), 2500);
+            showIsland({ title: 'Error', subtitle: 'Could not copy link', type: 'error' });
         }
     };
 
@@ -121,10 +117,9 @@ export default function Collections() {
         if (res.success) {
             setShowUsernameShareModal(false);
             setShareUsername('');
-            setShareToast('shared');
-            setTimeout(() => setShareToast(''), 2500);
+            showIsland({ title: 'Invite Sent', subtitle: 'Share request sent successfully!', type: 'success' });
         } else {
-            alert(res.error);
+            showIsland({ title: 'Error', subtitle: res.error, type: 'error' });
         }
     };
 
@@ -250,6 +245,8 @@ export default function Collections() {
         load();
     }, []);
 
+    const { showIsland } = useIsland();
+
     const reload = async () => {
         const [cols, its, citems, shared] = await Promise.all([
             db.collections.getAll().catch(() => []),
@@ -266,8 +263,10 @@ export default function Collections() {
     const handleSave = async (data) => {
         if (editingCollection) {
             await db.collections.update(editingCollection.id, data);
+            showIsland({ title: 'Collection Updated', type: 'success' });
         } else {
             await db.collections.add(data);
+            showIsland({ title: 'Collection Created', type: 'success' });
         }
         await reload();
         setEditingCollection(null);
@@ -275,6 +274,7 @@ export default function Collections() {
 
     const handleDelete = async (id) => {
         await db.collections.delete(id);
+        showIsland({ title: 'Collection Deleted', type: 'success' });
         await reload();
         if (activeCollection?.id === id) setActiveCollection(null);
     };
@@ -706,48 +706,10 @@ export default function Collections() {
                                 </button>
                             </div>
 
-                            {/* Floating toast anchored below modal card without shifting popup position */}
-                            {shareToast && (
-                                <div style={{
-                                    position: 'absolute', top: 'calc(100% + 12px)', left: '50%', transform: 'translateX(-50%)',
-                                    background: shareToast === 'copied' || shareToast === 'shared' ? 'rgba(34,197,94,0.95)' : 'rgba(239,68,68,0.95)',
-                                    backdropFilter: 'blur(10px)', color: '#fff', padding: '0.75rem 1.5rem',
-                                    borderRadius: '20px', fontWeight: 700, fontSize: '0.9rem',
-                                    display: 'flex', alignItems: 'center', gap: '0.5rem',
-                                    boxShadow: '0 8px 32px rgba(0,0,0,0.25)',
-                                    animation: 'fadeInUp 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
-                                    pointerEvents: 'none', whiteSpace: 'nowrap', zIndex: 100000
-                                }}>
-                                    {shareToast === 'copied' || shareToast === 'shared' ? <Check size={16} /> : <X size={16} />}
-                                    {shareToast === 'copied' ? 'Link copied to clipboard!' : shareToast === 'shared' ? 'Invite sent!' : 'Could not copy link'}
-                                </div>
-                            )}
                         </div>
                     </div>
                 )}
 
-                {/* ── Standalone share / copy toast (when modal is not open) ── */}
-                {!showUsernameShareModal && shareToast && (
-                    <div style={{
-                        position: 'fixed', bottom: '2rem', left: '50%', transform: 'translateX(-50%)',
-                        background: shareToast === 'copied' || shareToast === 'shared' ? 'rgba(34,197,94,0.95)' : 'rgba(239,68,68,0.95)',
-                        backdropFilter: 'blur(10px)', color: '#fff', padding: '0.85rem 1.6rem',
-                        borderRadius: '20px', fontWeight: 700, fontSize: '0.9rem',
-                        display: 'flex', alignItems: 'center', gap: '0.5rem',
-                        boxShadow: '0 8px 32px rgba(0,0,0,0.25)', zIndex: 1000000,
-                        animation: 'toastSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
-                        pointerEvents: 'none'
-                    }}>
-                        <style>{`
-                            @keyframes toastSlideUp {
-                                from { opacity: 0; transform: translate(-50%, 16px); }
-                                to { opacity: 1; transform: translate(-50%, 0); }
-                            }
-                        `}</style>
-                        {shareToast === 'copied' || shareToast === 'shared' ? <Check size={16} /> : <X size={16} />}
-                        {shareToast === 'copied' ? 'Link copied to clipboard!' : shareToast === 'shared' ? 'Invite sent!' : 'Could not copy link'}
-                    </div>
-                )}
 
                 <AlertModal
                     isOpen={removeShareConfirm.isOpen}

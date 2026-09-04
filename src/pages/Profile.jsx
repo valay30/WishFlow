@@ -18,6 +18,8 @@ const SURFACE2 = 'var(--surface-2)';
 const BORDER = 'var(--border)';
 const BG = 'var(--bg)';
 
+import { useIsland } from '../context/IslandContext';
+
 const THEMES = [
     { id: 'blue', label: 'Ocean Blue', color: '#10367D' },
     { id: 'purple', label: 'Royal Purple', color: '#7C3AED' },
@@ -41,11 +43,10 @@ export default function Profile() {
     const [isSavingUsername, setIsSavingUsername] = useState(false);
     const [showUsernameModal, setShowUsernameModal] = useState(false);
     const [initialUsername, setInitialUsername] = useState('');
-    const [toast, setToast] = useState({ isOpen: false, type: 'success', message: '' });
+    const { showIsland } = useIsland();
 
     const showToast = (message, type = 'success') => {
-        setToast({ isOpen: true, type, message });
-        setTimeout(() => setToast({ isOpen: false, type, message: '' }), 3000);
+        showIsland({ title: type === 'success' ? 'Success' : 'Error', subtitle: message, type });
     };
 
     const [isProfileLoading, setIsProfileLoading] = useState(true);
@@ -82,7 +83,7 @@ export default function Profile() {
         } else {
             setInitialUsername(username.trim());
             setShowUsernameModal(false);
-            showToast('Username saved successfully!', 'success');
+            showIsland({ title: 'Settings Saved', type: 'success' });
         }
     };
 
@@ -371,7 +372,10 @@ export default function Profile() {
                                                 <div style={{ minWidth: '120px' }}>
                                                     <CustomSelect
                                                         value={currency}
-                                                        onChange={(val) => setCurrency(val)}
+                                                        onChange={(val) => {
+                                                            setCurrency(val);
+                                                            showIsland({ title: 'Settings Saved', type: 'success' });
+                                                        }}
                                                         options={[
                                                             { value: 'INR', label: '₹ INR' },
                                                             { value: 'USD', label: '$ USD' },
@@ -404,7 +408,10 @@ export default function Profile() {
                                                         background: darkMode ? ORANGE : 'var(--surface-3)',
                                                         position: 'relative', cursor: 'pointer',
                                                         transition: 'background 0.3s'
-                                                    }} onClick={() => setDarkMode(!darkMode)}>
+                                                    }} onClick={() => {
+                                                        setDarkMode(!darkMode);
+                                                        showIsland({ title: 'Settings Saved', type: 'success' });
+                                                    }}>
                                                         <div style={{
                                                             width: '20px', height: '20px', borderRadius: '50%',
                                                             background: 'var(--surface)', position: 'absolute', top: '2px',
@@ -439,7 +446,10 @@ export default function Profile() {
                                                     {THEMES.map(theme => (
                                                         <button
                                                             key={theme.id}
-                                                            onClick={() => setColorTheme(theme.id)}
+                                                            onClick={() => {
+                                                                setColorTheme(theme.id);
+                                                                showIsland({ title: 'Settings Saved', type: 'success' });
+                                                            }}
                                                             title={theme.label}
                                                             style={{
                                                                 width: '36px', height: '36px',
@@ -605,33 +615,6 @@ export default function Profile() {
                     .hide-on-desktop { display: none !important; }
                 }
             `}</style>
-            {/* ── Toast Notification ── */}
-            {toast.isOpen && createPortal(
-                <div style={{
-                    position: 'fixed',
-                    bottom: '2rem',
-                    left: '50%',
-                    transform: 'translateX(-50%)',
-                    zIndex: 9999999,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.75rem',
-                    padding: '0.85rem 1.25rem',
-                    borderRadius: '16px',
-                    background: toast.type === 'success' ? 'rgba(34,197,94,0.95)' : 'rgba(239,68,68,0.95)',
-                    color: '#fff',
-                    fontWeight: 600,
-                    fontSize: '0.9rem',
-                    boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
-                    animation: 'toastSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
-                    backdropFilter: 'blur(8px)',
-                    whiteSpace: 'nowrap'
-                }}>
-                    {toast.type === 'success' ? <Check size={18} /> : <X size={18} />}
-                    {toast.message}
-                </div>,
-                document.body
-            )}
 
             <AlertModal
                 isOpen={paymentStatus.isOpen}

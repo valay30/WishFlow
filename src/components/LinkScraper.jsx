@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Sparkles, Link as LinkIcon, X, CheckCircle, AlertCircle } from 'lucide-react';
 import { API_URL } from '../config';
 import FetchOverlay from './FetchOverlay';
+import { useIsland } from '../context/IslandContext';
 
 const PRIMARY = 'var(--primary)';
 const BORDER = 'var(--border)';
@@ -22,6 +23,7 @@ export default function LinkScraper({
     onResult,
     autoFetchUrl = null,
 }) {
+    const { showIsland } = useIsland();
     const [status, setStatus] = useState('idle'); // idle | loading | success | error
     const [errorMsg, setErrorMsg] = useState('');
     // showOverlay: true only when auto-fetching from a shared URL
@@ -51,9 +53,6 @@ export default function LinkScraper({
             return;
         }
 
-        setStatus('loading');
-        setErrorMsg('');
-
         try {
             const res = await fetch(`${API_URL}/api/scraper/extract`, {
                 method: 'POST',
@@ -66,18 +65,20 @@ export default function LinkScraper({
             if (!res.ok) {
                 setErrorMsg(data.error || 'Could not fetch details');
                 setStatus('error');
+                showIsland({ title: 'Scraping Failed', subtitle: data.error || 'Could not fetch details', type: 'error' });
                 return;
             }
 
             setStatus('success');
-            setShowOverlay(false); // dismiss overlay immediately when data arrives
+            setShowOverlay(false);
+            showIsland({ title: 'Success', subtitle: 'Product details fetched!', type: 'success' });
             onResult?.({ ...data, url: trimmed });
-            // Reset success indicator after 3s
             setTimeout(() => setStatus('idle'), 3000);
         } catch {
-            setShowOverlay(false); // dismiss overlay on error too
+            setShowOverlay(false);
             setErrorMsg('Network error — backend not reachable.');
             setStatus('error');
+            showIsland({ title: 'Network Error', subtitle: 'Backend not reachable.', type: 'error' });
         }
     };
 

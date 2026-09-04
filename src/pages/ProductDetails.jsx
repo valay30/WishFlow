@@ -7,6 +7,7 @@ import AlertModal from '../components/AlertModal';
 import CustomSelect from '../components/CustomSelect';
 import HoldToDeleteButton from '../components/HoldToDeleteButton';
 import { useSettings } from '../context/SettingsContext';
+import { useIsland } from '../context/IslandContext';
 
 const BLUE = 'var(--primary)';
 const SURFACE = 'var(--surface)';
@@ -32,6 +33,7 @@ export default function ProductDetails() {
     const { id } = useParams();
     const navigate = useNavigate();
     const { currency } = useSettings();
+    const { showIsland } = useIsland();
     const [item, setItem] = useState(null);
     const [loading, setLoading] = useState(true);
     const [availableCategories, setAvailableCategories] = useState([]);
@@ -116,11 +118,20 @@ export default function ProductDetails() {
         }
     };
 
-    const handleDelete = () => {
-        db.items.delete(item.id).catch(err => {
-            console.error("Failed to delete item in background:", err);
-        });
+    const handleDelete = async () => {
+        const deletedItem = await db.items.deleteWithUndo(item.id);
         navigate('/home');
+        showIsland({
+            title: 'Item Deleted',
+            type: 'success',
+            action: {
+                label: 'Undo',
+                onClick: async () => {
+                    await db.items.undoDelete(deletedItem.id);
+                }
+            },
+            duration: 5000 // Match the 5-second timeout in db/index.js
+        });
     };
 
     const handleSave = async () => {

@@ -9,6 +9,7 @@ import { API_URL as API, ADMIN_SECRET } from '../config';
 import AlertModal from '../components/AlertModal';
 import CustomSelect from '../components/CustomSelect';
 import BlogAdminTab from '../components/BlogAdminTab';
+import { useIsland } from '../context/IslandContext';
 
 const headers = {
     'Content-Type': 'application/json',
@@ -24,7 +25,6 @@ export default function AdminPanel() {
     const [loadingItems, setLoadingItems] = useState(true);
     const [search, setSearch] = useState('');
     const [actionLoading, setActionLoading] = useState(null);
-    const [toast, setToast] = useState(null);
     const [deleteTargetUserId, setDeleteTargetUserId] = useState(null);
     const [grantTargetUserId, setGrantTargetUserId] = useState(null);
     const [revokeTargetUserId, setRevokeTargetUserId] = useState(null);
@@ -84,9 +84,10 @@ export default function AdminPanel() {
         fetchItems();
     }, [fetchUsers, fetchItems]);
 
+    const { showIsland } = useIsland();
+
     const showToast = (msg, type = 'success') => {
-        setToast({ msg, type });
-        setTimeout(() => setToast(null), 3000);
+        showIsland({ title: type === 'success' ? 'Success' : 'Error', subtitle: msg, type });
     };
 
     const grantPremium = (userId) => {
@@ -317,17 +318,6 @@ export default function AdminPanel() {
             {/* Main Content */}
             <div className="admin-main-content" style={{ flex: 1, padding: '3rem 4rem', display: 'flex', flexDirection: 'column', maxWidth: '1200px', margin: '0 auto', width: '100%' }}>
 
-                {/* Toast */}
-                {toast && (
-                    <div style={{
-                        position: 'fixed', top: '1rem', right: '1rem', zIndex: 9999,
-                        background: toast.type === 'error' ? '#ef4444' : '#10b981',
-                        color: '#fff', padding: '0.75rem 1.25rem', borderRadius: '12px',
-                        fontWeight: 600, fontSize: '0.95rem', boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
-                    }}>
-                        {toast.msg}
-                    </div>
-                )}
 
                 {/* Header — only shown for users/items tabs */}
                 {activeTab !== 'blog' && (

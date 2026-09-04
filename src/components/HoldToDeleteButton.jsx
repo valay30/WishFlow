@@ -13,7 +13,7 @@ import { Trash2 } from 'lucide-react';
  */
 export default function HoldToDeleteButton({
     onDelete,
-    duration = 1500,
+    duration = 1100,
     style = {},
 }) {
     const [isHolding, setIsHolding] = useState(false);

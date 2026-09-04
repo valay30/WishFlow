@@ -15,6 +15,7 @@ let __fetchingCategories = null;
 let __fetchingItems = null;
 let __fetchingCollections = null;
 let __fetchingCollectionItems = null;
+const _pendingDeletions = new Map();
 
 // Clears cache so the next getAll() does a fresh Supabase fetch.
 // Must be called on logout / user-switch so the new user doesn't see stale data.
@@ -524,6 +525,51 @@ export const db = {
         __itemCache = __itemCache.map(i => i.id === itemId ? data[0] : i);
       }
       return data?.[0];
+    },
+
+    deleteWithUndo: async (itemId) => {
+      // Find the item in cache before deleting
+      let originalItem = null;
+      if (__itemCache) {
+        originalItem = __itemCache.find(i => i.id === itemId);
+        // Optimistically remove from cache so UI updates immediately
+        __itemCache = __itemCache.filter(i => i.id !== itemId);
+      }
+
+      const userId = await getUserId();
+      if (!userId) return;
+
+      // Set timeout for permanent deletion
+      const timeoutId = setTimeout(async () => {
+        try {
+          _pendingDeletions.delete(itemId);
+          await supabase.from('collection_items').delete().eq('item_id', itemId);
+          await supabase.from('items').delete().eq('id', itemId).eq('user_id', userId);
+        } catch (err) {
+          console.error("Failed to permanently delete item in background:", err);
+        }
+      }, 5000);
+
+      _pendingDeletions.set(itemId, { timeoutId, originalItem });
+      return originalItem;
+    },
+
+    undoDelete: async (itemId) => {
+      const pending = _pendingDeletions.get(itemId);
+      if (pending) {
+        clearTimeout(pending.timeoutId);
+        _pendingDeletions.delete(itemId);
+        
+        // Restore to cache
+        if (__itemCache && pending.originalItem) {
+          __itemCache = [pending.originalItem, ...__itemCache];
+        }
+
+        // Notify UI to re-fetch/re-render
+        window.dispatchEvent(new CustomEvent('items-updated'));
+        return true;
+      }
+      return false;
     },
 
     delete: async (itemId) => {

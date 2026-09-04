@@ -3,6 +3,7 @@ import { db } from '../db';
 import { Trash2, Edit2, Plus, X, Check, ArrowLeft, Tag, Layers } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import AlertModal from '../components/AlertModal';
+import { useIsland } from '../context/IslandContext';
 
 const ORANGE = 'var(--primary)';
 const SURFACE = 'var(--surface)';
@@ -17,6 +18,8 @@ export default function Categories() {
     const [editingName, setEditingName] = useState('');
     const [deleteTargetId, setDeleteTargetId] = useState(null);
     const navigate = useNavigate();
+
+    const { showIsland } = useIsland();
 
     const [seedError, setSeedError] = useState('');
     const [debugInfo, setDebugInfo] = useState('');
@@ -41,8 +44,9 @@ export default function Categories() {
             await db.categories.add(newCatName.trim());
             await loadCategories();
             setNewCatName('');
+            showIsland({ title: 'Category Added', type: 'success' });
         } catch (err) {
-            alert("Error adding category: " + err.message);
+            showIsland({ title: 'Error', subtitle: err.message, type: 'error' });
         }
     };
 
@@ -55,6 +59,7 @@ export default function Categories() {
             await db.categories.delete(deleteTargetId);
             await loadCategories();
             setDeleteTargetId(null);
+            showIsland({ title: 'Category Deleted', type: 'success' });
         }
     };
 
@@ -64,6 +69,7 @@ export default function Categories() {
         if (editingName.trim()) {
             await db.categories.update(editingId, editingName.trim());
             await loadCategories();
+            showIsland({ title: 'Category Updated', type: 'success' });
         }
         setEditingId(null);
     };

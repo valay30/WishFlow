@@ -7,6 +7,7 @@ import { useAuth } from '../context/useAuth';
 import { useSettings } from '../context/SettingsContext';
 import ProductCard from '../components/ProductCard';
 import AddProductModal from '../components/AddProductModal';
+import { useIsland } from '../context/IslandContext';
 import ItemCard from '../components/ItemCard';
 import SkeletonCard from '../components/SkeletonCard';
 import confetti from 'canvas-confetti';
@@ -98,6 +99,10 @@ export default function Home() {
         } catch { return []; }
     });
     const [groupsLoaded, setGroupsLoaded] = useState(false);
+    const { showIsland } = useIsland();
+
+    // Prevent hydration mismatch layout shifts
+    const [mounted, setMounted] = useState(false);
     const [draggedItemId, setDraggedItemId] = useState(null);
     const [dragOverItemId, setDragOverItemId] = useState(null);
     const [dragOverGroupId, setDragOverGroupId] = useState(null);
@@ -153,7 +158,15 @@ export default function Home() {
             setCats(fetchedCats);
             setIsLoading(false);
         };
+        
         load();
+
+        const handleItemsUpdated = () => {
+            db.items.getAll().then(fetchedItems => setItems(fetchedItems));
+        };
+        window.addEventListener('items-updated', handleItemsUpdated);
+
+        return () => window.removeEventListener('items-updated', handleItemsUpdated);
     }, []);
 
     useEffect(() => {
@@ -424,6 +437,7 @@ export default function Home() {
                     : { ...g, itemIds: g.itemIds.filter(id => id !== sourceId) }
             ).filter(g => g.itemIds.length >= 2));
             setDragOverItemId(null);
+            showIsland({ title: 'Item Added to Group', type: 'success' });
         } else {
             // Neither in a group: open name modal
             setGroupModal({ open: true, sourceItemId: sourceId, targetItemId });
@@ -447,6 +461,7 @@ export default function Home() {
             newGroup,
         ]);
         setGroupModal({ open: false, sourceItemId: null, targetItemId: null });
+        showIsland({ title: 'Group Created', type: 'success' });
     }, [groupModal]);
 
     const handleGroupModalCancel = useCallback(() => {
@@ -468,6 +483,7 @@ export default function Home() {
     const deleteGroup = useCallback((groupId, e) => {
         e.stopPropagation();
         setGroups(prev => prev.filter(g => g.id !== groupId));
+        showIsland({ title: 'Group Dissolved', type: 'success' });
     }, []);
 
     const handleDragOverGroup = useCallback((groupId) => {
@@ -487,6 +503,7 @@ export default function Home() {
                 : { ...g, itemIds: g.itemIds.filter(id => id !== sourceId) }
         ).filter(g => g.itemIds.length >= 2));
         setDragOverGroupId(null);
+        showIsland({ title: 'Item Added to Group', type: 'success' });
     }, []);
 
     /* ── Derive grouped / ungrouped lists from filtered ── */

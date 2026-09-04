@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { db } from '../db';
 import { Package, Search, Link2, Check, ChevronDown, ArrowRight, Calendar, X } from 'lucide-react';
+import { useIsland } from '../context/IslandContext';
 import AdUnit from '../components/AdUnit';
 
 /* ─── helpers ─────────────────────────────────────────────────────────────── */
@@ -617,6 +618,9 @@ export default function SharedCollection() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  const { showIsland } = useIsland();
+
+  // local states for UI
   const [copied, setCopied] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const [showCalendar, setShowCalendar] = useState(false);
@@ -638,9 +642,12 @@ export default function SharedCollection() {
     try {
       await navigator.clipboard.writeText(window.location.href);
       setCopied(true);
+      showIsland({ title: 'Link Copied', subtitle: 'Copied to clipboard!', type: 'success' });
       setTimeout(() => setCopied(false), 2200);
-    } catch { /* ignore */ }
-  }, []);
+    } catch {
+      showIsland({ title: 'Error', subtitle: 'Could not copy link', type: 'error' });
+    }
+  }, [showIsland]);
 
   const totalVal = items.reduce((s, i) => s + (i.price || 0), 0);
   const day = collection ? getDay(collection.target_date) : null;
