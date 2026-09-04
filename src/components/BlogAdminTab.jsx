@@ -209,6 +209,25 @@ function BlogForm({ post, onSave, onCancel, showToast }) {
 
     return (
         <div style={{ fontFamily: FONT }}>
+            <style>{`
+                .blog-form-grid {
+                    display: grid;
+                    grid-template-columns: 1fr 320px;
+                    gap: 2rem;
+                    align-items: start;
+                }
+                @media (max-width: 768px) {
+                    .blog-form-grid {
+                        grid-template-columns: 1fr !important;
+                    }
+                    .slug-prefix-text {
+                        display: none;
+                    }
+                    .slug-input {
+                        padding-left: 4.5rem !important;
+                    }
+                }
+            `}</style>
             {/* Form header */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '2rem' }}>
                 <button onClick={onCancel} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'none', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '0.5rem 1rem', cursor: 'pointer', fontFamily: FONT, fontWeight: 700, fontSize: '0.85rem', color: '#64748b' }}>
@@ -224,7 +243,7 @@ function BlogForm({ post, onSave, onCancel, showToast }) {
                 </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: '2rem', alignItems: 'start' }}>
+            <div className="blog-form-grid">
                 {/* Left: main content */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
 
@@ -238,8 +257,10 @@ function BlogForm({ post, onSave, onCancel, showToast }) {
                     <div>
                         <label style={labelStyle}>Slug * <span style={{ fontWeight: 400, textTransform: 'none', color: '#94a3b8' }}>(URL path)</span></label>
                         <div style={{ position: 'relative' }}>
-                            <span style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', fontSize: '0.85rem', color: '#94a3b8', fontFamily: FONT }}>wishflow.shop/blog/</span>
-                            <input value={form.slug} onChange={e => { setTitleManualSlug(true); set('slug', e.target.value); }} placeholder="your-article-slug" style={{ ...inputStyle, paddingLeft: '12rem' }} onFocus={focusStyle} onBlur={blurStyle} />
+                            <span style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', fontSize: '0.85rem', color: '#94a3b8', fontFamily: FONT }}>
+                                <span className="slug-prefix-text">wishflow.shop</span>/blog/
+                            </span>
+                            <input className="slug-input" value={form.slug} onChange={e => { setTitleManualSlug(true); set('slug', e.target.value); }} placeholder="your-article-slug" style={{ ...inputStyle, paddingLeft: '12rem' }} onFocus={focusStyle} onBlur={blurStyle} />
                         </div>
                     </div>
 
@@ -370,7 +391,7 @@ function BlogForm({ post, onSave, onCancel, showToast }) {
 function PostRow({ post, onEdit, onDelete, onToggle, actionId }) {
     const isLoading = actionId === post.id;
     return (
-        <div style={{ display: 'grid', gridTemplateColumns: '3fr 1.2fr 1fr 1fr 1.6fr', padding: '1rem 1.5rem', borderBottom: '1px solid #f1f5f9', alignItems: 'center', transition: 'background 0.15s', fontFamily: FONT }}
+        <div className="blog-table-row" style={{ padding: '1rem 1.5rem', borderBottom: '1px solid #f1f5f9', transition: 'background 0.15s', fontFamily: FONT }}
             onMouseEnter={e => e.currentTarget.style.background = '#fafbff'}
             onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
             <div>
@@ -388,7 +409,7 @@ function PostRow({ post, onEdit, onDelete, onToggle, actionId }) {
                 </span>
             </div>
             <div style={{ fontSize: '0.78rem', color: '#64748b' }}>{post.publishedAt || '—'}</div>
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <div className="blog-row-actions" style={{ display: 'flex', gap: '0.5rem' }}>
                 <button onClick={() => onEdit(post)} title="Edit"
                     style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '0.4rem 0.75rem', background: '#eef2ff', color: '#4f46e5', border: 'none', borderRadius: '8px', cursor: 'pointer', fontFamily: FONT, fontWeight: 700, fontSize: '0.78rem' }}>
                     <Edit3 size={13} /> Edit
@@ -479,8 +500,67 @@ export default function BlogAdminTab({ showToast }) {
 
     return (
         <div style={{ fontFamily: FONT }}>
+            <style>{`
+                .blog-table-header {
+                    display: grid;
+                    grid-template-columns: 3fr 1.2fr 1fr 1fr 1.6fr;
+                }
+                .blog-table-row {
+                    display: grid;
+                    grid-template-columns: 3fr 1.2fr 1fr 1fr 1.6fr;
+                    align-items: center;
+                }
+                .blog-header-container {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: flex-start;
+                    margin-bottom: 2.5rem;
+                }
+                .blog-header-buttons {
+                    display: flex;
+                    gap: 0.75rem;
+                }
+                @media (max-width: 768px) {
+                    .blog-table-header {
+                        display: none !important;
+                    }
+                    .blog-table-row {
+                        display: flex !important;
+                        flex-direction: column !important;
+                        align-items: flex-start !important;
+                        gap: 0.8rem;
+                        padding: 1.25rem !important;
+                    }
+                    .blog-table-row > div {
+                        width: 100%;
+                    }
+                    .blog-row-actions {
+                        margin-top: 0.5rem;
+                        width: 100%;
+                        display: flex;
+                        flex-wrap: wrap;
+                        gap: 0.5rem;
+                    }
+                    .blog-row-actions > button {
+                        flex: 1;
+                        justify-content: center;
+                    }
+                    .blog-header-container {
+                        flex-direction: column;
+                        gap: 1.25rem;
+                    }
+                    .blog-header-buttons {
+                        width: 100%;
+                        justify-content: stretch;
+                    }
+                    .blog-header-buttons > button {
+                        flex: 1;
+                        justify-content: center;
+                    }
+                }
+            `}</style>
             {/* Header */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2.5rem' }}>
+            <div className="blog-header-container">
                 <div>
                     <h1 style={{ margin: 0, fontSize: '2.25rem', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.02em', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                         <BookOpen size={28} color="#6d28d9" /> Blog Posts
@@ -489,7 +569,7 @@ export default function BlogAdminTab({ showToast }) {
                         {posts.filter(p => p.isPublished).length} published · {posts.filter(p => !p.isPublished).length} drafts
                     </p>
                 </div>
-                <div style={{ display: 'flex', gap: '0.75rem' }}>
+                <div className="blog-header-buttons">
                     <button onClick={fetchPosts} disabled={loading} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.75rem 1.25rem', background: '#fff', color: '#4f46e5', border: '1px solid #e0e7ff', borderRadius: '12px', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer' }}>
                         <RefreshCw size={16} style={{ animation: loading ? 'spin 1s linear infinite' : 'none' }} /> Refresh
                     </button>
@@ -500,36 +580,38 @@ export default function BlogAdminTab({ showToast }) {
             </div>
 
             {/* Table */}
-            <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
-                {/* Table header */}
-                <div style={{ display: 'grid', gridTemplateColumns: '3fr 1.2fr 1fr 1fr 1.6fr', padding: '0.875rem 1.5rem', background: '#f8fafc', borderBottom: '1px solid #e2e8f0', fontSize: '0.72rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', fontFamily: FONT }}>
-                    <span>Title</span><span>Category</span><span>Status</span><span>Date</span><span>Actions</span>
-                </div>
-
-                {loading ? (
-                    Array.from({ length: 3 }).map((_, i) => (
-                        <div key={i} style={{ display: 'grid', gridTemplateColumns: '3fr 1.2fr 1fr 1fr 1.6fr', padding: '1.25rem 1.5rem', borderBottom: '1px solid #f1f5f9', gap: '1rem' }}>
-                            {Array.from({ length: 5 }).map((__, j) => (
-                                <div key={j} style={{ height: '16px', borderRadius: '6px', background: 'linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%)', backgroundSize: '200% 100%', animation: 'shimmer 1.4s ease-in-out infinite' }} />
-                            ))}
-                        </div>
-                    ))
-                ) : posts.length === 0 ? (
-                    <div style={{ textAlign: 'center', padding: '4rem 2rem' }}>
-                        <BookOpen size={40} color="#e2e8f0" style={{ marginBottom: '1rem' }} />
-                        <p style={{ fontWeight: 700, color: '#94a3b8', margin: '0 0 0.5rem', fontFamily: FONT }}>No blog posts yet</p>
-                        <p style={{ color: '#cbd5e1', fontSize: '0.88rem', margin: '0 0 1.5rem', fontFamily: FONT }}>Create your first article to get started</p>
-                        <button onClick={handleNew} style={{ padding: '0.7rem 1.5rem', background: '#6d28d9', color: '#fff', border: 'none', borderRadius: '10px', fontFamily: FONT, fontWeight: 700, cursor: 'pointer' }}>
-                            Write First Post
-                        </button>
+            <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '16px', overflowX: 'auto', overflowY: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
+                <div>
+                    {/* Table header */}
+                    <div className="blog-table-header" style={{ padding: '0.875rem 1.5rem', background: '#f8fafc', borderBottom: '1px solid #e2e8f0', fontSize: '0.72rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', fontFamily: FONT }}>
+                        <span>Title</span><span>Category</span><span>Status</span><span>Date</span><span>Actions</span>
                     </div>
-                ) : (
-                    posts.map(post => (
-                        <PostRow key={post.id} post={post}
-                            onEdit={handleEdit} onDelete={setDeletePost}
-                            onToggle={handleToggle} actionId={actionId} />
-                    ))
-                )}
+
+                    {loading ? (
+                        Array.from({ length: 3 }).map((_, i) => (
+                            <div key={i} className="blog-table-row" style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid #f1f5f9', gap: '1rem' }}>
+                                {Array.from({ length: 5 }).map((__, j) => (
+                                    <div key={j} style={{ height: '16px', borderRadius: '6px', background: 'linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%)', backgroundSize: '200% 100%', animation: 'shimmer 1.4s ease-in-out infinite' }} />
+                                ))}
+                            </div>
+                        ))
+                    ) : posts.length === 0 ? (
+                        <div style={{ textAlign: 'center', padding: '4rem 2rem' }}>
+                            <BookOpen size={40} color="#e2e8f0" style={{ marginBottom: '1rem' }} />
+                            <p style={{ fontWeight: 700, color: '#94a3b8', margin: '0 0 0.5rem', fontFamily: FONT }}>No blog posts yet</p>
+                            <p style={{ color: '#cbd5e1', fontSize: '0.88rem', margin: '0 0 1.5rem', fontFamily: FONT }}>Create your first article to get started</p>
+                            <button onClick={handleNew} style={{ padding: '0.7rem 1.5rem', background: '#6d28d9', color: '#fff', border: 'none', borderRadius: '10px', fontFamily: FONT, fontWeight: 700, cursor: 'pointer' }}>
+                                Write First Post
+                            </button>
+                        </div>
+                    ) : (
+                        posts.map(post => (
+                            <PostRow key={post.id} post={post}
+                                onEdit={handleEdit} onDelete={setDeletePost}
+                                onToggle={handleToggle} actionId={actionId} />
+                        ))
+                    )}
+                </div>
             </div>
 
             {/* Delete Confirmation Modal */}
