@@ -484,6 +484,24 @@ export default function Home() {
         e.stopPropagation();
         setGroups(prev => prev.filter(g => g.id !== groupId));
         showIsland({ title: 'Group Dissolved', type: 'success' });
+    }, [showIsland]);
+
+    const handleRemoveItem = useCallback(async (id) => {
+        await db.items.deleteWithUndo(id);
+        setItems(prev => prev.filter(i => i.id !== id));
+        showIsland({
+            title: 'Item Deleted',
+            type: 'success',
+            action: {
+                label: 'Undo',
+                onClick: () => db.items.undoDelete(id)
+            }
+        });
+    }, [showIsland]);
+
+    const handleTogglePurchased = useCallback(async (id, val) => {
+        await db.items.update(id, { is_purchased: val });
+        setItems(prev => prev.map(i => i.id === id ? { ...i, is_purchased: val } : i));
     }, []);
 
     const handleDragOverGroup = useCallback((groupId) => {
@@ -999,6 +1017,8 @@ export default function Home() {
                                         onDragOver={() => handleDragOverItem(item.id)}
                                         onDragLeave={handleDragLeaveItem}
                                         onDrop={() => handleDropOnItem(item.id)}
+                                        onRemove={() => handleRemoveItem(item.id)}
+                                        onTogglePurchased={handleTogglePurchased}
                                         onTogglePublic={async (id, val) => {
                                             await db.discover.setPublic(id, val);
                                             setItems(prev => prev.map(i => i.id === id ? { ...i, is_public: val } : i));
@@ -1158,6 +1178,8 @@ export default function Home() {
                                                         onDragOver={() => handleDragOverItem(item.id)}
                                                         onDragLeave={handleDragLeaveItem}
                                                         onDrop={() => handleDropOnItem(item.id)}
+                                                        onRemove={() => handleRemoveItem(item.id)}
+                                                        onTogglePurchased={handleTogglePurchased}
                                                         onTogglePublic={async (id, val) => {
                                                             await db.discover.setPublic(id, val);
                                                             setItems(prev => prev.map(i => i.id === id ? { ...i, is_public: val } : i));

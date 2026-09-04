@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { db } from '../db';
 import { Trash2, Edit, ArrowLeft, ExternalLink, Upload, X, Check, PackageCheck } from 'lucide-react';
 import { uploadToImageKit } from '../utils/imagekit';
@@ -37,7 +37,8 @@ export default function ProductDetails() {
     const [item, setItem] = useState(null);
     const [loading, setLoading] = useState(true);
     const [availableCategories, setAvailableCategories] = useState([]);
-    const [isEditing, setIsEditing] = useState(false);
+    const [searchParams] = useSearchParams();
+    const [isEditing, setIsEditing] = useState(searchParams.get('edit') === 'true');
 
     const [editName, setEditName] = useState('');
     const [editPrice, setEditPrice] = useState('');

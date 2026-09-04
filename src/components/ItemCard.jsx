@@ -1,10 +1,12 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Check, Globe } from 'lucide-react';
-import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
+import { ArrowRight, Check, Globe, Edit2, Share, Trash2 } from 'lucide-react';
+import { motion, useMotionValue, useSpring, useTransform, AnimatePresence } from 'framer-motion';
 import MagneticButton from './MagneticButton';
 import { useSettings } from '../context/SettingsContext';
+import { useIsland } from '../context/IslandContext';
+import confetti from 'canvas-confetti';
 
 const ORANGE = 'var(--primary)';
 const SURFACE = 'var(--surface)';
@@ -23,10 +25,19 @@ export default function ItemCard({
     onDrop,
 }) {
     const navigate = useNavigate();
-    const { currency, viewMode } = useSettings();
+    const { currency, viewMode, darkMode } = useSettings();
+    const { showIsland } = useIsland();
     const price = new Intl.NumberFormat(undefined, { style: 'currency', currency: currency || 'INR', maximumFractionDigits: 2 }).format(item.price);
+    
     const [showPublicConfirm, setShowPublicConfirm] = useState(false);
     const [isHovered, setIsHovered] = useState(false);
+
+    // Context Menu State
+    const [contextMenuData, setContextMenuData] = useState(null);
+    const longPressTimerRef = useRef(null);
+    const startPos = useRef({ x: 0, y: 0 });
+    const wasLongPressed = useRef(false);
+    const cardRef = useRef(null);
 
     // Parallax Tilt Setup
     const x = useMotionValue(0);
@@ -47,224 +58,240 @@ export default function ItemCard({
         y.set(mouseY / height - 0.5);
     };
 
+    const handlePointerDown = (e) => {
+        if (isDragActive) return;
+        if (e.type === 'mousedown' && e.button !== 0) return;
+        wasLongPressed.current = false;
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        startPos.current = { x: clientX, y: clientY };
+        
+        longPressTimerRef.current = setTimeout(() => {
+            wasLongPressed.current = true;
+            if (navigator.vibrate) navigator.vibrate(50);
+            
+            // Calculate position
+            const rect = cardRef.current.getBoundingClientRect();
+            const menuWidth = 220;
+            const menuHeight = 220; // approximate max height
+            const padding = 16;
+            
+            let menuX, menuY, originX, originY;
+
+            if (rect.right + padding + menuWidth <= window.innerWidth) {
+                // Place to the right
+                menuX = rect.right + padding;
+                menuY = rect.top;
+                originX = 'left';
+                originY = 'top';
+            } else if (rect.left - padding - menuWidth >= 0) {
+                // Place to the left
+                menuX = rect.left - padding - menuWidth;
+                menuY = rect.top;
+                originX = 'right';
+                originY = 'top';
+            } else {
+                // Not enough space left or right, place it below or above centered
+                menuX = Math.max(padding, Math.min(window.innerWidth - padding - menuWidth, rect.left + (rect.width / 2) - (menuWidth / 2)));
+                
+                if (rect.bottom + padding + menuHeight <= window.innerHeight) {
+                    menuY = rect.bottom + padding;
+                    originX = 'center';
+                    originY = 'top';
+                } else {
+                    menuY = Math.max(padding, window.innerHeight - padding - menuHeight);
+                    originX = 'center';
+                    originY = 'bottom';
+                }
+            }
+            
+            setContextMenuData({ rect, menuX, menuY, originX, originY });
+        }, 400);
+    };
+
+    const handlePointerMove = (e) => {
+        if (longPressTimerRef.current) {
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            const dx = clientX - startPos.current.x;
+            const dy = clientY - startPos.current.y;
+            if (Math.hypot(dx, dy) > 10) {
+                clearTimeout(longPressTimerRef.current);
+                longPressTimerRef.current = null;
+            }
+        }
+        if (e.type === 'mousemove') {
+            handleMouseMove(e);
+        }
+    };
+
+    const handlePointerUpOrLeave = () => {
+        if (longPressTimerRef.current) {
+            clearTimeout(longPressTimerRef.current);
+            longPressTimerRef.current = null;
+        }
+    };
+
     const handleMouseLeaveInner = () => {
+        handlePointerUpOrLeave();
         setIsHovered(false);
         x.set(0);
         y.set(0);
         if (onDragLeave) onDragLeave();
     };
 
-    return (
+    const handleClick = (e) => {
+        if (wasLongPressed.current) {
+            e.preventDefault();
+            e.stopPropagation();
+            wasLongPressed.current = false;
+            return;
+        }
+        navigate(`/product/${item.id}`);
+    };
+
+    // Close menu on scroll to prevent detached menus
+    useEffect(() => {
+        if (!contextMenuData) return;
+        const handleScroll = () => setContextMenuData(null);
+        window.addEventListener('scroll', handleScroll, { passive: true });
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, [contextMenuData]);
+
+    const handleAction = (e, action) => {
+        e.stopPropagation();
+        setContextMenuData(null);
+        setTimeout(action, 150); // slight delay to allow menu animation to start closing
+    };
+
+    const renderCardContent = (isClone = false) => (
         <>
-            <motion.div
-                draggable={isDraggable}
-                onClick={() => navigate(`/product/${item.id}`)}
-                onDragStart={onDragStart}
-                onDragEnd={onDragEnd}
-                onDragOver={e => { e.preventDefault(); onDragOver?.(e); }}
-                onDragLeave={handleMouseLeaveInner}
-                onDrop={e => { e.preventDefault(); onDrop?.(e); }}
-                onMouseEnter={() => { if (!isDragActive) setIsHovered(true); }}
-                onMouseMove={handleMouseMove}
-                onMouseLeave={handleMouseLeaveInner}
-                animate={{
-                    y: isHovered && !isDragActive && !isDragOver ? -6 : 0,
-                }}
-                style={{
-                    rotateX,
-                    rotateY,
-                    transformStyle: "preserve-3d",
-                    background: SURFACE,
-                    border: isHovered && !isDragActive && !isDragOver
-                        ? `1.5px solid ${ORANGE}`
-                        : isDragOver ? `2.5px dashed var(--primary)` : `1.5px solid ${BORDER}`,
-                    borderRadius: '24px',
-                    cursor: isDraggable ? 'grab' : 'pointer',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    transition: 'border-color 0.22s ease, box-shadow 0.22s ease', // don't transition transform since framer handles it
-                    overflow: 'hidden',
-                    position: 'relative',
-                    opacity: isDragActive ? 0.45 : item.is_purchased ? 0.65 : 1,
-                    filter: item.is_purchased ? 'grayscale(0.6)' : 'none',
-                    boxShadow: isHovered && !isDragActive && !isDragOver
-                        ? `0 12px 32px rgba(var(--primary-rgb),0.18)`
-                        : isDragOver
-                            ? '0 0 0 4px rgba(var(--primary-rgb),0.18), 0 8px 28px rgba(var(--primary-rgb),0.2)'
-                            : 'none',
-                }}
-            >
-                {/* Drop-to-group overlay */}
-                {isDragOver && (
+            {/* Drop-to-group overlay */}
+            {isDragOver && !isClone && (
+                <div style={{
+                    position: 'absolute', inset: 0, zIndex: 20,
+                    background: 'rgba(var(--primary-rgb),0.1)',
+                    borderRadius: '22px',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    pointerEvents: 'none',
+                }}>
                     <div style={{
-                        position: 'absolute', inset: 0, zIndex: 20,
-                        background: 'rgba(var(--primary-rgb),0.1)',
-                        borderRadius: '22px',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        pointerEvents: 'none',
+                        background: 'var(--primary)',
+                        color: '#fff',
+                        fontSize: '0.72rem',
+                        fontWeight: 800,
+                        padding: '0.35rem 0.8rem',
+                        borderRadius: '99px',
+                        letterSpacing: '0.04em',
+                        boxShadow: '0 4px 12px rgba(var(--primary-rgb),0.4)',
                     }}>
-                        <div style={{
-                            background: 'var(--primary)',
-                            color: '#fff',
-                            fontSize: '0.72rem',
-                            fontWeight: 800,
-                            padding: '0.35rem 0.8rem',
-                            borderRadius: '99px',
-                            letterSpacing: '0.04em',
-                            boxShadow: '0 4px 12px rgba(var(--primary-rgb),0.4)',
-                        }}>
-                            📦 Drop to Group
-                        </div>
-                    </div>
-                )}
-
-
-                {/* ── Inset image box (padded, rounded inner corners) ── */}
-                <div style={{ padding: '0.8rem 0.8rem 0.4rem', position: 'relative' }}>
-                    <div style={{
-                        background: 'var(--surface-2)',
-                        borderRadius: '16px',
-                        aspectRatio: viewMode === 'masonry' ? 'auto' : '1 / 1',
-                        overflow: 'hidden',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        width: '100%',
-                        boxShadow: '0 6px 16px rgba(0, 0, 0, 0.08)',
-                        border: '1px solid var(--border)',
-                        position: 'relative'
-                    }}>
-                        {item.image ? (
-                            <img src={item.image} alt={item.name} style={{ width: '100%', height: viewMode === 'masonry' ? 'auto' : '100%', objectFit: 'cover', display: 'block' }} />
-                        ) : (
-                            <span style={{ fontSize: '2.5rem', color: 'var(--text-muted)', padding: viewMode === 'masonry' ? '3rem 0' : 0 }}>📦</span>
-                        )}
-                        {onRemove && (
-                            <button
-                                onClick={(e) => { e.stopPropagation(); onRemove(); }}
-                                style={{
-                                    position: 'absolute', top: '0.5rem', right: '0.5rem',
-                                    width: '28px', height: '28px', borderRadius: '50%',
-                                    background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(8px)',
-                                    color: '#fff', border: '1px solid rgba(255,255,255,0.2)',
-                                    cursor: 'pointer', zIndex: 10,
-                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                    transition: 'all 0.2s', padding: 0
-                                }}
-                                onMouseEnter={e => { e.currentTarget.style.background = '#ef4444'; e.currentTarget.style.borderColor = '#ef4444'; e.currentTarget.style.transform = 'scale(1.1)'; }}
-                                onMouseLeave={e => { e.currentTarget.style.background = 'rgba(0,0,0,0.5)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)'; e.currentTarget.style.transform = 'scale(1)'; }}
-                            >
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>
-                            </button>
-                        )}
-                        {onTogglePurchased && (
-                            <div
-                                onClick={(e) => { e.stopPropagation(); onTogglePurchased(item.id, !item.is_purchased); }}
-                                style={{
-                                    position: 'absolute', bottom: '0.5rem', right: '0.5rem',
-                                    width: '28px', height: '28px', borderRadius: '50%',
-                                    background: item.is_purchased ? '#059669' : 'rgba(0,0,0,0.5)',
-                                    backdropFilter: 'blur(8px)',
-                                    color: '#fff',
-                                    border: `1.5px solid ${item.is_purchased ? '#059669' : 'rgba(255,255,255,0.3)'}`,
-                                    cursor: 'pointer', zIndex: 10,
-                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                    boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                                    transition: 'all 0.2s'
-                                }}
-                                onMouseEnter={e => { if (!item.is_purchased) e.currentTarget.style.transform = 'scale(1.1)'; }}
-                                onMouseLeave={e => { if (!item.is_purchased) e.currentTarget.style.transform = 'scale(1)'; }}
-                            >
-                                <Check size={16} strokeWidth={item.is_purchased ? 3 : 2} style={{ opacity: item.is_purchased ? 1 : 0.7 }} />
-                            </div>
-                        )}
-                        {/* Make Public / Remove from Discover toggle */}
-                        {onTogglePublic && (
-                            <div
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    if (!item.is_public) {
-                                        setShowPublicConfirm(true);
-                                    } else {
-                                        onTogglePublic(item.id, false);
-                                    }
-                                }}
-                                title={item.is_public ? 'Remove from Discover' : 'Share on Discover'}
-                                style={{
-                                    position: 'absolute', bottom: '0.5rem', left: '0.5rem',
-                                    width: '28px', height: '28px', borderRadius: '50%',
-                                    background: item.is_public ? 'rgba(var(--primary-rgb),0.85)' : 'rgba(0,0,0,0.45)',
-                                    backdropFilter: 'blur(8px)',
-                                    color: '#fff',
-                                    border: `1.5px solid ${item.is_public ? 'rgba(var(--primary-rgb),1)' : 'rgba(255,255,255,0.25)'}`,
-                                    cursor: 'pointer', zIndex: 10,
-                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                    boxShadow: item.is_public ? '0 0 10px rgba(var(--primary-rgb),0.5)' : '0 2px 8px rgba(0,0,0,0.15)',
-                                    transition: 'all 0.2s'
-                                }}
-                                onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.12)'; }}
-                                onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; }}
-                            >
-                                <Globe size={14} strokeWidth={2} />
-                            </div>
-                        )}
+                        📦 Drop to Group
                     </div>
                 </div>
+            )}
 
-                {/* ── Content below image ── */}
-                <div style={{ padding: '0.75rem 0.9rem 1rem', flex: 1, display: 'flex', flexDirection: 'column' }}>
-                    {/* Product name (flex: 1 pushes everything below to the bottom) */}
-                    <p style={{
-                        fontWeight: 800,
-                        fontSize: '1.05rem',
-                        color: 'var(--text)',
-                        lineHeight: 1.3,
-                        minHeight: '2.6em',
-                        display: '-webkit-box',
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: 'vertical',
-                        overflow: 'hidden',
-                        margin: '0 0 0.5rem 0',
-                        flex: 1,
-                    }}>
-                        {item.name}
-                    </p>
-
-                    {/* Bottom section (Category + Price row) */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                        <div style={{ display: 'flex', alignItems: 'flex-start' }}>
-                            <span style={{
-                                display: 'inline-block',
-                                fontSize: '0.65rem', fontWeight: 800,
-                                color: 'var(--text-muted)',
-                                background: 'var(--surface-2)',
-                                padding: '0.2rem 0.55rem',
-                                borderRadius: '6px',
-                                textTransform: 'uppercase', letterSpacing: '0.05em',
-                                border: '1px solid var(--border)',
-                                whiteSpace: 'nowrap',
-                            }}>
-                                {categoryName}
-                            </span>
+            {/* ── Inset image box ── */}
+            <div style={{ padding: '0.8rem 0.8rem 0.4rem', position: 'relative' }}>
+                <div style={{
+                    background: 'var(--surface-2)',
+                    borderRadius: '16px',
+                    aspectRatio: viewMode === 'masonry' ? 'auto' : '1 / 1',
+                    overflow: 'hidden',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: '100%',
+                    boxShadow: '0 6px 16px rgba(0, 0, 0, 0.08)',
+                    border: '1px solid var(--border)',
+                    position: 'relative'
+                }}>
+                    {item.image ? (
+                        <img src={item.image} alt={item.name} style={{ width: '100%', height: viewMode === 'masonry' ? 'auto' : '100%', objectFit: 'cover', display: 'block' }} />
+                    ) : (
+                        <span style={{ fontSize: '2.5rem', color: 'var(--text-muted)', padding: viewMode === 'masonry' ? '3rem 0' : 0 }}>📦</span>
+                    )}
+                    
+                    {/* Only show inline buttons if NOT the context menu clone */}
+                    {!isClone && onTogglePublic && (
+                        <div
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                if (!item.is_public) setShowPublicConfirm(true);
+                                else onTogglePublic(item.id, false);
+                            }}
+                            title={item.is_public ? 'Remove from Discover' : 'Share on Discover'}
+                            style={{
+                                position: 'absolute', bottom: '0.5rem', left: '0.5rem',
+                                width: '28px', height: '28px', borderRadius: '50%',
+                                background: item.is_public ? 'rgba(var(--primary-rgb),0.85)' : 'rgba(0,0,0,0.45)',
+                                backdropFilter: 'blur(8px)',
+                                color: '#fff',
+                                border: `1.5px solid ${item.is_public ? 'rgba(var(--primary-rgb),1)' : 'rgba(255,255,255,0.25)'}`,
+                                cursor: 'pointer', zIndex: 10,
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                boxShadow: item.is_public ? '0 0 10px rgba(var(--primary-rgb),0.5)' : '0 2px 8px rgba(0,0,0,0.15)',
+                                transition: 'all 0.2s'
+                            }}
+                            onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.12)'; }}
+                            onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; }}
+                        >
+                            <Globe size={14} strokeWidth={2} />
                         </div>
+                    )}
+                </div>
+            </div>
 
-                        {/* Bottom row: price + arrow button */}
-                        <div style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            marginTop: '0.5rem',
+            {/* ── Content below image ── */}
+            <div style={{ padding: '0.75rem 0.9rem 1rem', flex: 1, display: 'flex', flexDirection: 'column' }}>
+                <p style={{
+                    fontWeight: 800,
+                    fontSize: '1.05rem',
+                    color: 'var(--text)',
+                    lineHeight: 1.3,
+                    minHeight: '2.6em',
+                    display: '-webkit-box',
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: 'vertical',
+                    overflow: 'hidden',
+                    margin: '0 0 0.5rem 0',
+                    flex: 1,
+                }}>
+                    {item.name}
+                </p>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'flex-start' }}>
+                        <span style={{
+                            display: 'inline-block',
+                            fontSize: '0.65rem', fontWeight: 800,
+                            color: 'var(--text-muted)',
+                            background: 'var(--surface-2)',
+                            padding: '0.2rem 0.55rem',
+                            borderRadius: '6px',
+                            textTransform: 'uppercase', letterSpacing: '0.05em',
+                            border: '1px solid var(--border)',
+                            whiteSpace: 'nowrap',
                         }}>
-                            <p style={{
-                                fontWeight: 900,
-                                fontSize: '1.15rem',
-                                color: 'var(--text)',
-                                letterSpacing: '-0.02em',
-                            }}>
-                                {price}
-                            </p>
+                            {categoryName}
+                        </span>
+                    </div>
 
-                            {/* Arrow button — opens external product link or details */}
+                    <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        marginTop: '0.5rem',
+                    }}>
+                        <p style={{
+                            fontWeight: 900,
+                            fontSize: '1.15rem',
+                            color: 'var(--text)',
+                            letterSpacing: '-0.02em',
+                        }}>
+                            {price}
+                        </p>
+
+                        {!isClone && (
                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                                 <MagneticButton>
                                     <a
@@ -302,11 +329,196 @@ export default function ItemCard({
                                     </a>
                                 </MagneticButton>
                             </div>
-                        </div>
+                        )}
                     </div>
                 </div>
+            </div>
+        </>
+    );
+
+    return (
+        <>
+            <motion.div
+                ref={cardRef}
+                draggable={isDraggable}
+                onClick={handleClick}
+                onMouseDown={handlePointerDown}
+                onTouchStart={handlePointerDown}
+                onMouseMove={handlePointerMove}
+                onTouchMove={handlePointerMove}
+                onMouseUp={handlePointerUpOrLeave}
+                onTouchEnd={handlePointerUpOrLeave}
+                onTouchCancel={handlePointerUpOrLeave}
+                onMouseLeave={handleMouseLeaveInner}
+                onDragStart={e => {
+                    e.dataTransfer.setData('text/plain', item.id);
+                    e.dataTransfer.effectAllowed = 'move';
+                    if (onDragStart) onDragStart(e);
+                }}
+                onDragEnd={onDragEnd}
+                onDragOver={e => { e.preventDefault(); onDragOver?.(e); }}
+                onDragLeave={handleMouseLeaveInner}
+                onDrop={e => { e.preventDefault(); onDrop?.(e); }}
+                onMouseEnter={() => { if (!isDragActive) setIsHovered(true); }}
+                animate={{
+                    y: isHovered && !isDragActive && !isDragOver ? -6 : 0,
+                    opacity: isDragActive ? 0.45 : (contextMenuData ? 0 : 1) // hide original when context menu is open
+                }}
+                style={{
+                    rotateX,
+                    rotateY,
+                    transformStyle: "preserve-3d",
+                    WebkitUserDrag: isDraggable ? 'element' : 'none',
+                    background: SURFACE,
+                    border: isHovered && !isDragActive && !isDragOver
+                        ? `1.5px solid ${ORANGE}`
+                        : isDragOver ? `2.5px dashed var(--primary)` : `1.5px solid ${BORDER}`,
+                    borderRadius: '24px',
+                    cursor: isDraggable ? 'grab' : 'pointer',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    transition: 'border-color 0.22s ease, box-shadow 0.22s ease',
+                    overflow: 'hidden',
+                    position: 'relative',
+                    filter: item.is_purchased ? 'grayscale(0.6)' : 'none',
+                    boxShadow: isHovered && !isDragActive && !isDragOver
+                        ? `0 12px 32px rgba(var(--primary-rgb),0.18)`
+                        : isDragOver
+                            ? '0 0 0 4px rgba(var(--primary-rgb),0.18), 0 8px 28px rgba(var(--primary-rgb),0.2)'
+                            : 'none',
+                    touchAction: 'pan-y' // allow vertical scroll on mobile while touching
+                }}
+            >
+                {renderCardContent()}
             </motion.div>
-            {/* Confirmation Modal */}
+
+            {/* Context Menu Portal */}
+            {createPortal(
+                <AnimatePresence>
+                    {contextMenuData && (
+                        <div style={{ position: 'fixed', inset: 0, zIndex: 99999 }}>
+                            {/* Blur Backdrop */}
+                            <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                transition={{ duration: 0.25, ease: "easeOut" }}
+                                onClick={() => setContextMenuData(null)}
+                                style={{
+                                    position: 'absolute', inset: 0,
+                                    background: darkMode ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.4)',
+                                    backdropFilter: 'blur(20px)',
+                                    WebkitBackdropFilter: 'blur(20px)',
+                                }}
+                            />
+                            
+                            {/* Cloned Card */}
+                            <motion.div
+                                initial={{ 
+                                    top: contextMenuData.rect.top, 
+                                    left: contextMenuData.rect.left, 
+                                    width: contextMenuData.rect.width, 
+                                    height: contextMenuData.rect.height,
+                                    scale: 1,
+                                    boxShadow: '0 0 0 rgba(0,0,0,0)'
+                                }}
+                                animate={{ 
+                                    scale: 1.05,
+                                    boxShadow: '0 25px 50px -12px rgba(0,0,0,0.4)'
+                                }}
+                                exit={{ 
+                                    scale: 1,
+                                    boxShadow: '0 0 0 rgba(0,0,0,0)',
+                                    opacity: 0
+                                }}
+                                transition={{ type: "spring", damping: 22, stiffness: 300 }}
+                                style={{
+                                    position: 'absolute',
+                                    background: SURFACE,
+                                    borderRadius: '24px',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    overflow: 'hidden',
+                                    filter: item.is_purchased ? 'grayscale(0.6)' : 'none',
+                                    border: `1.5px solid ${BORDER}`,
+                                    pointerEvents: 'none', // purely visual clone
+                                }}
+                            >
+                                {renderCardContent(true)}
+                            </motion.div>
+
+                            {/* Floating Context Menu Options */}
+                            <motion.div
+                                initial={{ 
+                                    opacity: 0, 
+                                    scale: 0.8, 
+                                    x: contextMenuData.originX === 'left' ? -15 : (contextMenuData.originX === 'right' ? 15 : 0),
+                                    y: contextMenuData.originY === 'top' && contextMenuData.originX === 'center' ? -15 : (contextMenuData.originY === 'bottom' ? 15 : 0)
+                                }}
+                                animate={{ opacity: 1, scale: 1, x: 0, y: 0 }}
+                                exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.15 } }}
+                                transition={{ type: "spring", damping: 25, stiffness: 350, delay: 0.05 }}
+                                style={{
+                                    position: 'absolute',
+                                    top: contextMenuData.menuY,
+                                    left: contextMenuData.menuX,
+                                    width: '220px',
+                                    background: darkMode ? 'rgba(30, 30, 30, 0.75)' : 'rgba(255, 255, 255, 0.85)',
+                                    backdropFilter: 'blur(30px) saturate(1.5)',
+                                    WebkitBackdropFilter: 'blur(30px) saturate(1.5)',
+                                    borderRadius: '16px',
+                                    padding: '6px',
+                                    boxShadow: '0 20px 40px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.2)',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    transformOrigin: `${contextMenuData.originX} ${contextMenuData.originY}`
+                                }}
+                            >
+                                <ContextMenuItem 
+                                    icon={Edit2} label="Edit Details" 
+                                    onClick={(e) => handleAction(e, () => navigate(`/product/${item.id}?edit=true`))} 
+                                />
+                                {onTogglePurchased && (
+                                    <ContextMenuItem 
+                                        icon={Check} label={item.is_purchased ? "Unmark Purchased" : "Mark Purchased"} 
+                                        onClick={(e) => handleAction(e, () => {
+                                            if (!item.is_purchased) {
+                                                const end = Date.now() + 2 * 1000;
+                                                const colors = ['#059669', '#10B981', '#34D399', '#ffffff'];
+                                                (function frame() {
+                                                    confetti({ particleCount: 3, angle: 60, spread: 55, origin: { x: 0 }, colors: colors });
+                                                    confetti({ particleCount: 3, angle: 120, spread: 55, origin: { x: 1 }, colors: colors });
+                                                    if (Date.now() < end) requestAnimationFrame(frame);
+                                                }());
+                                            }
+                                            onTogglePurchased(item.id, !item.is_purchased);
+                                        })} 
+                                    />
+                                )}
+                                {onTogglePublic && (
+                                    <ContextMenuItem 
+                                        icon={Globe} label={item.is_public ? "Remove from Discover" : "Share to Discover"} 
+                                        onClick={(e) => handleAction(e, () => {
+                                            if (!item.is_public) setShowPublicConfirm(true);
+                                            else onTogglePublic(item.id, false);
+                                        })} 
+                                    />
+                                )}
+                                {onRemove && (
+                                    <ContextMenuItem 
+                                        icon={Trash2} label="Delete Item" 
+                                        color="#ef4444" isLast
+                                        onClick={(e) => handleAction(e, () => onRemove())} 
+                                    />
+                                )}
+                            </motion.div>
+                        </div>
+                    )}
+                </AnimatePresence>,
+                document.body
+            )}
+
+            {/* Confirmation Modal for Discover */}
             {showPublicConfirm && createPortal(
                 <div
                     onClick={(e) => { e.stopPropagation(); setShowPublicConfirm(false); }}
@@ -361,3 +573,29 @@ export default function ItemCard({
         </>
     );
 }
+
+const ContextMenuItem = ({ icon: Icon, label, onClick, color = 'var(--text)', isLast = false }) => {
+    const [hovered, setHovered] = useState(false);
+    return (
+        <div
+            onClick={onClick}
+            onMouseEnter={() => setHovered(true)}
+            onMouseLeave={() => setHovered(false)}
+            style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                padding: '12px 14px',
+                color: color,
+                cursor: 'pointer',
+                borderBottom: isLast ? 'none' : '1px solid rgba(128,128,128,0.15)',
+                fontWeight: 600,
+                fontSize: '0.95rem',
+                background: hovered ? 'rgba(128,128,128,0.1)' : 'transparent',
+                borderRadius: '10px',
+                transition: 'background 0.15s ease'
+            }}
+        >
+            <span>{label}</span>
+            <Icon size={18} strokeWidth={2.5} />
+        </div>
+    );
+};
