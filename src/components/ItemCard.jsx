@@ -56,255 +56,255 @@ export default function ItemCard({
 
     return (
         <>
-        <motion.div
-            draggable={isDraggable}
-            onClick={() => navigate(`/product/${item.id}`)}
-            onDragStart={onDragStart}
-            onDragEnd={onDragEnd}
-            onDragOver={e => { e.preventDefault(); onDragOver?.(e); }}
-            onDragLeave={handleMouseLeaveInner}
-            onDrop={e => { e.preventDefault(); onDrop?.(e); }}
-            onMouseEnter={() => { if (!isDragActive) setIsHovered(true); }}
-            onMouseMove={handleMouseMove}
-            onMouseLeave={handleMouseLeaveInner}
-            animate={{
-                y: isHovered && !isDragActive && !isDragOver ? -6 : 0,
-            }}
-            style={{
-                rotateX,
-                rotateY,
-                transformStyle: "preserve-3d",
-                background: SURFACE,
-                border: isHovered && !isDragActive && !isDragOver
-                    ? `1.5px solid ${ORANGE}`
-                    : isDragOver ? `2.5px dashed var(--primary)` : `1.5px solid ${BORDER}`,
-                borderRadius: '24px',
-                cursor: isDraggable ? 'grab' : 'pointer',
-                display: 'flex',
-                flexDirection: 'column',
-                transition: 'border-color 0.22s ease, box-shadow 0.22s ease', // don't transition transform since framer handles it
-                overflow: 'hidden',
-                position: 'relative',
-                opacity: isDragActive ? 0.45 : item.is_purchased ? 0.65 : 1,
-                filter: item.is_purchased ? 'grayscale(0.6)' : 'none',
-                boxShadow: isHovered && !isDragActive && !isDragOver
-                    ? `0 12px 32px rgba(var(--primary-rgb),0.18)`
-                    : isDragOver
-                    ? '0 0 0 4px rgba(var(--primary-rgb),0.18), 0 8px 28px rgba(var(--primary-rgb),0.2)'
-                    : 'none',
-            }}
-        >
-            {/* Drop-to-group overlay */}
-            {isDragOver && (
-                <div style={{
-                    position: 'absolute', inset: 0, zIndex: 20,
-                    background: 'rgba(var(--primary-rgb),0.1)',
-                    borderRadius: '22px',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    pointerEvents: 'none',
-                }}>
+            <motion.div
+                draggable={isDraggable}
+                onClick={() => navigate(`/product/${item.id}`)}
+                onDragStart={onDragStart}
+                onDragEnd={onDragEnd}
+                onDragOver={e => { e.preventDefault(); onDragOver?.(e); }}
+                onDragLeave={handleMouseLeaveInner}
+                onDrop={e => { e.preventDefault(); onDrop?.(e); }}
+                onMouseEnter={() => { if (!isDragActive) setIsHovered(true); }}
+                onMouseMove={handleMouseMove}
+                onMouseLeave={handleMouseLeaveInner}
+                animate={{
+                    y: isHovered && !isDragActive && !isDragOver ? -6 : 0,
+                }}
+                style={{
+                    rotateX,
+                    rotateY,
+                    transformStyle: "preserve-3d",
+                    background: SURFACE,
+                    border: isHovered && !isDragActive && !isDragOver
+                        ? `1.5px solid ${ORANGE}`
+                        : isDragOver ? `2.5px dashed var(--primary)` : `1.5px solid ${BORDER}`,
+                    borderRadius: '24px',
+                    cursor: isDraggable ? 'grab' : 'pointer',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    transition: 'border-color 0.22s ease, box-shadow 0.22s ease', // don't transition transform since framer handles it
+                    overflow: 'hidden',
+                    position: 'relative',
+                    opacity: isDragActive ? 0.45 : item.is_purchased ? 0.65 : 1,
+                    filter: item.is_purchased ? 'grayscale(0.6)' : 'none',
+                    boxShadow: isHovered && !isDragActive && !isDragOver
+                        ? `0 12px 32px rgba(var(--primary-rgb),0.18)`
+                        : isDragOver
+                            ? '0 0 0 4px rgba(var(--primary-rgb),0.18), 0 8px 28px rgba(var(--primary-rgb),0.2)'
+                            : 'none',
+                }}
+            >
+                {/* Drop-to-group overlay */}
+                {isDragOver && (
                     <div style={{
-                        background: 'var(--primary)',
-                        color: '#fff',
-                        fontSize: '0.72rem',
-                        fontWeight: 800,
-                        padding: '0.35rem 0.8rem',
-                        borderRadius: '99px',
-                        letterSpacing: '0.04em',
-                        boxShadow: '0 4px 12px rgba(var(--primary-rgb),0.4)',
+                        position: 'absolute', inset: 0, zIndex: 20,
+                        background: 'rgba(var(--primary-rgb),0.1)',
+                        borderRadius: '22px',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        pointerEvents: 'none',
                     }}>
-                        📦 Drop to Group
-                    </div>
-                </div>
-            )}
-
-
-            {/* ── Inset image box (padded, rounded inner corners) ── */}
-            <div style={{ padding: '0.8rem 0.8rem 0.4rem', position: 'relative' }}>
-                <div style={{
-                    background: 'var(--surface-2)',
-                    borderRadius: '16px',
-                    aspectRatio: viewMode === 'masonry' ? 'auto' : '1 / 1',
-                    overflow: 'hidden',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    width: '100%',
-                    boxShadow: '0 6px 16px rgba(0, 0, 0, 0.08)',
-                    border: '1px solid var(--border)',
-                    position: 'relative'
-                }}>
-                    {item.image ? (
-                        <img src={item.image} alt={item.name} style={{ width: '100%', height: viewMode === 'masonry' ? 'auto' : '100%', objectFit: 'cover', display: 'block' }} />
-                    ) : (
-                        <span style={{ fontSize: '2.5rem', color: 'var(--text-muted)', padding: viewMode === 'masonry' ? '3rem 0' : 0 }}>📦</span>
-                    )}
-                    {onRemove && (
-                        <button
-                            onClick={(e) => { e.stopPropagation(); onRemove(); }}
-                            style={{
-                                position: 'absolute', top: '0.5rem', right: '0.5rem',
-                                width: '28px', height: '28px', borderRadius: '50%',
-                                background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(8px)',
-                                color: '#fff', border: '1px solid rgba(255,255,255,0.2)',
-                                cursor: 'pointer', zIndex: 10,
-                                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                transition: 'all 0.2s', padding: 0
-                            }}
-                            onMouseEnter={e => { e.currentTarget.style.background = '#ef4444'; e.currentTarget.style.borderColor = '#ef4444'; e.currentTarget.style.transform = 'scale(1.1)'; }}
-                            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(0,0,0,0.5)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)'; e.currentTarget.style.transform = 'scale(1)'; }}
-                        >
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>
-                        </button>
-                    )}
-                    {onTogglePurchased && (
-                        <div
-                            onClick={(e) => { e.stopPropagation(); onTogglePurchased(item.id, !item.is_purchased); }}
-                            style={{
-                                position: 'absolute', bottom: '0.5rem', right: '0.5rem',
-                                width: '28px', height: '28px', borderRadius: '50%',
-                                background: item.is_purchased ? '#059669' : 'rgba(0,0,0,0.5)',
-                                backdropFilter: 'blur(8px)',
-                                color: '#fff',
-                                border: `1.5px solid ${item.is_purchased ? '#059669' : 'rgba(255,255,255,0.3)'}`,
-                                cursor: 'pointer', zIndex: 10,
-                                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                                transition: 'all 0.2s'
-                            }}
-                            onMouseEnter={e => { if (!item.is_purchased) e.currentTarget.style.transform = 'scale(1.1)'; }}
-                            onMouseLeave={e => { if (!item.is_purchased) e.currentTarget.style.transform = 'scale(1)'; }}
-                        >
-                            <Check size={16} strokeWidth={item.is_purchased ? 3 : 2} style={{ opacity: item.is_purchased ? 1 : 0.7 }} />
-                        </div>
-                    )}
-                    {/* Make Public / Remove from Discover toggle */}
-                    {onTogglePublic && (
-                        <div
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                if (!item.is_public) {
-                                    setShowPublicConfirm(true);
-                                } else {
-                                    onTogglePublic(item.id, false);
-                                }
-                            }}
-                            title={item.is_public ? 'Remove from Discover' : 'Share on Discover'}
-                            style={{
-                                position: 'absolute', bottom: '0.5rem', left: '0.5rem',
-                                width: '28px', height: '28px', borderRadius: '50%',
-                                background: item.is_public ? 'rgba(var(--primary-rgb),0.85)' : 'rgba(0,0,0,0.45)',
-                                backdropFilter: 'blur(8px)',
-                                color: '#fff',
-                                border: `1.5px solid ${item.is_public ? 'rgba(var(--primary-rgb),1)' : 'rgba(255,255,255,0.25)'}`,
-                                cursor: 'pointer', zIndex: 10,
-                                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                boxShadow: item.is_public ? '0 0 10px rgba(var(--primary-rgb),0.5)' : '0 2px 8px rgba(0,0,0,0.15)',
-                                transition: 'all 0.2s'
-                            }}
-                            onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.12)'; }}
-                            onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; }}
-                        >
-                            <Globe size={14} strokeWidth={2} />
-                        </div>
-                    )}
-                </div>
-            </div>
-
-            {/* ── Content below image ── */}
-            <div style={{ padding: '0.75rem 0.9rem 1rem', flex: 1, display: 'flex', flexDirection: 'column' }}>
-                {/* Product name (flex: 1 pushes everything below to the bottom) */}
-                <p style={{
-                    fontWeight: 800,
-                    fontSize: '1.05rem',
-                    color: 'var(--text)',
-                    lineHeight: 1.3,
-                    minHeight: '2.6em',
-                    display: '-webkit-box',
-                    WebkitLineClamp: 2,
-                    WebkitBoxOrient: 'vertical',
-                    overflow: 'hidden',
-                    margin: '0 0 0.5rem 0',
-                    flex: 1,
-                }}>
-                    {item.name}
-                </p>
-
-                {/* Bottom section (Category + Price row) */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'flex-start' }}>
-                        <span style={{
-                            display: 'inline-block',
-                            fontSize: '0.65rem', fontWeight: 800,
-                            color: 'var(--text-muted)',
-                            background: 'var(--surface-2)',
-                            padding: '0.2rem 0.55rem',
-                            borderRadius: '6px',
-                            textTransform: 'uppercase', letterSpacing: '0.05em',
-                            border: '1px solid var(--border)',
-                            whiteSpace: 'nowrap',
+                        <div style={{
+                            background: 'var(--primary)',
+                            color: '#fff',
+                            fontSize: '0.72rem',
+                            fontWeight: 800,
+                            padding: '0.35rem 0.8rem',
+                            borderRadius: '99px',
+                            letterSpacing: '0.04em',
+                            boxShadow: '0 4px 12px rgba(var(--primary-rgb),0.4)',
                         }}>
-                            {categoryName}
-                        </span>
+                            📦 Drop to Group
+                        </div>
                     </div>
+                )}
 
-                {/* Bottom row: price + arrow button */}
-                <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    marginTop: '0.5rem',
-                }}>
-                    <p style={{
-                        fontWeight: 900,
-                        fontSize: '1.15rem',
-                        color: 'var(--text)',
-                        letterSpacing: '-0.02em',
+
+                {/* ── Inset image box (padded, rounded inner corners) ── */}
+                <div style={{ padding: '0.8rem 0.8rem 0.4rem', position: 'relative' }}>
+                    <div style={{
+                        background: 'var(--surface-2)',
+                        borderRadius: '16px',
+                        aspectRatio: viewMode === 'masonry' ? 'auto' : '1 / 1',
+                        overflow: 'hidden',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        width: '100%',
+                        boxShadow: '0 6px 16px rgba(0, 0, 0, 0.08)',
+                        border: '1px solid var(--border)',
+                        position: 'relative'
                     }}>
-                        {price}
+                        {item.image ? (
+                            <img src={item.image} alt={item.name} style={{ width: '100%', height: viewMode === 'masonry' ? 'auto' : '100%', objectFit: 'cover', display: 'block' }} />
+                        ) : (
+                            <span style={{ fontSize: '2.5rem', color: 'var(--text-muted)', padding: viewMode === 'masonry' ? '3rem 0' : 0 }}>📦</span>
+                        )}
+                        {onRemove && (
+                            <button
+                                onClick={(e) => { e.stopPropagation(); onRemove(); }}
+                                style={{
+                                    position: 'absolute', top: '0.5rem', right: '0.5rem',
+                                    width: '28px', height: '28px', borderRadius: '50%',
+                                    background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(8px)',
+                                    color: '#fff', border: '1px solid rgba(255,255,255,0.2)',
+                                    cursor: 'pointer', zIndex: 10,
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    transition: 'all 0.2s', padding: 0
+                                }}
+                                onMouseEnter={e => { e.currentTarget.style.background = '#ef4444'; e.currentTarget.style.borderColor = '#ef4444'; e.currentTarget.style.transform = 'scale(1.1)'; }}
+                                onMouseLeave={e => { e.currentTarget.style.background = 'rgba(0,0,0,0.5)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)'; e.currentTarget.style.transform = 'scale(1)'; }}
+                            >
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>
+                            </button>
+                        )}
+                        {onTogglePurchased && (
+                            <div
+                                onClick={(e) => { e.stopPropagation(); onTogglePurchased(item.id, !item.is_purchased); }}
+                                style={{
+                                    position: 'absolute', bottom: '0.5rem', right: '0.5rem',
+                                    width: '28px', height: '28px', borderRadius: '50%',
+                                    background: item.is_purchased ? '#059669' : 'rgba(0,0,0,0.5)',
+                                    backdropFilter: 'blur(8px)',
+                                    color: '#fff',
+                                    border: `1.5px solid ${item.is_purchased ? '#059669' : 'rgba(255,255,255,0.3)'}`,
+                                    cursor: 'pointer', zIndex: 10,
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                                    transition: 'all 0.2s'
+                                }}
+                                onMouseEnter={e => { if (!item.is_purchased) e.currentTarget.style.transform = 'scale(1.1)'; }}
+                                onMouseLeave={e => { if (!item.is_purchased) e.currentTarget.style.transform = 'scale(1)'; }}
+                            >
+                                <Check size={16} strokeWidth={item.is_purchased ? 3 : 2} style={{ opacity: item.is_purchased ? 1 : 0.7 }} />
+                            </div>
+                        )}
+                        {/* Make Public / Remove from Discover toggle */}
+                        {onTogglePublic && (
+                            <div
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (!item.is_public) {
+                                        setShowPublicConfirm(true);
+                                    } else {
+                                        onTogglePublic(item.id, false);
+                                    }
+                                }}
+                                title={item.is_public ? 'Remove from Discover' : 'Share on Discover'}
+                                style={{
+                                    position: 'absolute', bottom: '0.5rem', left: '0.5rem',
+                                    width: '28px', height: '28px', borderRadius: '50%',
+                                    background: item.is_public ? 'rgba(var(--primary-rgb),0.85)' : 'rgba(0,0,0,0.45)',
+                                    backdropFilter: 'blur(8px)',
+                                    color: '#fff',
+                                    border: `1.5px solid ${item.is_public ? 'rgba(var(--primary-rgb),1)' : 'rgba(255,255,255,0.25)'}`,
+                                    cursor: 'pointer', zIndex: 10,
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    boxShadow: item.is_public ? '0 0 10px rgba(var(--primary-rgb),0.5)' : '0 2px 8px rgba(0,0,0,0.15)',
+                                    transition: 'all 0.2s'
+                                }}
+                                onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.12)'; }}
+                                onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; }}
+                            >
+                                <Globe size={14} strokeWidth={2} />
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {/* ── Content below image ── */}
+                <div style={{ padding: '0.75rem 0.9rem 1rem', flex: 1, display: 'flex', flexDirection: 'column' }}>
+                    {/* Product name (flex: 1 pushes everything below to the bottom) */}
+                    <p style={{
+                        fontWeight: 800,
+                        fontSize: '1.05rem',
+                        color: 'var(--text)',
+                        lineHeight: 1.3,
+                        minHeight: '2.6em',
+                        display: '-webkit-box',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical',
+                        overflow: 'hidden',
+                        margin: '0 0 0.5rem 0',
+                        flex: 1,
+                    }}>
+                        {item.name}
                     </p>
 
-                {/* Arrow button — opens external product link or details */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                    <MagneticButton>
-                        <a
-                            href={item.link || '#'}
-                            target={item.link ? '_blank' : '_self'}
-                            rel="noopener noreferrer"
-                            onClick={e => {
-                                if (!item.link) {
-                                    e.stopPropagation();
-                                    e.preventDefault();
-                                    navigate(`/product/${item.id}`);
-                                } else {
-                                    e.stopPropagation();
-                                }
-                            }}
-                            style={{
-                                width: '36px',
-                                height: '36px',
-                                borderRadius: '50%',
-                                background: ORANGE,
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                flexShrink: 0,
-                                boxShadow: '0 4px 12px rgba(var(--primary-rgb),0.28)',
-                                transition: 'transform 0.18s ease, background 0.18s ease',
-                                textDecoration: 'none',
-                                cursor: 'pointer',
-                            }}
-                            onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.12)'; }}
-                            onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
-                            title={item.link ? 'Open product link' : 'View details'}
-                        >
-                            <ArrowRight size={17} color="#fff" strokeWidth={2.5} />
-                        </a>
-                    </MagneticButton>
+                    {/* Bottom section (Category + Price row) */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'flex-start' }}>
+                            <span style={{
+                                display: 'inline-block',
+                                fontSize: '0.65rem', fontWeight: 800,
+                                color: 'var(--text-muted)',
+                                background: 'var(--surface-2)',
+                                padding: '0.2rem 0.55rem',
+                                borderRadius: '6px',
+                                textTransform: 'uppercase', letterSpacing: '0.05em',
+                                border: '1px solid var(--border)',
+                                whiteSpace: 'nowrap',
+                            }}>
+                                {categoryName}
+                            </span>
+                        </div>
+
+                        {/* Bottom row: price + arrow button */}
+                        <div style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            marginTop: '0.5rem',
+                        }}>
+                            <p style={{
+                                fontWeight: 900,
+                                fontSize: '1.15rem',
+                                color: 'var(--text)',
+                                letterSpacing: '-0.02em',
+                            }}>
+                                {price}
+                            </p>
+
+                            {/* Arrow button — opens external product link or details */}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                                <MagneticButton>
+                                    <a
+                                        href={item.link || '#'}
+                                        target={item.link ? '_blank' : '_self'}
+                                        rel="noopener noreferrer"
+                                        onClick={e => {
+                                            if (!item.link) {
+                                                e.stopPropagation();
+                                                e.preventDefault();
+                                                navigate(`/product/${item.id}`);
+                                            } else {
+                                                e.stopPropagation();
+                                            }
+                                        }}
+                                        style={{
+                                            width: '36px',
+                                            height: '36px',
+                                            borderRadius: '50%',
+                                            background: ORANGE,
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            flexShrink: 0,
+                                            boxShadow: '0 4px 12px rgba(var(--primary-rgb),0.28)',
+                                            transition: 'transform 0.18s ease, background 0.18s ease',
+                                            textDecoration: 'none',
+                                            cursor: 'pointer',
+                                        }}
+                                        onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.12)'; }}
+                                        onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+                                        title={item.link ? 'Open product link' : 'View details'}
+                                    >
+                                        <ArrowRight size={17} color="#fff" strokeWidth={2.5} />
+                                    </a>
+                                </MagneticButton>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                </div>
-                </div>
-            </div>
             </motion.div>
             {/* Confirmation Modal */}
             {showPublicConfirm && createPortal(
@@ -357,7 +357,7 @@ export default function ItemCard({
                         </div>
                     </div>
                 </div>
-            , document.body)}
+                , document.body)}
         </>
     );
 }

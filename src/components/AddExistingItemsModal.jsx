@@ -14,7 +14,7 @@ export default function AddExistingItemsModal({ allItems, activeCollectionId, on
     const [saving, setSaving] = useState(false);
 
     // Filter by search query
-    const filteredItems = allItems.filter(item => 
+    const filteredItems = allItems.filter(item =>
         item.name.toLowerCase().includes(search.toLowerCase())
     );
 

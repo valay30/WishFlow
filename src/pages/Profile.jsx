@@ -244,7 +244,7 @@ export default function Profile() {
                             <p style={{ margin: 0, color: '#fff', fontWeight: 700, fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '0.3rem', justifyContent: 'center', minHeight: '1.2rem' }}>
                                 {!isProfileLoading && (
                                     <>
-                                        {initialUsername ? `@${initialUsername}` : '@username'} 
+                                        {initialUsername ? `@${initialUsername}` : '@username'}
                                         {!initialUsername && <span style={{ fontSize: '0.8rem', opacity: 0.8 }}>✎</span>}
                                     </>
                                 )}
@@ -348,62 +348,16 @@ export default function Profile() {
                                                 <p style={{ margin: 0, fontWeight: 800, fontSize: '0.95rem', color: 'var(--text)' }}>Home View Mode</p>
                                                 <p style={{ margin: '0.1rem 0 0', fontSize: '0.82rem', color: 'var(--text-dim)' }}>Choose list or card layout</p>
                                             </div>
-                                            <div style={{
-                                                display: 'flex',
-                                                padding: '5px',
-                                                background: 'var(--surface-2)',
-                                                borderRadius: '14px',
-                                                gap: '4px',
-                                                border: '1px solid var(--border)'
-                                            }}>
-                                                <button
-                                                    onClick={() => setViewMode('card')}
-                                                    style={{
-                                                        display: 'flex', alignItems: 'center', gap: '0.4rem',
-                                                        padding: '0.55rem 1rem', borderRadius: '10px',
-                                                        border: 'none', cursor: 'pointer',
-                                                        background: viewMode === 'card' ? 'var(--surface)' : 'transparent',
-                                                        color: viewMode === 'card' ? ORANGE : 'var(--text-dim)',
-                                                        fontWeight: 800, fontSize: '0.85rem',
-                                                        boxShadow: viewMode === 'card' ? '0 3px 8px rgba(0,0,0,0.08)' : 'none',
-                                                        transition: 'all 0.2s',
-                                                        fontFamily: 'inherit'
-                                                    }}
-                                                >
-                                                    <LayoutGrid size={16} /> Card
-                                                </button>
-                                                <button
-                                                    onClick={() => setViewMode('masonry')}
-                                                    style={{
-                                                        display: 'flex', alignItems: 'center', gap: '0.4rem',
-                                                        padding: '0.55rem 1rem', borderRadius: '10px',
-                                                        border: 'none', cursor: 'pointer',
-                                                        background: viewMode === 'masonry' ? 'var(--surface)' : 'transparent',
-                                                        color: viewMode === 'masonry' ? ORANGE : 'var(--text-dim)',
-                                                        fontWeight: 800, fontSize: '0.85rem',
-                                                        boxShadow: viewMode === 'masonry' ? '0 3px 8px rgba(0,0,0,0.08)' : 'none',
-                                                        transition: 'all 0.2s',
-                                                        fontFamily: 'inherit'
-                                                    }}
-                                                >
-                                                    <Columns size={16} /> Masonry
-                                                </button>
-                                                <button
-                                                    onClick={() => setViewMode('list')}
-                                                    style={{
-                                                        display: 'flex', alignItems: 'center', gap: '0.4rem',
-                                                        padding: '0.55rem 1rem', borderRadius: '10px',
-                                                        border: 'none', cursor: 'pointer',
-                                                        background: viewMode === 'list' ? 'var(--surface)' : 'transparent',
-                                                        color: viewMode === 'list' ? ORANGE : 'var(--text-dim)',
-                                                        fontWeight: 800, fontSize: '0.85rem',
-                                                        boxShadow: viewMode === 'list' ? '0 3px 8px rgba(0,0,0,0.08)' : 'none',
-                                                        transition: 'all 0.2s',
-                                                        fontFamily: 'inherit'
-                                                    }}
-                                                >
-                                                    <ListIcon size={16} /> List
-                                                </button>
+                                            <div style={{ minWidth: '120px' }}>
+                                                <CustomSelect
+                                                    value={viewMode}
+                                                    onChange={(val) => setViewMode(val)}
+                                                    options={[
+                                                        { value: 'card', label: 'Card', icon: LayoutGrid },
+                                                        { value: 'masonry', label: 'Masonry', icon: Columns },
+                                                        { value: 'list', label: 'List', icon: ListIcon },
+                                                    ]}
+                                                />
                                             </div>
                                         </div>
 
@@ -571,7 +525,7 @@ export default function Profile() {
                     >
                         <LogOut size={22} /> Sign Out
                     </button>
-                    
+
                     <div style={{ textAlign: 'center', marginTop: '1.5rem', marginBottom: '2rem' }}>
                         <span style={{ fontSize: '0.85rem', color: 'var(--text-dim)', fontWeight: 600 }}>
                             Version {APP_VERSION}
