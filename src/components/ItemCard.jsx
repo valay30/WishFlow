@@ -13,16 +13,7 @@ const SURFACE = 'var(--surface)';
 const BORDER = 'var(--border)';
 
 export default function ItemCard({
-    item, categoryName, onRemove, onTogglePurchased, onTogglePublic,
-    // Drag & drop
-    draggable: isDraggable = false,
-    isDragActive = false,    // this card is being dragged
-    isDragOver = false,      // another card is being dragged over this one
-    onDragStart,
-    onDragEnd,
-    onDragOver,
-    onDragLeave,
-    onDrop,
+    item, categoryName, onRemove, onTogglePurchased, onTogglePublic
 }) {
     const navigate = useNavigate();
     const { currency, viewMode, darkMode } = useSettings();
@@ -48,7 +39,6 @@ export default function ItemCard({
     const rotateY = useTransform(mouseXSpring, [-0.5, 0.5], ["-7.5deg", "7.5deg"]);
 
     const handleMouseMove = (e) => {
-        if (isDragActive) return;
         const rect = e.currentTarget.getBoundingClientRect();
         const width = rect.width;
         const height = rect.height;
@@ -59,7 +49,6 @@ export default function ItemCard({
     };
 
     const handlePointerDown = (e) => {
-        if (isDragActive) return;
         if (e.type === 'mousedown' && e.button !== 0) return;
         wasLongPressed.current = false;
         const clientX = e.touches ? e.touches[0].clientX : e.clientX;
@@ -72,40 +61,58 @@ export default function ItemCard({
             
             // Calculate position
             const rect = cardRef.current.getBoundingClientRect();
+            const clientWidth = document.documentElement.clientWidth;
+            const clientHeight = document.documentElement.clientHeight;
             const menuWidth = 220;
             const menuHeight = 220; // approximate max height
             const padding = 16;
             
             let menuX, menuY, originX, originY;
+            let cardTop = rect.top; // default clone position
 
-            if (rect.right + padding + menuWidth <= window.innerWidth) {
+            if (rect.right + padding + menuWidth <= clientWidth) {
                 // Place to the right
                 menuX = rect.right + padding;
                 menuY = rect.top;
                 originX = 'left';
                 originY = 'top';
+                
+                // Clamp menuY to screen bounds (top and bottom)
+                menuY = Math.max(padding, Math.min(menuY, clientHeight - padding - menuHeight));
             } else if (rect.left - padding - menuWidth >= 0) {
                 // Place to the left
                 menuX = rect.left - padding - menuWidth;
                 menuY = rect.top;
                 originX = 'right';
                 originY = 'top';
-            } else {
-                // Not enough space left or right, place it below or above centered
-                menuX = Math.max(padding, Math.min(window.innerWidth - padding - menuWidth, rect.left + (rect.width / 2) - (menuWidth / 2)));
                 
-                if (rect.bottom + padding + menuHeight <= window.innerHeight) {
-                    menuY = rect.bottom + padding;
-                    originX = 'center';
-                    originY = 'top';
-                } else {
-                    menuY = Math.max(padding, window.innerHeight - padding - menuHeight);
-                    originX = 'center';
-                    originY = 'bottom';
+                // Clamp menuY to screen bounds (top and bottom)
+                menuY = Math.max(padding, Math.min(menuY, clientHeight - padding - menuHeight));
+            } else {
+                // Mobile layout: Not enough space left or right. Place it below the card, centered.
+                menuX = Math.max(padding, Math.min(clientWidth - padding - menuWidth, rect.left + (rect.width / 2) - (menuWidth / 2)));
+                
+                menuY = rect.bottom + padding;
+                originX = 'center';
+                originY = 'top';
+
+                // Check if it goes off the bottom of the screen
+                const overflowY = (menuY + menuHeight) - (clientHeight - padding);
+                if (overflowY > 0) {
+                    // Shift both the menu AND the cloned card up so they don't overlap, while staying on screen
+                    menuY -= overflowY;
+                    cardTop -= overflowY;
+                }
+                
+                // Ensure the card doesn't get pushed completely off the top of the screen
+                if (cardTop < padding) {
+                    const underflow = padding - cardTop;
+                    cardTop += underflow;
+                    menuY += underflow; 
                 }
             }
             
-            setContextMenuData({ rect, menuX, menuY, originX, originY });
+            setContextMenuData({ rect, menuX, menuY, originX, originY, cardTop });
         }, 400);
     };
 
@@ -137,7 +144,6 @@ export default function ItemCard({
         setIsHovered(false);
         x.set(0);
         y.set(0);
-        if (onDragLeave) onDragLeave();
     };
 
     const handleClick = (e) => {
@@ -166,30 +172,6 @@ export default function ItemCard({
 
     const renderCardContent = (isClone = false) => (
         <>
-            {/* Drop-to-group overlay */}
-            {isDragOver && !isClone && (
-                <div style={{
-                    position: 'absolute', inset: 0, zIndex: 20,
-                    background: 'rgba(var(--primary-rgb),0.1)',
-                    borderRadius: '22px',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    pointerEvents: 'none',
-                }}>
-                    <div style={{
-                        background: 'var(--primary)',
-                        color: '#fff',
-                        fontSize: '0.72rem',
-                        fontWeight: 800,
-                        padding: '0.35rem 0.8rem',
-                        borderRadius: '99px',
-                        letterSpacing: '0.04em',
-                        boxShadow: '0 4px 12px rgba(var(--primary-rgb),0.4)',
-                    }}>
-                        📦 Drop to Group
-                    </div>
-                </div>
-            )}
-
             {/* ── Inset image box ── */}
             <div style={{ padding: '0.8rem 0.8rem 0.4rem', position: 'relative' }}>
                 <div style={{
@@ -340,7 +322,6 @@ export default function ItemCard({
         <>
             <motion.div
                 ref={cardRef}
-                draggable={isDraggable}
                 onClick={handleClick}
                 onMouseDown={handlePointerDown}
                 onTouchStart={handlePointerDown}
@@ -350,43 +331,30 @@ export default function ItemCard({
                 onTouchEnd={handlePointerUpOrLeave}
                 onTouchCancel={handlePointerUpOrLeave}
                 onMouseLeave={handleMouseLeaveInner}
-                onDragStart={e => {
-                    e.dataTransfer.setData('text/plain', item.id);
-                    e.dataTransfer.effectAllowed = 'move';
-                    if (onDragStart) onDragStart(e);
-                }}
-                onDragEnd={onDragEnd}
-                onDragOver={e => { e.preventDefault(); onDragOver?.(e); }}
-                onDragLeave={handleMouseLeaveInner}
-                onDrop={e => { e.preventDefault(); onDrop?.(e); }}
-                onMouseEnter={() => { if (!isDragActive) setIsHovered(true); }}
+                onMouseEnter={() => setIsHovered(true)}
                 animate={{
-                    y: isHovered && !isDragActive && !isDragOver ? -6 : 0,
-                    opacity: isDragActive ? 0.45 : (contextMenuData ? 0 : 1) // hide original when context menu is open
+                    y: isHovered ? -6 : 0,
+                    opacity: contextMenuData ? 0 : 1 // hide original when context menu is open
                 }}
                 style={{
                     rotateX,
                     rotateY,
                     transformStyle: "preserve-3d",
-                    WebkitUserDrag: isDraggable ? 'element' : 'none',
                     background: SURFACE,
-                    border: isHovered && !isDragActive && !isDragOver
+                    border: isHovered
                         ? `1.5px solid ${ORANGE}`
-                        : isDragOver ? `2.5px dashed var(--primary)` : `1.5px solid ${BORDER}`,
+                        : `1.5px solid ${BORDER}`,
                     borderRadius: '24px',
-                    cursor: isDraggable ? 'grab' : 'pointer',
+                    cursor: 'pointer',
                     display: 'flex',
                     flexDirection: 'column',
                     transition: 'border-color 0.22s ease, box-shadow 0.22s ease',
                     overflow: 'hidden',
                     position: 'relative',
                     filter: item.is_purchased ? 'grayscale(0.6)' : 'none',
-                    boxShadow: isHovered && !isDragActive && !isDragOver
+                    boxShadow: isHovered
                         ? `0 12px 32px rgba(var(--primary-rgb),0.18)`
-                        : isDragOver
-                            ? '0 0 0 4px rgba(var(--primary-rgb),0.18), 0 8px 28px rgba(var(--primary-rgb),0.2)'
-                            : 'none',
-                    touchAction: 'pan-y' // allow vertical scroll on mobile while touching
+                        : '0 4px 12px rgba(0,0,0,0.03)',
                 }}
             >
                 {renderCardContent()}
@@ -423,10 +391,12 @@ export default function ItemCard({
                                     boxShadow: '0 0 0 rgba(0,0,0,0)'
                                 }}
                                 animate={{ 
+                                    top: contextMenuData.cardTop, // animate to shifted position
                                     scale: 1.05,
                                     boxShadow: '0 25px 50px -12px rgba(0,0,0,0.4)'
                                 }}
                                 exit={{ 
+                                    top: contextMenuData.rect.top, // animate back to original position
                                     scale: 1,
                                     boxShadow: '0 0 0 rgba(0,0,0,0)',
                                     opacity: 0

@@ -379,72 +379,6 @@ export default function Home() {
     const shouldShowAddModal = showAddModal && !isFreeLimitReached;
     const shouldShowPremiumModal = showPremiumModal || (showAddModal && isFreeLimitReached);
 
-    /* ── DRAG HANDLERS ── */
-    const handleDragStart = useCallback((itemId) => {
-        setDraggedItemId(itemId);
-        dragRef.current = itemId;
-    }, []);
-
-    const handleDragEnd = useCallback(() => {
-        setDraggedItemId(null);
-        setDragOverItemId(null);
-        setDragOverGroupId(null);
-        dragRef.current = null;
-    }, []);
-
-    // Failsafe: clear drag state globally on mouseup/dragend in case native events get swallowed
-    useEffect(() => {
-        window.addEventListener('dragend', handleDragEnd);
-        window.addEventListener('mouseup', handleDragEnd);
-        return () => {
-            window.removeEventListener('dragend', handleDragEnd);
-            window.removeEventListener('mouseup', handleDragEnd);
-        };
-    }, [handleDragEnd]);
-
-    const handleDragOverItem = useCallback((itemId) => {
-        if (dragRef.current && dragRef.current !== itemId) {
-            setDragOverItemId(itemId);
-        }
-    }, []);
-
-    const handleDragLeaveItem = useCallback(() => {
-        setDragOverItemId(null);
-    }, []);
-
-    const handleDropOnItem = useCallback((targetItemId) => {
-        const sourceId = dragRef.current;
-        if (!sourceId || sourceId === targetItemId) {
-            setDragOverItemId(null);
-            return;
-        }
-
-        // Check if source is already in a group that contains the target
-        const sourceGroup = groups.find(g => g.itemIds.includes(sourceId));
-        const targetGroup = groups.find(g => g.itemIds.includes(targetItemId));
-
-        if (sourceGroup && targetGroup && sourceGroup.id === targetGroup.id) {
-            // Same group — do nothing
-            setDragOverItemId(null);
-            return;
-        }
-
-        if (targetGroup) {
-            // Drop into an existing group: add the dragged item to it
-            setGroups(prev => prev.map(g =>
-                g.id === targetGroup.id
-                    ? { ...g, itemIds: g.itemIds.includes(sourceId) ? g.itemIds : [...g.itemIds, sourceId] }
-                    : { ...g, itemIds: g.itemIds.filter(id => id !== sourceId) }
-            ).filter(g => g.itemIds.length >= 2));
-            setDragOverItemId(null);
-            showIsland({ title: 'Item Added to Group', type: 'success' });
-        } else {
-            // Neither in a group: open name modal
-            setGroupModal({ open: true, sourceItemId: sourceId, targetItemId });
-            setDragOverItemId(null);
-        }
-    }, [groups]);
-
     const handleGroupCreated = useCallback((name) => {
         const { sourceItemId, targetItemId } = groupModal;
         // Remove both items from any existing groups first
@@ -502,26 +436,6 @@ export default function Home() {
     const handleTogglePurchased = useCallback(async (id, val) => {
         await db.items.update(id, { is_purchased: val });
         setItems(prev => prev.map(i => i.id === id ? { ...i, is_purchased: val } : i));
-    }, []);
-
-    const handleDragOverGroup = useCallback((groupId) => {
-        setDragOverGroupId(groupId);
-    }, []);
-
-    const handleDragLeaveGroup = useCallback(() => {
-        setDragOverGroupId(null);
-    }, []);
-
-    const handleDropOnGroup = useCallback((groupId) => {
-        const sourceId = dragRef.current;
-        if (!sourceId) return;
-        setGroups(prev => prev.map(g =>
-            g.id === groupId
-                ? { ...g, itemIds: g.itemIds.includes(sourceId) ? g.itemIds : [...g.itemIds, sourceId] }
-                : { ...g, itemIds: g.itemIds.filter(id => id !== sourceId) }
-        ).filter(g => g.itemIds.length >= 2));
-        setDragOverGroupId(null);
-        showIsland({ title: 'Item Added to Group', type: 'success' });
     }, []);
 
     /* ── Derive grouped / ungrouped lists from filtered ── */
@@ -816,19 +730,15 @@ export default function Home() {
 
                                 if (groupItems.length === 0) return null;
 
-                                const isDropTarget = dragOverGroupId === group.id;
                                 const previews = groupItems.slice(0, 3);
 
                                 return (
                                     <div
                                         key={group.id}
-                                        onDragOver={e => { e.preventDefault(); handleDragOverGroup(group.id); }}
-                                        onDragLeave={handleDragLeaveGroup}
-                                        onDrop={e => { e.preventDefault(); handleDropOnGroup(group.id); }}
                                         onClick={() => setOpenGroupId(group.id)}
                                         style={{
                                             background: SURFACE,
-                                            border: isDropTarget ? `2.5px dashed var(--primary)` : `1.5px solid ${BORDER}`,
+                                            border: `1.5px solid ${BORDER}`,
                                             borderRadius: '24px',
                                             cursor: 'pointer',
                                             display: 'flex',
@@ -836,17 +746,15 @@ export default function Home() {
                                             transition: 'all 0.22s cubic-bezier(0.4,0,0.2,1)',
                                             overflow: 'hidden',
                                             position: 'relative',
-                                            boxShadow: isDropTarget ? '0 0 0 4px rgba(var(--primary-rgb),0.18), 0 8px 28px rgba(var(--primary-rgb),0.2)' : 'none',
-                                            transform: isDropTarget ? 'scale(1.02)' : 'none',
+                                            boxShadow: 'none',
+                                            transform: 'none',
                                         }}
                                         onMouseEnter={e => {
-                                            if (isDropTarget) return;
                                             e.currentTarget.style.borderColor = ORANGE;
                                             e.currentTarget.style.boxShadow = `0 8px 28px rgba(var(--primary-rgb),0.15)`;
                                             e.currentTarget.style.transform = 'translateY(-4px)';
                                         }}
                                         onMouseLeave={e => {
-                                            if (isDropTarget) return;
                                             e.currentTarget.style.borderColor = BORDER;
                                             e.currentTarget.style.boxShadow = 'none';
                                             e.currentTarget.style.transform = 'translateY(0)';
@@ -1009,14 +917,6 @@ export default function Home() {
                                         key={item.id}
                                         item={item}
                                         categoryName={categories.find(c => c.id === item.category_id)?.name || 'Other'}
-                                        draggable
-                                        isDragActive={draggedItemId === item.id}
-                                        isDragOver={dragOverItemId === item.id}
-                                        onDragStart={() => handleDragStart(item.id)}
-                                        onDragEnd={handleDragEnd}
-                                        onDragOver={() => handleDragOverItem(item.id)}
-                                        onDragLeave={handleDragLeaveItem}
-                                        onDrop={() => handleDropOnItem(item.id)}
                                         onRemove={() => handleRemoveItem(item.id)}
                                         onTogglePurchased={handleTogglePurchased}
                                         onTogglePublic={async (id, val) => {
@@ -1068,28 +968,6 @@ export default function Home() {
                         return createPortal(
                             <div
                                 onClick={() => setOpenGroupId(null)}
-                                onDragOver={e => {
-                                    if (draggedItemId) e.preventDefault();
-                                }}
-                                onDrop={e => {
-                                    e.preventDefault();
-                                    if (!draggedItemId) return;
-                                    const itemToRemove = draggedItemId;
-                                    const currentGroupId = openGroupId; // capture before state clears
-                                    // Remove item from its group; dissolve group if empty
-                                    setGroups(prev => {
-                                        const updated = prev
-                                            .map(g => g.id === currentGroupId
-                                                ? { ...g, itemIds: g.itemIds.filter(id => id !== itemToRemove) }
-                                                : g
-                                            )
-                                            .filter(g => g.itemIds.length > 0);
-                                        return updated;
-                                    });
-                                    // Always close the sheet — item now appears free on home screen
-                                    setOpenGroupId(null);
-                                    setDraggedItemId(null);
-                                }}
                                 style={{
                                     position: 'fixed', inset: 0, zIndex: 8000,
                                     background: 'rgba(0,0,0,0.52)',
@@ -1170,14 +1048,6 @@ export default function Home() {
                                                     <ItemCard
                                                         item={item}
                                                         categoryName={categories.find(c => c.id === item.category_id)?.name || 'Other'}
-                                                        draggable
-                                                        isDragActive={draggedItemId === item.id}
-                                                        isDragOver={dragOverItemId === item.id}
-                                                        onDragStart={() => handleDragStart(item.id)}
-                                                        onDragEnd={handleDragEnd}
-                                                        onDragOver={() => handleDragOverItem(item.id)}
-                                                        onDragLeave={handleDragLeaveItem}
-                                                        onDrop={() => handleDropOnItem(item.id)}
                                                         onRemove={() => handleRemoveItem(item.id)}
                                                         onTogglePurchased={handleTogglePurchased}
                                                         onTogglePublic={async (id, val) => {
