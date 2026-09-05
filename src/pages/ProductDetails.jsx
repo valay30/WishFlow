@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { db } from '../db';
-import { Trash2, Edit, ArrowLeft, ExternalLink, Upload, X, Check, PackageCheck } from 'lucide-react';
+import { Trash2, Edit, ArrowLeft, ExternalLink, Upload, X, Check, PackageCheck, Copy } from 'lucide-react';
 import { uploadToImageKit } from '../utils/imagekit';
 import AlertModal from '../components/AlertModal';
 import CustomSelect from '../components/CustomSelect';
@@ -47,6 +47,18 @@ export default function ProductDetails() {
     const [editCategoryId, setEditCategoryId] = useState('');
     const [isUploading, setIsUploading] = useState(false);
     const [isMobile, setIsMobile] = useState(window.innerWidth <= 640);
+    const [copiedLink, setCopiedLink] = useState(false);
+
+    const handleCopyLink = (e) => {
+        e.stopPropagation();
+        if (item?.link) {
+            navigator.clipboard.writeText(item.link);
+            setCopiedLink(true);
+            setTimeout(() => setCopiedLink(false), 2000);
+            showIsland({ title: 'Link copied to clipboard!', type: 'success' });
+        }
+    };
+
     useEffect(() => {
         const handleResize = () => setIsMobile(window.innerWidth <= 640);
         window.addEventListener('resize', handleResize);
@@ -365,9 +377,12 @@ export default function ProductDetails() {
                                 {item.link && (
                                     <div style={{ background: 'var(--surface-2)', borderRadius: '14px', padding: '1rem', display: 'flex', alignItems: 'center', gap: '0.75rem', border: '1px solid var(--border)' }}>
                                         <ExternalLink size={16} color="#9CA3AF" style={{ flexShrink: 0 }} />
-                                        <span style={{ fontSize: '0.85rem', color: 'var(--text-dim)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                        <span style={{ fontSize: '0.85rem', color: 'var(--text-dim)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
                                             Source: {item.link.replace(/^https?:\/\//, '')}
                                         </span>
+                                        <button onClick={handleCopyLink} title="Copy Link" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '8px', padding: '0.4rem', color: 'var(--text-dim)', cursor: 'pointer', flexShrink: 0 }}>
+                                            {copiedLink ? <Check size={14} color="#10B981" /> : <Copy size={14} />}
+                                        </button>
                                     </div>
                                 )}
                             </>
@@ -655,10 +670,13 @@ export default function ProductDetails() {
                                         <ExternalLink size={14} style={{ color: 'var(--text)', flexShrink: 0 }} />
                                         <p style={{
                                             margin: 0, fontSize: '0.78rem', color: 'var(--text)',
-                                            whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                                            whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', flex: 1
                                         }}>
                                             Source: {item.link.replace(/^https?:\/\//, '')}
                                         </p>
+                                        <button onClick={handleCopyLink} title="Copy Link" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '8px', padding: '0.35rem', color: 'var(--text-dim)', cursor: 'pointer', flexShrink: 0 }}>
+                                            {copiedLink ? <Check size={13} color="#10B981" /> : <Copy size={13} />}
+                                        </button>
                                     </div>
                                 )}
                             </div>
