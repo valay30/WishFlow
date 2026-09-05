@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
 import { db } from '../db';
@@ -13,7 +13,7 @@ function fmt(n) {
     return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(n);
 }
 
-/* ── Product card for Discover feed ── */
+/* ── Immersive Full-Bleed Product card for Discover feed ── */
 function DiscoverCard({ item, onSave, isSaving, isSaved }) {
     const [hovered, setHovered] = useState(false);
     const price = fmt(item.price);
@@ -21,6 +21,7 @@ function DiscoverCard({ item, onSave, isSaving, isSaved }) {
     return (
         <div
             style={{
+                position: 'relative',
                 background: 'var(--surface)',
                 borderRadius: '20px',
                 overflow: 'hidden',
@@ -33,105 +34,122 @@ function DiscoverCard({ item, onSave, isSaving, isSaved }) {
                 cursor: 'default',
                 display: 'flex',
                 flexDirection: 'column',
-                height: '100%',
+                aspectRatio: '3/4', // Tall immersive layout
             }}
             onMouseEnter={() => setHovered(true)}
             onMouseLeave={() => setHovered(false)}
         >
-            {/* Image */}
-            <div style={{ position: 'relative', aspectRatio: '4/3', background: 'var(--bg)', overflow: 'hidden' }}>
+            {/* Background Image */}
+            <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'var(--bg)' }}>
                 {item.image
-                    ? <img src={item.image} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.35s ease', transform: hovered ? 'scale(1.05)' : 'scale(1)' }} />
+                    ? <img src={item.image} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.4s ease', transform: hovered ? 'scale(1.08)' : 'scale(1)' }} />
                     : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Package size={40} color="var(--border)" /></div>
                 }
-
-
-                {/* Save button */}
-                {!item.is_mine && (
-                    <button
-                        id={`save-item-${item.id}`}
-                        onClick={(e) => { e.stopPropagation(); onSave(item, isSaved); }}
-                        disabled={isSaving}
-                        style={{
-                            position: 'absolute', top: '0.55rem', right: '0.55rem',
-                            background: isSaved ? ORANGE : isSaving ? 'rgba(0,0,0,0.6)' : hovered ? ORANGE : 'rgba(0,0,0,0.45)',
-                            backdropFilter: 'blur(6px)',
-                            border: 'none', borderRadius: '50%',
-                            width: '34px', height: '34px',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            cursor: isSaving ? 'default' : 'pointer',
-                            transition: 'background 0.2s ease, transform 0.15s ease',
-                            transform: hovered && !isSaved ? 'scale(1.1)' : 'scale(1)',
-                        }}
-                        title={isSaved ? 'Saved to wishlist (click to unsave)' : 'Save to my wishlist'}
-                    >
-                        {isSaving
-                            ? <div style={{ width: '14px', height: '14px', border: '2px solid rgba(255,255,255,0.4)', borderTopColor: '#fff', borderRadius: '50%', animation: 'disc-spin 0.7s linear infinite' }} />
-                            : isSaved
-                                ? <Check size={16} color="#fff" strokeWidth={3} />
-                                : <Bookmark size={16} color="#fff" fill={hovered ? '#fff' : 'none'} />
-                        }
-                    </button>
-                )}
             </div>
 
-            {/* Details */}
-            <div style={{ padding: '0.85rem', display: 'flex', flexDirection: 'column', flex: 1 }}>
+            {/* Gradient Overlay for Text Readability */}
+            <div style={{
+                position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+                background: 'linear-gradient(to bottom, rgba(0,0,0,0.0) 0%, rgba(0,0,0,0.0) 40%, rgba(0,0,0,0.85) 100%)',
+                pointerEvents: 'none',
+                zIndex: 1
+            }} />
+
+            {/* Save Button Overlay (Top Right) */}
+            {!item.is_mine && (
+                <button
+                    id={`save-item-${item.id}`}
+                    onClick={(e) => { e.stopPropagation(); onSave(item, isSaved); }}
+                    disabled={isSaving}
+                    style={{
+                        position: 'absolute', top: '0.75rem', right: '0.75rem',
+                        background: isSaved ? ORANGE : isSaving ? 'rgba(0,0,0,0.6)' : 'rgba(0,0,0,0.4)',
+                        backdropFilter: 'blur(10px)',
+                        border: '1px solid rgba(255,255,255,0.15)', borderRadius: '50%',
+                        width: '36px', height: '36px',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        cursor: isSaving ? 'default' : 'pointer',
+                        transition: 'background 0.2s ease, transform 0.15s ease',
+                        transform: hovered && !isSaved ? 'scale(1.1)' : 'scale(1)',
+                        zIndex: 2,
+                    }}
+                    title={isSaved ? 'Saved to wishlist (click to unsave)' : 'Save to my wishlist'}
+                >
+                    {isSaving
+                        ? <div style={{ width: '14px', height: '14px', border: '2px solid rgba(255,255,255,0.4)', borderTopColor: '#fff', borderRadius: '50%', animation: 'disc-spin 0.7s linear infinite' }} />
+                        : isSaved
+                            ? <Check size={16} color="#fff" strokeWidth={3} />
+                            : <Bookmark size={16} color="#fff" fill={hovered ? '#fff' : 'none'} />
+                    }
+                </button>
+            )}
+
+            {/* Content (Bottom aligned) */}
+            <div style={{ 
+                position: 'relative', zIndex: 2, marginTop: 'auto', 
+                padding: '1.25rem 1rem 1rem', display: 'flex', flexDirection: 'column', gap: '0.4rem' 
+            }}>
                 <p style={{
-                    fontWeight: 700, fontSize: '0.9rem', color: 'var(--text)',
-                    margin: '0 0 0.25rem', lineHeight: 1.35,
+                    fontWeight: 800, fontSize: '0.95rem', color: '#ffffff',
+                    margin: 0, lineHeight: 1.35,
                     display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+                    textShadow: '0 2px 8px rgba(0,0,0,0.5)'
                 }}>
                     {item.name}
                 </p>
 
-                <div style={{ marginTop: 'auto' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem', marginTop: '0.4rem' }}>
-                        {price
-                            ? <span style={{ fontWeight: 800, fontSize: '0.95rem', color: ORANGE }}>{price}</span>
-                            : <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>No price</span>
-                        }
-                        {item.link && (
-                            <a
-                                href={item.link}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                style={{ fontSize: '0.72rem', color: 'var(--text-dim)', textDecoration: 'none', fontWeight: 600 }}
-                                onClick={e => e.stopPropagation()}
-                            >
-                                View →
-                            </a>
-                        )}
-                    </div>
-
-                    {/* Shared by you badge */}
-                    {item.is_mine && (
-                        <div style={{
-                            display: 'flex', alignItems: 'center', gap: '0.4rem',
-                            marginTop: '0.6rem', paddingTop: '0.6rem',
-                            borderTop: '1px solid var(--border)',
-                        }}>
-                            <Globe size={11} color={ORANGE} />
-                            <span style={{ fontSize: '0.75rem', color: 'var(--text)', fontWeight: 700 }}>
-                                Shared by you
-                            </span>
-                        </div>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem', marginTop: '0.2rem' }}>
+                    {price
+                        ? <span style={{ fontWeight: 800, fontSize: '1rem', color: '#ffffff', textShadow: '0 2px 8px rgba(0,0,0,0.5)' }}>{price}</span>
+                        : <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.7)' }}>No price</span>
+                    }
+                    {item.link && (
+                        <a
+                            href={item.link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{ 
+                                fontSize: '0.72rem', color: '#ffffff', textDecoration: 'none', fontWeight: 700,
+                                background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(8px)',
+                                padding: '0.35rem 0.85rem', borderRadius: '99px',
+                                border: '1px solid rgba(255,255,255,0.15)',
+                                transition: 'background 0.2s'
+                            }}
+                            onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.25)'}
+                            onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.15)'}
+                            onClick={e => e.stopPropagation()}
+                        >
+                            View →
+                        </a>
                     )}
                 </div>
+
+                {/* Shared by you badge */}
+                {item.is_mine && (
+                    <div style={{
+                        display: 'flex', alignItems: 'center', gap: '0.4rem',
+                        marginTop: '0.5rem', paddingTop: '0.6rem',
+                        borderTop: '1px solid rgba(255,255,255,0.15)',
+                    }}>
+                        <Globe size={11} color="rgba(255,255,255,0.9)" />
+                        <span style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.9)', fontWeight: 700 }}>
+                            Shared by you
+                        </span>
+                    </div>
+                )}
             </div>
         </div>
     );
 }
 
-/* ── Skeleton loader ── */
+/* ── Immersive Skeleton loader ── */
 function SkeletonCard() {
     return (
-        <div style={{ background: 'var(--surface)', borderRadius: '20px', overflow: 'hidden', border: '1px solid var(--border)' }}>
-            <div style={{ aspectRatio: '4/3', background: 'linear-gradient(90deg, var(--border) 25%, var(--surface) 50%, var(--border) 75%)', backgroundSize: '200% 100%', animation: 'disc-shimmer 1.4s ease-in-out infinite' }} />
-            <div style={{ padding: '0.85rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                <div style={{ height: '14px', borderRadius: '6px', background: 'var(--border)', width: '90%', animation: 'disc-shimmer 1.4s ease-in-out infinite' }} />
-                <div style={{ height: '14px', borderRadius: '6px', background: 'var(--border)', width: '65%', animation: 'disc-shimmer 1.4s ease-in-out infinite' }} />
-                <div style={{ height: '12px', borderRadius: '6px', background: 'var(--border)', width: '40%', marginTop: '0.25rem', animation: 'disc-shimmer 1.4s ease-in-out infinite' }} />
+        <div style={{ position: 'relative', aspectRatio: '3/4', background: 'linear-gradient(90deg, var(--border) 25%, var(--surface) 50%, var(--border) 75%)', backgroundSize: '200% 100%', animation: 'disc-shimmer 1.4s ease-in-out infinite', borderRadius: '20px', overflow: 'hidden' }}>
+            <div style={{ position: 'absolute', bottom: '1rem', left: '1rem', right: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                <div style={{ height: '16px', borderRadius: '6px', background: 'rgba(0,0,0,0.1)', width: '90%' }} />
+                <div style={{ height: '16px', borderRadius: '6px', background: 'rgba(0,0,0,0.1)', width: '65%' }} />
+                <div style={{ height: '14px', borderRadius: '6px', background: 'rgba(0,0,0,0.1)', width: '40%', marginTop: '0.25rem' }} />
             </div>
         </div>
     );
@@ -155,6 +173,42 @@ export default function Discover() {
     const [savingItemId, setSavingItemId] = useState(null); // id of item currently saving
     const [showSavedToast, setShowSavedToast] = useState({ show: false, message: '' });
     const [saveError, setSaveError] = useState('');
+
+    // Dynamic Island Scroll State
+    const [isCollapsed, setIsCollapsed] = useState(false);
+    const [forceExpand, setForceExpand] = useState(false);
+
+    useEffect(() => {
+        const handleScroll = () => {
+            const current = window.scrollY;
+            if (current > 80) {
+                setIsCollapsed(true);
+            } else {
+                setIsCollapsed(false);
+                setForceExpand(false);
+            }
+        };
+        window.addEventListener('scroll', handleScroll, { passive: true });
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
+
+    const actuallyCollapsed = isCollapsed && !forceExpand;
+    const islandRef = useRef(null);
+
+    // Click outside to collapse
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (forceExpand && islandRef.current && !islandRef.current.contains(event.target)) {
+                setForceExpand(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        document.addEventListener('touchstart', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+            document.removeEventListener('touchstart', handleClickOutside);
+        }
+    }, [forceExpand]);
 
     useEffect(() => {
         Promise.all([
@@ -269,6 +323,17 @@ export default function Discover() {
                     grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
                     gap: 1.25rem;
                 }
+                .pill-scroll {
+                    display: flex;
+                    gap: 0.5rem;
+                    overflow-x: auto;
+                    padding-bottom: 0.5rem;
+                    scrollbar-width: none;
+                    -ms-overflow-style: none;
+                }
+                .pill-scroll::-webkit-scrollbar {
+                    display: none;
+                }
                 @media (max-width: 480px) {
                     .discover-grid {
                         grid-template-columns: repeat(2, 1fr);
@@ -277,121 +342,128 @@ export default function Discover() {
                 }
             `}</style>
 
-            {/* ── Page Header ── */}
+            {/* ── Page Header (Static) ── */}
             <div style={{
-                padding: '2rem 1.5rem 1.5rem',
-                background: 'var(--surface)',
-                borderBottom: '1px solid var(--border)',
-                position: 'sticky', top: 0, zIndex: 10,
+                padding: '2rem 1.5rem 0.5rem',
+                background: 'var(--bg)', 
             }}>
-                <div style={{ maxWidth: '900px', margin: '0 auto' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.6rem', marginBottom: '1rem' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                            <div style={{ width: '36px', height: '36px', borderRadius: '12px', background: `rgba(var(--primary-rgb),0.1)`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                <Compass size={20} color={ORANGE} />
-                            </div>
-                            <div>
-                                <h1 style={{ fontWeight: 900, fontSize: '1.4rem', color: 'var(--text)', margin: 0, letterSpacing: '-0.02em' }}>Discover</h1>
-                                <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: 0 }}>Browse public wishlists from the community</p>
-                            </div>
+                <div style={{ maxWidth: '900px', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.6rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                        <div style={{ width: '36px', height: '36px', borderRadius: '12px', background: `rgba(var(--primary-rgb),0.1)`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <Compass size={20} color={ORANGE} />
                         </div>
-                        <Link
-                            to="/blog"
-                            style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '0.4rem',
-                                background: `rgba(var(--primary-rgb),0.1)`,
-                                color: ORANGE,
-                                textDecoration: 'none',
-                                fontWeight: 700,
-                                fontSize: '0.85rem',
-                                padding: '0.5rem 1rem',
-                                borderRadius: '999px',
-                                border: `1px solid rgba(var(--primary-rgb),0.2)`,
-                                whiteSpace: 'nowrap',
-                                transition: 'background 0.2s, transform 0.15s',
-                                fontFamily: FONT,
-                            }}
-                            onMouseEnter={e => { e.currentTarget.style.background = ORANGE; e.currentTarget.style.color = '#fff'; e.currentTarget.style.transform = 'scale(1.03)'; }}
-                            onMouseLeave={e => { e.currentTarget.style.background = `rgba(var(--primary-rgb),0.1)`; e.currentTarget.style.color = ORANGE; e.currentTarget.style.transform = 'scale(1)'; }}
-                        >
-                            📝 Blog
-                        </Link>
-                    </div>
-
-                    {/* Search bar and Filters Toggle */}
-                    <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1rem' }}>
-                        <div style={{ position: 'relative', flex: 1 }}>
-                            <Search size={17} color="var(--text-dim)" style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
-                            <input
-                                id="discover-search"
-                                value={searchQ}
-                                onChange={e => setSearchQ(e.target.value)}
-                                placeholder="Search products…"
-                                style={{
-                                    width: '100%', boxSizing: 'border-box',
-                                    padding: '0.75rem 2.75rem 0.75rem 2.75rem',
-                                    borderRadius: '14px', border: '1.5px solid var(--border)',
-                                    background: 'var(--bg)', color: 'var(--text)',
-                                    fontSize: '0.95rem', fontFamily: 'inherit', outline: 'none',
-                                    transition: 'border-color 0.2s',
-                                }}
-                                onFocus={e => e.target.style.borderColor = ORANGE}
-                                onBlur={e => e.target.style.borderColor = 'var(--border)'}
-                            />
-                            {searchQ && (
-                                <button
-                                    onClick={() => setSearchQ('')}
-                                    style={{ position: 'absolute', right: '0.85rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-dim)', display: 'flex' }}
-                                >
-                                    <X size={16} />
-                                </button>
-                            )}
+                        <div>
+                            <h1 style={{ fontWeight: 900, fontSize: '1.4rem', color: 'var(--text)', margin: 0, letterSpacing: '-0.02em' }}>Discover</h1>
+                            <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: 0 }}>Browse public wishlists</p>
                         </div>
-                        <button
-                            onClick={() => setShowFilters(!showFilters)}
-                            style={{
-                                width: '46px', flexShrink: 0,
-                                borderRadius: '14px', border: `1.5px solid ${showFilters ? ORANGE : 'var(--border)'}`,
-                                background: showFilters ? `rgba(var(--primary-rgb),0.1)` : 'var(--bg)',
-                                color: showFilters ? ORANGE : 'var(--text-dim)',
-                                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                cursor: 'pointer', transition: 'all 0.2s',
-                            }}
-                            title="Advanced Filters"
-                        >
-                            <SlidersHorizontal size={18} />
-                        </button>
                     </div>
+                    <Link
+                        to="/blog"
+                        style={{
+                            display: 'flex', alignItems: 'center', gap: '0.4rem',
+                            background: `rgba(var(--primary-rgb),0.1)`, color: ORANGE, textDecoration: 'none',
+                            fontWeight: 700, fontSize: '0.85rem', padding: '0.5rem 1rem', borderRadius: '999px',
+                            border: `1px solid rgba(var(--primary-rgb),0.2)`, whiteSpace: 'nowrap',
+                            transition: 'background 0.2s, transform 0.15s', fontFamily: FONT,
+                        }}
+                    >
+                        📝 Blog
+                    </Link>
+                </div>
+            </div>
 
-                    {/* Advanced Filters Panel */}
-                    {showFilters && (
-                        <div style={{
-                            padding: '1.25rem', background: 'var(--bg)',
-                            borderRadius: '16px', border: '1px solid var(--border)',
-                            marginBottom: '1rem', display: 'flex', flexDirection: 'column', gap: '1.25rem',
-                            animation: 'disc-fadeIn 0.25s ease'
-                        }}>
-                            {/* Sort */}
-                            <div>
-                                <p style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-dim)', letterSpacing: '0.05em', marginBottom: '0.6rem', marginTop: 0 }}>SORT BY</p>
-                                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+            {/* ── Dynamic Floating Island ── */}
+            <div 
+                ref={islandRef}
+                style={{
+                    position: 'sticky', top: '1rem', zIndex: 50,
+                    display: 'flex', justifyContent: 'center',
+                    padding: '0 1rem', pointerEvents: 'none',
+                    marginBottom: '1rem', marginTop: '0.5rem'
+                }}
+            >
+                <div 
+                    onClick={() => { if (actuallyCollapsed) setForceExpand(true); }}
+                    style={{
+                    cursor: actuallyCollapsed ? 'pointer' : 'default',
+                    pointerEvents: 'auto',
+                    background: 'rgba(255, 255, 255, 0.85)',
+                    backdropFilter: 'blur(20px)',
+                    WebkitBackdropFilter: 'blur(20px)',
+                    border: '1px solid rgba(0,0,0, 0.08)',
+                    borderRadius: '24px', // Fixed radius to prevent 'egg' shape during animation
+                    padding: actuallyCollapsed ? '0.6rem 1.25rem' : '1.25rem',
+                    boxShadow: '0 12px 40px rgba(0,0,0,0.12)',
+                    width: '100%',
+                    maxWidth: actuallyCollapsed ? '200px' : '900px',
+                    maxHeight: actuallyCollapsed ? '46px' : '350px',
+                    transition: 'all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1)',
+                    overflow: 'hidden',
+                    display: 'flex', flexDirection: 'column',
+                    alignItems: actuallyCollapsed ? 'center' : 'stretch',
+                }}>
+                    {actuallyCollapsed ? (
+                        // Collapsed State
+                        <div 
+                            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', animation: 'disc-fadeIn 0.2s ease both' }}
+                        >
+                            <Search size={16} color="var(--text-dim)" />
+                            <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-dim)' }}>
+                                {searchQ ? `Search: ${searchQ}` : 'Discover...'}
+                            </span>
+                        </div>
+                    ) : (
+                        // Expanded State
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', animation: 'disc-fadeIn 0.3s ease both' }}>
+                            {/* Search bar */}
+                            <div style={{ position: 'relative', flex: 1 }}>
+                                <Search size={17} color="var(--text-dim)" style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
+                                <input
+                                    id="discover-search"
+                                    value={searchQ}
+                                    onChange={e => setSearchQ(e.target.value)}
+                                    placeholder="Search products…"
+                                    style={{
+                                        width: '100%', boxSizing: 'border-box',
+                                        padding: '0.75rem 2.75rem 0.75rem 2.75rem',
+                                        borderRadius: '14px', border: '1.5px solid var(--border)',
+                                        background: 'rgba(0,0,0,0.03)', color: 'var(--text)',
+                                        fontSize: '0.95rem', fontFamily: 'inherit', outline: 'none',
+                                        transition: 'border-color 0.2s',
+                                    }}
+                                    onFocus={e => e.target.style.borderColor = ORANGE}
+                                    onBlur={e => e.target.style.borderColor = 'var(--border)'}
+                                />
+                                {searchQ && (
+                                    <button
+                                        onClick={() => setSearchQ('')}
+                                        style={{ position: 'absolute', right: '0.85rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-dim)', display: 'flex' }}
+                                    >
+                                        <X size={16} />
+                                    </button>
+                                )}
+                            </div>
+
+                            {/* Horizontal Pill Filters */}
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+                                {/* Sort Row */}
+                                <div className="pill-scroll">
+                                    <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-dim)', alignSelf: 'center', marginRight: '0.4rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Sort</span>
                                     {[
                                         { id: 'trending', label: '🌟 Trending' },
                                         { id: 'newest', label: '🕒 Newest' },
-                                        { id: 'priceAsc', label: '💵 Price: Low to High' },
-                                        { id: 'priceDesc', label: '💎 Price: High to Low' },
+                                        { id: 'priceAsc', label: '💵 Low to High' },
+                                        { id: 'priceDesc', label: '💎 High to Low' },
                                     ].map(s => (
                                         <button
                                             key={s.id}
                                             onClick={() => setActiveSort(s.id)}
                                             style={{
-                                                padding: '0.4rem 0.85rem', borderRadius: '8px',
-                                                border: `1.5px solid ${activeSort === s.id ? ORANGE : 'var(--border)'}`,
+                                                padding: '0.4rem 0.9rem', borderRadius: '99px', flexShrink: 0,
+                                                border: `1px solid ${activeSort === s.id ? ORANGE : 'var(--border)'}`,
                                                 background: activeSort === s.id ? ORANGE : 'var(--surface)',
-                                                color: activeSort === s.id ? '#fff' : 'var(--text)',
-                                                fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer',
+                                                color: activeSort === s.id ? '#fff' : 'var(--text-dim)',
+                                                fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer',
                                                 transition: 'all 0.2s', fontFamily: 'inherit'
                                             }}
                                         >
@@ -399,12 +471,10 @@ export default function Discover() {
                                         </button>
                                     ))}
                                 </div>
-                            </div>
 
-                            {/* Budget */}
-                            <div>
-                                <p style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-dim)', letterSpacing: '0.05em', marginBottom: '0.6rem', marginTop: 0 }}>BUDGET</p>
-                                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                                {/* Budget Row */}
+                                <div className="pill-scroll">
+                                    <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-dim)', alignSelf: 'center', marginRight: '0.4rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Budget</span>
                                     {[
                                         { id: 'all', label: 'Any' },
                                         { id: 'under500', label: 'Under ₹500' },
@@ -416,11 +486,11 @@ export default function Discover() {
                                             key={b.id}
                                             onClick={() => setActiveBudget(b.id)}
                                             style={{
-                                                padding: '0.4rem 0.85rem', borderRadius: '8px',
-                                                border: `1.5px solid ${activeBudget === b.id ? ORANGE : 'var(--border)'}`,
+                                                padding: '0.4rem 0.9rem', borderRadius: '99px', flexShrink: 0,
+                                                border: `1px solid ${activeBudget === b.id ? ORANGE : 'var(--border)'}`,
                                                 background: activeBudget === b.id ? ORANGE : 'var(--surface)',
-                                                color: activeBudget === b.id ? '#fff' : 'var(--text)',
-                                                fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer',
+                                                color: activeBudget === b.id ? '#fff' : 'var(--text-dim)',
+                                                fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer',
                                                 transition: 'all 0.2s', fontFamily: 'inherit'
                                             }}
                                         >
@@ -429,12 +499,8 @@ export default function Discover() {
                                     ))}
                                 </div>
                             </div>
-
-
                         </div>
                     )}
-
-
                 </div>
             </div>
 

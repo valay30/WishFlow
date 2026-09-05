@@ -146,7 +146,7 @@ html,
 body {
   height: 100%;
   scroll-behavior: auto;
-  overflow-x: hidden;
+  overflow-x: clip;
   overscroll-behavior-y: none;
   /* Prevents pull-to-refresh in PWA */
 }
@@ -156,7 +156,7 @@ body {
   background: var(--bg);
   color: var(--text);
   min-height: 100vh;
-  overflow-x: hidden;
+  overflow-x: clip;
   transition: background 0.3s ease, color 0.3s ease;
 }
 
@@ -199,7 +199,7 @@ ins.adsbygoogle {
   min-height: 100vh;
   width: 100%;
   max-width: 100%;
-  overflow-x: hidden;
+  overflow-x: clip;
 }
 
 /* ── Desktop Sidebar ── */
