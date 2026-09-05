@@ -52,7 +52,21 @@ export default function ProductDetails() {
     const handleCopyLink = (e) => {
         e.stopPropagation();
         if (item?.link) {
-            navigator.clipboard.writeText(item.link);
+            // Using legacy execCommand to bypass the Android 13+ native system toast
+            const textArea = document.createElement("textarea");
+            textArea.value = item.link;
+            textArea.style.position = "fixed";
+            textArea.style.left = "-999999px";
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            try {
+                document.execCommand('copy');
+            } catch (err) {
+                console.error('Fallback copy failed', err);
+            }
+            textArea.remove();
+
             setCopiedLink(true);
             setTimeout(() => setCopiedLink(false), 2000);
             showIsland({ title: 'Link copied to clipboard!', type: 'success' });
