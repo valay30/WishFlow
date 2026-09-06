@@ -87,21 +87,21 @@ function DiscoverCard({ item, onSave, isSaving, isSaved }) {
             {/* Content (Bottom aligned) */}
             <div style={{ 
                 position: 'relative', zIndex: 2, marginTop: 'auto', 
-                padding: '1.25rem 1rem 1rem', display: 'flex', flexDirection: 'column', gap: '0.4rem' 
+                padding: '0.6rem 0.75rem 0.75rem', display: 'flex', flexDirection: 'column', gap: '0.25rem' 
             }}>
                 <p style={{
-                    fontWeight: 800, fontSize: '0.95rem', color: '#ffffff',
-                    margin: 0, lineHeight: 1.35,
+                    fontWeight: 800, fontSize: '0.82rem', color: '#ffffff',
+                    margin: 0, lineHeight: 1.3,
                     display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
                     textShadow: '0 2px 8px rgba(0,0,0,0.5)'
                 }}>
                     {item.name}
                 </p>
 
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem', marginTop: '0.2rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.4rem', marginTop: '0.1rem' }}>
                     {price
-                        ? <span style={{ fontWeight: 800, fontSize: '1rem', color: '#ffffff', textShadow: '0 2px 8px rgba(0,0,0,0.5)' }}>{price}</span>
-                        : <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.7)' }}>No price</span>
+                        ? <span style={{ fontWeight: 800, fontSize: '0.88rem', color: '#ffffff', textShadow: '0 2px 8px rgba(0,0,0,0.5)', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{price}</span>
+                        : <span style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.7)', flex: 1 }}>No price</span>
                     }
                     {item.link && (
                         <a
@@ -109,11 +109,12 @@ function DiscoverCard({ item, onSave, isSaving, isSaved }) {
                             target="_blank"
                             rel="noopener noreferrer"
                             style={{ 
-                                fontSize: '0.72rem', color: '#ffffff', textDecoration: 'none', fontWeight: 700,
+                                fontSize: '0.68rem', color: '#ffffff', textDecoration: 'none', fontWeight: 700,
                                 background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(8px)',
-                                padding: '0.35rem 0.85rem', borderRadius: '99px',
+                                padding: '0.28rem 0.65rem', borderRadius: '99px',
                                 border: '1px solid rgba(255,255,255,0.15)',
-                                transition: 'background 0.2s'
+                                transition: 'background 0.2s',
+                                flexShrink: 0, whiteSpace: 'nowrap',
                             }}
                             onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.25)'}
                             onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.15)'}
@@ -179,17 +180,28 @@ export default function Discover() {
     const [forceExpand, setForceExpand] = useState(false);
 
     useEffect(() => {
+        let rafId = null;
+        // Hysteresis: collapse at >120px, expand only when back below 50px.
+        // This dead zone prevents rapid toggling / page jerk when scrolling slowly.
+        const COLLAPSE_AT = 120;
+        const EXPAND_AT = 50;
         const handleScroll = () => {
-            const current = window.scrollY;
-            if (current > 80) {
-                setIsCollapsed(true);
-            } else {
-                setIsCollapsed(false);
-                setForceExpand(false);
-            }
+            if (rafId) cancelAnimationFrame(rafId);
+            rafId = requestAnimationFrame(() => {
+                const current = window.scrollY;
+                setIsCollapsed(prev => {
+                    if (!prev && current > COLLAPSE_AT) return true;  // expand → collapse
+                    if (prev && current < EXPAND_AT) return false;    // collapse → expand
+                    return prev; // no change in the dead zone
+                });
+                if (current < EXPAND_AT) setForceExpand(false);
+            });
         };
         window.addEventListener('scroll', handleScroll, { passive: true });
-        return () => window.removeEventListener('scroll', handleScroll);
+        return () => {
+            window.removeEventListener('scroll', handleScroll);
+            if (rafId) cancelAnimationFrame(rafId);
+        };
     }, []);
 
     const actuallyCollapsed = isCollapsed && !forceExpand;
@@ -391,13 +403,21 @@ export default function Discover() {
                     backdropFilter: 'blur(20px)',
                     WebkitBackdropFilter: 'blur(20px)',
                     border: '1px solid rgba(0,0,0, 0.08)',
-                    borderRadius: '24px', // Fixed radius to prevent 'egg' shape during animation
-                    padding: actuallyCollapsed ? '0.6rem 1.25rem' : '1.25rem',
-                    boxShadow: '0 12px 40px rgba(0,0,0,0.12)',
+                    borderRadius: '24px',
+                    padding: actuallyCollapsed ? '0.55rem 1.2rem' : '1.25rem',
+                    boxShadow: actuallyCollapsed
+                        ? '0 4px 20px rgba(0,0,0,0.10)'
+                        : '0 12px 40px rgba(0,0,0,0.12)',
                     width: '100%',
-                    maxWidth: actuallyCollapsed ? '200px' : '900px',
-                    maxHeight: actuallyCollapsed ? '46px' : '350px',
-                    transition: 'all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1)',
+                    maxWidth: actuallyCollapsed ? '190px' : '900px',
+                    maxHeight: actuallyCollapsed ? '50px' : '400px',
+                    transition: [
+                        'max-width 0.45s cubic-bezier(0.2, 0.8, 0.2, 1)',
+                        'max-height 0.45s cubic-bezier(0.2, 0.8, 0.2, 1)',
+                        'padding 0.35s cubic-bezier(0.2, 0.8, 0.2, 1)',
+                        'box-shadow 0.3s ease',
+                        'align-items 0.1s',
+                    ].join(', '),
                     overflow: 'hidden',
                     display: 'flex', flexDirection: 'column',
                     alignItems: actuallyCollapsed ? 'center' : 'stretch',
