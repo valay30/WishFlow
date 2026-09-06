@@ -53,6 +53,9 @@ export default function LinkScraper({
             return;
         }
 
+        setStatus('loading');
+        setErrorMsg('');
+
         try {
             const res = await fetch(`${API_URL}/api/scraper/extract`, {
                 method: 'POST',
@@ -102,6 +105,7 @@ export default function LinkScraper({
     const isLoading = status === 'loading';
     const isSuccess = status === 'success';
     const isError = status === 'error';
+    const [pressed, setPressed] = useState(false);
 
     return (
         <>
@@ -130,12 +134,13 @@ export default function LinkScraper({
                         display: 'flex',
                         alignItems: 'center',
                         background: 'var(--surface-2)',
-                        border: `1.5px solid ${isError ? '#ef4444' : isSuccess ? '#22c55e' : BORDER}`,
+                        border: `1.5px solid ${isError ? '#ef4444' : isSuccess ? '#22c55e' : isLoading ? 'var(--primary)' : BORDER}`,
                         borderRadius: '14px',
                         padding: '0.75rem 0.85rem',
-                        transition: 'border-color 0.2s',
+                        transition: 'border-color 0.2s, box-shadow 0.3s',
                         boxSizing: 'border-box',
                         minWidth: 0,
+                        animation: isLoading ? 'ls-pulse-border 1.4s ease-in-out infinite' : 'none',
                     }}>
                         <LinkIcon size={16} color="var(--text-dim)" style={{ flexShrink: 0, marginRight: '0.5rem' }} />
 
@@ -187,6 +192,11 @@ export default function LinkScraper({
                         type="button"
                         onClick={() => runFetch()}
                         disabled={isLoading || !value.trim()}
+                        onMouseDown={() => setPressed(true)}
+                        onMouseUp={() => setPressed(false)}
+                        onMouseLeave={() => setPressed(false)}
+                        onTouchStart={() => setPressed(true)}
+                        onTouchEnd={() => setPressed(false)}
                         style={{
                             flexShrink: 0,
                             width: '96px',
@@ -195,9 +205,8 @@ export default function LinkScraper({
                             border: 'none',
                             background: isSuccess
                                 ? '#22c55e'
-                                : (!value.trim() || isLoading)
-                                    ? 'rgba(var(--primary-rgb),0.35)'
-                                    : PRIMARY,
+                                : PRIMARY,
+                            opacity: (!value.trim() && !isLoading) ? 0.4 : 1,
                             color: '#fff',
                             fontWeight: 700,
                             fontSize: '0.88rem',
@@ -207,11 +216,29 @@ export default function LinkScraper({
                             alignItems: 'center',
                             justifyContent: 'center',
                             gap: '0.35rem',
-                            transition: 'background-color 0.25s ease, opacity 0.2s ease',
+                            position: 'relative',
+                            overflow: 'hidden',
+                            // background switches instantly (no transition) so Done feels immediate
+                            transition: 'opacity 0.2s ease, transform 0.12s ease, box-shadow 0.15s ease',
                             whiteSpace: 'nowrap',
                             boxSizing: 'border-box',
+                            transform: pressed && !isLoading && value.trim() ? 'scale(0.93)' : 'scale(1)',
+                            boxShadow: isSuccess
+                                ? '0 4px 18px rgba(34, 197, 94, 0.55)'
+                                : isLoading
+                                    ? '0 4px 16px rgba(var(--primary-rgb), 0.5)'
+                                    : pressed && value.trim() ? 'none'
+                                    : value.trim() ? '0 4px 12px rgba(var(--primary-rgb), 0.3)' : 'none',
                         }}
                     >
+                        {isLoading && (
+                            <span style={{
+                                position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+                                background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.25) 50%, transparent 100%)',
+                                animation: 'ls-shimmer 1.2s ease-in-out infinite',
+                                pointerEvents: 'none',
+                            }} />
+                        )}
                         {isLoading ? (
                             <>
                                 <span style={{
@@ -227,8 +254,10 @@ export default function LinkScraper({
                             </>
                         ) : isSuccess ? (
                             <>
-                                <CheckCircle size={14} />
-                                Done
+                                <span style={{ display: 'contents', animation: 'ls-success-pop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both' }}>
+                                    <CheckCircle size={14} />
+                                    Done
+                                </span>
                             </>
                         ) : (
                             'Fetch'
@@ -247,7 +276,22 @@ export default function LinkScraper({
                     </div>
                 )}
 
-                <style>{`@keyframes ls-spin { to { transform: rotate(360deg); } }`}</style>
+                <style>{`
+                    @keyframes ls-spin { to { transform: rotate(360deg); } }
+                    @keyframes ls-shimmer {
+                        0%   { transform: translateX(-100%); }
+                        100% { transform: translateX(200%); }
+                    }
+                    @keyframes ls-pulse-border {
+                        0%, 100% { box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.12); }
+                        50%       { box-shadow: 0 0 0 5px rgba(var(--primary-rgb), 0.28); }
+                    }
+                    @keyframes ls-success-pop {
+                        0%   { transform: scale(0.6); opacity: 0; }
+                        70%  { transform: scale(1.15); opacity: 1; }
+                        100% { transform: scale(1);    opacity: 1; }
+                    }
+                `}</style>
             </div>
         </>
     );

@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
+import { useIsland } from '../context/IslandContext';
 import { db } from '../db';
 import { Search, Package, Compass, Bookmark, X, Globe, Check, SlidersHorizontal } from 'lucide-react';
 import AdUnit from '../components/AdUnit';
@@ -162,6 +163,7 @@ function SkeletonCard() {
 export default function Discover() {
     const { user } = useAuth();
     const navigate = useNavigate();
+    const { showIsland } = useIsland();
     const [feed, setFeed] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchQ, setSearchQ] = useState('');
@@ -172,7 +174,6 @@ export default function Discover() {
     const [showFilters, setShowFilters] = useState(false);
     const [myItems, setMyItems] = useState([]);
     const [savingItemId, setSavingItemId] = useState(null); // id of item currently saving
-    const [showSavedToast, setShowSavedToast] = useState({ show: false, message: '' });
     const [saveError, setSaveError] = useState('');
 
     // Dynamic Island Scroll State
@@ -206,6 +207,14 @@ export default function Discover() {
 
     const actuallyCollapsed = isCollapsed && !forceExpand;
     const islandRef = useRef(null);
+
+    // Delayed content swap — let CSS transition start before swapping children
+    // This prevents layout reflow mid-animation which causes lag on mobile
+    const [displayCollapsed, setDisplayCollapsed] = useState(false);
+    useEffect(() => {
+        const timer = setTimeout(() => setDisplayCollapsed(actuallyCollapsed), actuallyCollapsed ? 20 : 0);
+        return () => clearTimeout(timer);
+    }, [actuallyCollapsed]);
 
     // Click outside to collapse
     useEffect(() => {
@@ -291,8 +300,12 @@ export default function Discover() {
                 try {
                     await db.items.delete(match.id);
                     setMyItems(prev => prev.filter(i => i.id !== match.id));
-                    setShowSavedToast({ show: true, message: 'Removed from wishlist' });
-                    setTimeout(() => setShowSavedToast({ show: false, message: '' }), 3000);
+                    showIsland({
+                        title: 'Item removed',
+                        subtitle: 'Removed from your wishlist',
+                        type: 'info',
+                        duration: 3000
+                    });
                 } catch (e) {
                     setSaveError('Failed to remove item');
                     setTimeout(() => setSaveError(''), 3000);
@@ -306,10 +319,12 @@ export default function Discover() {
         setSavingItemId(null);
         if (result.success) {
             setMyItems(prev => [result.item, ...prev]);
-            setShowSavedToast({ show: true, message: 'Saved to your wishlist!' });
-            setTimeout(() => {
-                setShowSavedToast({ show: false, message: '' });
-            }, 3000);
+            showIsland({
+                title: 'Saved!',
+                subtitle: 'Added to your wishlist',
+                type: 'success',
+                duration: 3000
+            });
         } else {
             setSaveError(result.error || 'Failed to save');
             setTimeout(() => setSaveError(''), 3000);
@@ -412,17 +427,17 @@ export default function Discover() {
                     maxWidth: actuallyCollapsed ? '190px' : '900px',
                     maxHeight: actuallyCollapsed ? '50px' : '400px',
                     transition: [
-                        'max-width 0.45s cubic-bezier(0.2, 0.8, 0.2, 1)',
-                        'max-height 0.45s cubic-bezier(0.2, 0.8, 0.2, 1)',
-                        'padding 0.35s cubic-bezier(0.2, 0.8, 0.2, 1)',
+                        'max-width 0.4s cubic-bezier(0.25, 0.8, 0.25, 1)',
+                        'max-height 0.4s cubic-bezier(0.25, 0.8, 0.25, 1)',
+                        'padding 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)',
                         'box-shadow 0.3s ease',
-                        'align-items 0.1s',
                     ].join(', '),
+                    willChange: 'max-width, max-height',
                     overflow: 'hidden',
                     display: 'flex', flexDirection: 'column',
                     alignItems: actuallyCollapsed ? 'center' : 'stretch',
                 }}>
-                    {actuallyCollapsed ? (
+                    {displayCollapsed ? (
                         // Collapsed State
                         <div 
                             style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', animation: 'disc-fadeIn 0.2s ease both' }}
@@ -598,23 +613,6 @@ export default function Discover() {
                     zIndex: 9998, whiteSpace: 'nowrap',
                 }}>
                     <span style={{ fontWeight: 700, fontSize: '0.88rem', color: '#fff' }}>⚠️ {saveError}</span>
-                </div>
-            )}
-
-            {/* ── Saved Toast ── */}
-            {showSavedToast.show && (
-                <div style={{
-                    position: 'fixed', bottom: 'calc(var(--bottom-nav) + 1rem)', left: '50%',
-                    transform: 'translateX(-50%)',
-                    background: 'var(--surface)', border: '1px solid var(--border)',
-                    borderRadius: '99px', padding: '0.65rem 1.25rem',
-                    display: 'flex', alignItems: 'center', gap: '0.5rem',
-                    boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
-                    animation: 'disc-fadeIn 0.3s ease both',
-                    zIndex: 9998, whiteSpace: 'nowrap',
-                }}>
-                    <Bookmark size={16} color={ORANGE} fill={ORANGE} />
-                    <span style={{ fontWeight: 700, fontSize: '0.88rem', color: 'var(--text)' }}>{showSavedToast.message}</span>
                 </div>
             )}
         </div>
