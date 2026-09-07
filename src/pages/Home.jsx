@@ -370,40 +370,6 @@ export default function Home() {
     const shouldShowAddModal = showAddModal && !isFreeLimitReached;
     const shouldShowPremiumModal = showPremiumModal || (showAddModal && isFreeLimitReached);
 
-    const handleGroupCreated = useCallback((name) => {
-        const { sourceItemId, targetItemId } = groupModal;
-        // Remove both items from any existing groups first
-        const newGroup = {
-            id: 'grp_' + Date.now(),
-            name,
-            itemIds: [sourceItemId, targetItemId],
-            collapsed: false,
-        };
-        setGroups(prev => [
-            ...prev
-                .map(g => ({ ...g, itemIds: g.itemIds.filter(id => id !== sourceItemId && id !== targetItemId) }))
-                .filter(g => g.itemIds.length >= 2),
-            newGroup,
-        ]);
-        setGroupModal({ open: false, sourceItemId: null, targetItemId: null });
-        showIsland({ title: 'Group Created', type: 'success' });
-    }, [groupModal]);
-
-    const handleGroupModalCancel = useCallback(() => {
-        setGroupModal({ open: false, sourceItemId: null, targetItemId: null });
-    }, []);
-
-    const toggleGroupCollapse = useCallback((groupId) => {
-        setGroups(prev => prev.map(g => g.id === groupId ? { ...g, collapsed: !g.collapsed } : g));
-    }, []);
-
-    const removeItemFromGroup = useCallback((groupId, itemId, e) => {
-        e.stopPropagation();
-        setGroups(prev => prev
-            .map(g => g.id === groupId ? { ...g, itemIds: g.itemIds.filter(id => id !== itemId) } : g)
-            .filter(g => g.itemIds.length >= 2) // auto-dissolve if < 2
-        );
-    }, []);
 
     const deleteGroup = useCallback((groupId, e) => {
         e.stopPropagation();
@@ -829,20 +795,7 @@ export default function Home() {
                                                         }} />
                                                     </div>
 
-                                                    {/* Drop hint overlay */}
-                                                    {dragOverGroupId === group.id && (
-                                                        <div style={{
-                                                            position: 'absolute', bottom: '8%', left: 0, right: 0, height: '75%',
-                                                            zIndex: 20,
-                                                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                                            background: 'rgba(var(--primary-rgb),0.15)',
-                                                            borderRadius: '10px'
-                                                        }}>
-                                                            <span style={{ background: 'var(--primary)', color: '#fff', fontSize: '0.7rem', fontWeight: 800, padding: '0.3rem 0.7rem', borderRadius: '99px', boxShadow: '0 2px 8px rgba(0,0,0,0.2)' }}>
-                                                                + Add
-                                                            </span>
-                                                        </div>
-                                                    )}
+
                                                 </div>
 
                                                 {/* Delete button placed top right of the image box, identical to ItemCard */}
@@ -941,12 +894,6 @@ export default function Home() {
                         </div>
                     )}
 
-                    {/* Group Name Modal */}
-                    <GroupNameModal
-                        isOpen={groupModal.open}
-                        onConfirm={handleGroupCreated}
-                        onCancel={handleGroupModalCancel}
-                    />
 
                     {/* ── GROUP BOTTOM SHEET ── */}
                     {openGroupId && (() => {
