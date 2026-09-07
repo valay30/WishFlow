@@ -130,9 +130,19 @@ export default function AuthPage() {
 
     const [toastMessage, setToastMessage] = useState(location.state?.message || '');
 
+    // Tell crawlers not to index the auth page
+    useEffect(() => {
+        const meta = document.createElement('meta');
+        meta.name = 'robots';
+        meta.content = 'noindex, nofollow';
+        document.head.appendChild(meta);
+        return () => { document.head.removeChild(meta); };
+    }, []);
+
     useEffect(() => {
         if (toastMessage) {
             const timer = setTimeout(() => setToastMessage(''), 3000);
+
             return () => clearTimeout(timer);
         }
     }, [toastMessage]);

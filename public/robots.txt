@@ -1,5 +1,7 @@
 User-agent: *
 Allow: /
+
+# Block private/authenticated routes — no SEO value
 Disallow: /home
 Disallow: /add
 Disallow: /categories
@@ -9,4 +11,8 @@ Disallow: /archive
 Disallow: /profile
 Disallow: /admin
 
-Sitemap: https://www.wishflow.shop/sitemap.xml
+# Block API and internal paths
+Disallow: /api/
+Disallow: /share-target
+
+Sitemap: https://wishflow.shop/sitemap.xml

@@ -5,6 +5,20 @@
       "headers": [
         { "key": "Content-Type", "value": "application/xml; charset=utf-8" }
       ]
+    },
+    {
+      "source": "/auth",
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+      ]
+    }
+  ],
+  "redirects": [
+    {
+      "source": "/(.*)",
+      "has": [{ "type": "host", "value": "www.wishflow.shop" }],
+      "destination": "https://wishflow.shop/$1",
+      "permanent": true
     }
   ],
   "rewrites": [
