@@ -68,6 +68,7 @@ export default function Collections() {
 
     // Drill-down state
     const [activeCollection, setActiveCollection] = useState(null);
+    const [shareToast, setShareToast] = useState(null);
     const [showUsernameShareModal, setShowUsernameShareModal] = useState(false);
     const [shareUsername, setShareUsername] = useState('');
     const [isSharingUsername, setIsSharingUsername] = useState(false);

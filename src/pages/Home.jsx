@@ -103,16 +103,7 @@ export default function Home() {
 
     // Prevent hydration mismatch layout shifts
     const [mounted, setMounted] = useState(false);
-    const [draggedItemId, setDraggedItemId] = useState(null);
-    const [dragOverItemId, setDragOverItemId] = useState(null);
-    const [dragOverGroupId, setDragOverGroupId] = useState(null);
-    const [groupModal, setGroupModal] = useState({
-        open: false,
-        targetItemId: null,   // the item we dropped onto
-        sourceItemId: null,   // the item being dragged
-    });
     const [openGroupId, setOpenGroupId] = useState(null);  // which group's bottom sheet is open
-    const dragRef = useRef(null);
 
     // ── Load groups from Supabase (once, when user is known) ──
     useEffect(() => {
@@ -839,7 +830,7 @@ export default function Home() {
                                                     </div>
 
                                                     {/* Drop hint overlay */}
-                                                    {isDropTarget && (
+                                                    {dragOverGroupId === group.id && (
                                                         <div style={{
                                                             position: 'absolute', bottom: '8%', left: 0, right: 0, height: '75%',
                                                             zIndex: 20,

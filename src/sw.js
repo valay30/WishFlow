@@ -88,7 +88,7 @@ self.addEventListener('notificationclick', (event) => {
   const urlToOpen = new URL(event.notification.data?.url || '/', self.location.origin).href;
 
   event.waitUntil(
-    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
       // Find a window that is already open to our site
       for (let i = 0; i < windowClients.length; i++) {
         const client = windowClients[i];
@@ -104,8 +104,8 @@ self.addEventListener('notificationclick', (event) => {
       }
       
       // If no window is open, open a new one
-      if (clients.openWindow) {
-        return clients.openWindow(urlToOpen);
+      if (self.clients.openWindow) {
+        return self.clients.openWindow(urlToOpen);
       }
     })
   );
