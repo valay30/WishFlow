@@ -454,10 +454,24 @@ export default function ItemCard({
                                         onClick={(e) => handleAction(e, () => {
                                             if (!item.is_purchased) {
                                                 const end = Date.now() + 2 * 1000;
-                                                const colors = ['#059669', '#10B981', '#34D399', '#ffffff'];
                                                 (function frame() {
-                                                    confetti({ particleCount: 3, angle: 60, spread: 55, origin: { x: 0 }, colors: colors });
-                                                    confetti({ particleCount: 3, angle: 120, spread: 55, origin: { x: 1 }, colors: colors });
+                                                    const sidebarWidth = window.innerWidth > 768 ? 260 : 0;
+                                                    const leftOriginX = sidebarWidth / window.innerWidth;
+                                                    
+                                                    confetti({
+                                                        particleCount: 4,
+                                                        angle: 60,
+                                                        spread: 55,
+                                                        origin: { x: leftOriginX, y: 0.8 },
+                                                        zIndex: 99999
+                                                    });
+                                                    confetti({
+                                                        particleCount: 4,
+                                                        angle: 120,
+                                                        spread: 55,
+                                                        origin: { x: 1, y: 0.8 },
+                                                        zIndex: 99999
+                                                    });
                                                     if (Date.now() < end) requestAnimationFrame(frame);
                                                 }());
                                             }

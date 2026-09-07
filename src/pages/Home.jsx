@@ -167,17 +167,22 @@ export default function Home() {
             const end = Date.now() + duration;
 
             const frame = () => {
+                const sidebarWidth = window.innerWidth > 768 ? 260 : 0;
+                const leftOriginX = sidebarWidth / window.innerWidth;
+                
                 confetti({
                     particleCount: 4,
                     angle: 60,
                     spread: 55,
-                    origin: { x: 0, y: 0.8 }
+                    origin: { x: leftOriginX, y: 0.8 },
+                    zIndex: 99999
                 });
                 confetti({
                     particleCount: 4,
                     angle: 120,
                     spread: 55,
-                    origin: { x: 1, y: 0.8 }
+                    origin: { x: 1, y: 0.8 },
+                    zIndex: 99999
                 });
 
                 if (Date.now() < end) {
