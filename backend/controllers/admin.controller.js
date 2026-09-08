@@ -1,4 +1,8 @@
 import { supabase } from '../config/supabase.js';
+import { runPriceDrop } from '../jobs/priceDropJob.js';
+import { reschedule, getCurrentSchedule, pauseScheduler, resumeScheduler, isSchedulerEnabled } from '../jobs/cronScheduler.js';
+
+
 
 export const getAllUsers = async (req, res) => {
     try {
@@ -307,3 +311,70 @@ export const toggleBlogPublish = async (req, res) => {
     }
 };
 
+
+/* --- Price Drop Admin Handlers --- */
+
+let jobRunning = false;
+
+export const runPriceDropNow = async (req, res) => {
+    if (jobRunning) return res.status(409).json({ error: 'Job is already running. Please wait.' });
+    jobRunning = true;
+    try {
+        const summary = await runPriceDrop();
+        res.json({ success: true, summary });
+    } catch (err) {
+        console.error('[Admin] runPriceDropNow error:', err.message);
+        res.status(500).json({ error: 'Job failed: ' + err.message });
+    } finally {
+        jobRunning = false;
+    }
+};
+
+export const updatePriceDropSchedule = async (req, res) => {
+    const { cronExpression } = req.body;
+    if (!cronExpression) return res.status(400).json({ error: 'cronExpression is required' });
+    try {
+        reschedule(cronExpression);
+        await supabase.from('app_settings').upsert([
+            { key: 'price_drop_cron', value: cronExpression, updated_at: new Date().toISOString() }
+        ], { onConflict: 'key' });
+        res.json({ success: true, cronExpression });
+    } catch (err) {
+        res.status(400).json({ error: err.message });
+    }
+};
+
+export const getPriceDropStatus = async (req, res) => {
+    try {
+        const { data: settings } = await supabase
+            .from('app_settings')
+            .select('key, value')
+            .in('key', ['price_drop_cron', 'price_drop_last_run', 'price_drop_last_summary']);
+        const map = {};
+        (settings || []).forEach(s => { map[s.key] = s.value; });
+        res.json({
+            cronExpression: map['price_drop_cron'] || getCurrentSchedule(),
+            lastRun: map['price_drop_last_run'] || 'Never',
+            lastSummary: map['price_drop_last_summary'] ? JSON.parse(map['price_drop_last_summary']) : null,
+            isRunning: jobRunning,
+            schedulerEnabled: isSchedulerEnabled(),
+        });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+
+export const togglePriceDropScheduler = async (req, res) => {
+    const { enabled } = req.body;
+    if (typeof enabled !== 'boolean') return res.status(400).json({ error: 'enabled (boolean) is required' });
+    try {
+        if (enabled) resumeScheduler(); else pauseScheduler();
+        // Persist the preference
+        await supabase.from('app_settings').upsert([
+            { key: 'price_drop_enabled', value: String(enabled), updated_at: new Date().toISOString() }
+        ], { onConflict: 'key' });
+        res.json({ success: true, schedulerEnabled: enabled });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};

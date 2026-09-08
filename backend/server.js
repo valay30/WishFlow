@@ -8,6 +8,7 @@ import adminRoutes from './routes/admin.routes.js';
 import notificationRoutes from './routes/notifications.routes.js';
 import scraperRoutes from './routes/scraper.routes.js';
 import blogRoutes from './routes/blog.routes.js';
+import { initScheduler } from './jobs/cronScheduler.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -15,7 +16,7 @@ const PORT = process.env.PORT || 5000;
 // Middleware
 app.use(cors({
   origin: '*',
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'x-admin-secret'],
 }));
 app.use(express.json());
@@ -35,4 +36,6 @@ app.use('/api/blog', blogRoutes);
 // Start the server
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
+  // Start the price drop cron scheduler
+  initScheduler().catch(err => console.error('[Scheduler] Failed to init:', err.message));
 });

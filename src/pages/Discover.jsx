@@ -86,9 +86,9 @@ function DiscoverCard({ item, onSave, isSaving, isSaved }) {
             )}
 
             {/* Content (Bottom aligned) */}
-            <div style={{ 
-                position: 'relative', zIndex: 2, marginTop: 'auto', 
-                padding: '0.6rem 0.75rem 0.75rem', display: 'flex', flexDirection: 'column', gap: '0.25rem' 
+            <div style={{
+                position: 'relative', zIndex: 2, marginTop: 'auto',
+                padding: '0.6rem 0.75rem 0.75rem', display: 'flex', flexDirection: 'column', gap: '0.25rem'
             }}>
                 <p style={{
                     fontWeight: 800, fontSize: '0.82rem', color: '#ffffff',
@@ -109,7 +109,7 @@ function DiscoverCard({ item, onSave, isSaving, isSaved }) {
                             href={item.link}
                             target="_blank"
                             rel="noopener noreferrer"
-                            style={{ 
+                            style={{
                                 fontSize: '0.68rem', color: '#ffffff', textDecoration: 'none', fontWeight: 700,
                                 background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(8px)',
                                 padding: '0.28rem 0.65rem', borderRadius: '99px',
@@ -372,7 +372,7 @@ export default function Discover() {
             {/* ── Page Header (Static) ── */}
             <div style={{
                 padding: '2rem 1.5rem 0.5rem',
-                background: 'var(--bg)', 
+                background: 'var(--bg)',
             }}>
                 <div style={{ maxWidth: '900px', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.6rem' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
@@ -400,7 +400,7 @@ export default function Discover() {
             </div>
 
             {/* ── Dynamic Floating Island ── */}
-            <div 
+            <div
                 ref={islandRef}
                 style={{
                     position: 'sticky', top: '1rem', zIndex: 50,
@@ -409,37 +409,37 @@ export default function Discover() {
                     marginBottom: '1rem', marginTop: '0.5rem'
                 }}
             >
-                <div 
+                <div
                     onClick={() => { if (actuallyCollapsed) setForceExpand(true); }}
                     style={{
-                    cursor: actuallyCollapsed ? 'pointer' : 'default',
-                    pointerEvents: 'auto',
-                    background: 'rgba(255, 255, 255, 0.85)',
-                    backdropFilter: 'blur(20px)',
-                    WebkitBackdropFilter: 'blur(20px)',
-                    border: '1px solid rgba(0,0,0, 0.08)',
-                    borderRadius: '24px',
-                    padding: actuallyCollapsed ? '0.55rem 1.2rem' : '1.25rem',
-                    boxShadow: actuallyCollapsed
-                        ? '0 4px 20px rgba(0,0,0,0.10)'
-                        : '0 12px 40px rgba(0,0,0,0.12)',
-                    width: '100%',
-                    maxWidth: actuallyCollapsed ? '190px' : '900px',
-                    maxHeight: actuallyCollapsed ? '50px' : '400px',
-                    transition: [
-                        'max-width 0.4s cubic-bezier(0.25, 0.8, 0.25, 1)',
-                        'max-height 0.4s cubic-bezier(0.25, 0.8, 0.25, 1)',
-                        'padding 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)',
-                        'box-shadow 0.3s ease',
-                    ].join(', '),
-                    willChange: 'max-width, max-height',
-                    overflow: 'hidden',
-                    display: 'flex', flexDirection: 'column',
-                    alignItems: actuallyCollapsed ? 'center' : 'stretch',
-                }}>
+                        cursor: actuallyCollapsed ? 'pointer' : 'default',
+                        pointerEvents: 'auto',
+                        background: 'rgba(255, 255, 255, 0.85)',
+                        backdropFilter: 'blur(20px)',
+                        WebkitBackdropFilter: 'blur(20px)',
+                        border: '1px solid rgba(0,0,0, 0.08)',
+                        borderRadius: '24px',
+                        padding: actuallyCollapsed ? '0.55rem 1.2rem' : '1.25rem',
+                        boxShadow: actuallyCollapsed
+                            ? '0 4px 20px rgba(0,0,0,0.10)'
+                            : '0 12px 40px rgba(0,0,0,0.12)',
+                        width: '100%',
+                        maxWidth: actuallyCollapsed ? '190px' : '900px',
+                        maxHeight: actuallyCollapsed ? '50px' : '400px',
+                        transition: [
+                            'max-width 0.4s cubic-bezier(0.25, 0.8, 0.25, 1)',
+                            'max-height 0.4s cubic-bezier(0.25, 0.8, 0.25, 1)',
+                            'padding 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)',
+                            'box-shadow 0.3s ease',
+                        ].join(', '),
+                        willChange: 'max-width, max-height',
+                        overflow: 'hidden',
+                        display: 'flex', flexDirection: 'column',
+                        alignItems: actuallyCollapsed ? 'center' : 'stretch',
+                    }}>
                     {displayCollapsed ? (
                         // Collapsed State
-                        <div 
+                        <div
                             style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', animation: 'disc-fadeIn 0.2s ease both' }}
                         >
                             <Search size={16} color="var(--text-dim)" />

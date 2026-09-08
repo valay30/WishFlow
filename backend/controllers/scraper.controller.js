@@ -61,7 +61,6 @@ async function fetchViaProxy(targetUrl) {
         const res = await fetch(`https://r.jina.ai/${targetUrl}`, {
             headers: {
                 'Accept': 'application/json',
-                'X-With-Generated-Alt': 'true',
             },
             signal: controller.signal,
         });
@@ -503,8 +502,19 @@ function isPageBlocked(raw, html) {
 // MAIN CONTROLLER
 // ═══════════════════════════════════════════════════════════════════════════════
 export const extractMetadata = async (req, res) => {
-    let { url, categories, collections } = req.body;
-    if (!url) return res.status(400).json({ error: 'URL is required' });
+    const rawUrl = req.body.url;
+    if (!rawUrl) return res.status(400).json({ error: 'URL is required' });
+
+    let url = rawUrl;
+    try {
+        let parsedUrl = new URL(url);
+        if (!/amazon|amzn|a\.co|flipkart|fkrt/i.test(parsedUrl.hostname) && !parsedUrl.searchParams.has('currency')) {
+            parsedUrl.searchParams.set('currency', 'INR');
+            url = parsedUrl.toString();
+        }
+    } catch(e) {}
+
+    let { categories, collections } = req.body;
 
     // ── Cache hit → instant response ─────────────────────────────────────────
     const cached = getCached(url);
@@ -636,3 +646,73 @@ export const extractMetadata = async (req, res) => {
     }
 };
 
+
+export async function scrapePriceOnly(url) {
+    try {
+        try {
+            let parsedUrl = new URL(url);
+            if (!/amazon|amzn|a\.co|flipkart|fkrt/i.test(parsedUrl.hostname) && !parsedUrl.searchParams.has('currency')) {
+                parsedUrl.searchParams.set('currency', 'INR');
+                url = parsedUrl.toString();
+            }
+        } catch(e) {}
+
+        const isDifficultDomain = /amazon|amzn|a\.co|flipkart|fkrt|myntra/i.test(url);
+        const directPromise = fetchDirect(url, 15000).catch(() => null);
+        const proxyPromise = isDifficultDomain ? fetchViaProxy(url).catch(() => null) : Promise.resolve(null);
+
+        const HARD_TIMEOUT = new Promise((_, reject) => setTimeout(() => reject(new Error('Hard timeout exceeded')), 30000));
+        
+        let directResult = null;
+        try {
+            directResult = await Promise.race([directPromise, HARD_TIMEOUT]);
+        } catch { }
+
+        let html = directResult?.html || '';
+        let finalUrl = directResult?.finalUrl || url;
+        let hostname = directResult?.hostname || (() => { try { return new URL(url).hostname.toLowerCase(); } catch { return ''; } })();
+
+        let $ = cheerio.load(html);
+        const metaRefresh = $('meta[http-equiv="refresh"]').attr('content');
+        if (metaRefresh) {
+            const match = metaRefresh.match(/url=['"]?([^'"\s>]+)/i);
+            if (match && match[1]) {
+                try {
+                    const redirectTarget = new URL(match[1], finalUrl).href;
+                    if (!redirectTarget.includes(finalUrl)) {
+                        const rRes = await fetch(redirectTarget, { headers: BROWSER_HEADERS, redirect: 'follow' });
+                        finalUrl = rRes.url || redirectTarget;
+                        hostname = new URL(finalUrl).hostname.toLowerCase();
+                        html = await rRes.text();
+                        $ = cheerio.load(html);
+                    }
+                } catch { }
+            }
+        }
+
+        let raw = assembleRaw($, hostname, finalUrl);
+
+        if (isPageBlocked(raw, html) || !raw.price) {
+            const proxyData = await proxyPromise;
+            if (proxyData) {
+                if (proxyData.title) raw.title = proxyData.title;
+                if (proxyData.description) raw.description = proxyData.description;
+                if (proxyData.price && !raw.price) raw.price = proxyData.price;
+            }
+        }
+
+        let geminiTimerId;
+        const geminiWithTimeout = Promise.race([
+            geminiNormalize(raw, [], []).catch(() => null),
+            new Promise(resolve => geminiTimerId = setTimeout(() => resolve(null), 15000)),
+        ]);
+
+        const geminiResult = await geminiWithTimeout;
+        clearTimeout(geminiTimerId);
+
+        return geminiResult ? (geminiResult.price || raw.price) : raw.price;
+    } catch (err) {
+        console.warn(`[scrapePriceOnly] failed for ${url}:`, err.message);
+        return null;
+    }
+}

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
 import {
     Crown, Users, ArrowLeft, RefreshCw, Search, Trash2, Package,
-    Filter, Calendar, ChevronLeft, ChevronRight, ChevronDown, XCircle, Menu, X, Plus, Link as LinkIcon, BookOpen
+    Filter, Calendar, ChevronLeft, ChevronRight, ChevronDown, XCircle, Menu, X, Plus, Link as LinkIcon, BookOpen, TrendingDown, Play, Clock
 } from 'lucide-react';
 import { API_URL as API, ADMIN_SECRET } from '../config';
 import AlertModal from '../components/AlertModal';
@@ -38,6 +38,17 @@ export default function AdminPanel() {
     const [selectedUserFilter, setSelectedUserFilter] = useState(null);
     const [statusFilter, setStatusFilter] = useState('all');
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+    // Price Drop Alert state
+    const [priceAlertStatus, setPriceAlertStatus] = useState(null);
+    const [priceAlertLoading, setPriceAlertLoading] = useState(false);
+    const [priceAlertRunning, setPriceAlertRunning] = useState(false);
+    const [scheduleHour, setScheduleHour] = useState(1);
+    const [scheduleMinute, setScheduleMinute] = useState(0);
+    const [scheduleTimezone, setScheduleTimezone] = useState('IST');
+    const [scheduleSaving, setScheduleSaving] = useState(false);
+    const [schedulerEnabled, setSchedulerEnabled] = useState(true);
+    const [togglingScheduler, setTogglingScheduler] = useState(false);
 
     // Redirect non-admins immediately
     useEffect(() => {
@@ -288,6 +299,42 @@ export default function AdminPanel() {
                     >
                         <BookOpen size={20} /> Blog
                     </button>
+                    <button
+                        onClick={() => {
+                            setActiveTab('price-alerts');
+                            setSearch('');
+                            setIsSidebarOpen(false);
+                            // Fetch status when tab opens
+                            setPriceAlertLoading(true);
+                            fetch(`${API}/api/admin/price-drop/status`, { headers })
+                                .then(r => r.json())
+                                .then(d => {
+                                    setPriceAlertStatus(d);
+                                    // Parse cron to set time pickers
+                                    if (d.cronExpression) {
+                                        const parts = d.cronExpression.split(' ');
+                                        if (parts.length >= 2) {
+                                            const utcH = parseInt(parts[1]) || 19;
+                                            const utcM = parseInt(parts[0]) || 30;
+                                            // Convert UTC to IST (+5:30)
+                                            const istM = (utcM + 30) % 60;
+                                            const istH = (utcH + 5 + (utcM + 30 >= 60 ? 1 : 0)) % 24;
+                                            setScheduleHour(istH);
+                                            setScheduleMinute(istM);
+                                        }
+                                    }
+                                    if (d.schedulerEnabled !== undefined) {
+                                        setSchedulerEnabled(d.schedulerEnabled);
+                                    }
+
+                                })
+                                .catch(() => { })
+                                .finally(() => setPriceAlertLoading(false));
+                        }}
+                        style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.875rem 1rem', background: activeTab === 'price-alerts' ? '#fef3c7' : 'transparent', color: activeTab === 'price-alerts' ? '#d97706' : '#64748b', borderRadius: '12px', border: 'none', cursor: 'pointer', fontWeight: activeTab === 'price-alerts' ? 700 : 600, fontSize: '0.95rem', transition: 'all 0.2s' }}
+                    >
+                        <TrendingDown size={20} /> Price Alerts
+                    </button>
                 </div>
 
                 {/* Back Button + User Profile */}
@@ -320,25 +367,25 @@ export default function AdminPanel() {
 
 
                 {/* Header — only shown for users/items tabs */}
-                {activeTab !== 'blog' && (
-                <div className="admin-desktop-header" style={{ marginBottom: '2.5rem' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                        <h1 style={{ margin: 0, fontSize: '2.25rem', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.02em' }}>
-                            {activeTab === 'users' ? 'Users' : 'Items'}
-                        </h1>
-                        <button
-                            onClick={refreshData}
-                            disabled={loadingUsers || loadingItems}
-                            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.75rem 1.25rem', background: '#fff', color: '#4f46e5', border: '1px solid #e0e7ff', borderRadius: '12px', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer', boxShadow: '0 1px 2px rgba(0,0,0,0.02)', opacity: (loadingUsers || loadingItems) ? 0.7 : 1 }}
-                        >
-                            <RefreshCw size={18} style={{ animation: (loadingUsers || loadingItems) ? 'spin 1s linear infinite' : 'none' }} />
-                            <span className="action-text">Refresh</span>
-                        </button>
+                {activeTab !== 'blog' && activeTab !== 'price-alerts' && (
+                    <div className="admin-desktop-header" style={{ marginBottom: '2.5rem' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                            <h1 style={{ margin: 0, fontSize: '2.25rem', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.02em' }}>
+                                {activeTab === 'users' ? 'Users' : 'Items'}
+                            </h1>
+                            <button
+                                onClick={refreshData}
+                                disabled={loadingUsers || loadingItems}
+                                style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.75rem 1.25rem', background: '#fff', color: '#4f46e5', border: '1px solid #e0e7ff', borderRadius: '12px', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer', boxShadow: '0 1px 2px rgba(0,0,0,0.02)', opacity: (loadingUsers || loadingItems) ? 0.7 : 1 }}
+                            >
+                                <RefreshCw size={18} style={{ animation: (loadingUsers || loadingItems) ? 'spin 1s linear infinite' : 'none' }} />
+                                <span className="action-text">Refresh</span>
+                            </button>
+                        </div>
+                        <p className="admin-page-desc" style={{ margin: 0, fontSize: '1.05rem', color: '#64748b' }}>
+                            {activeTab === 'users' ? 'Manage and monitor your platform users' : 'Monitor all items created by users'}
+                        </p>
                     </div>
-                    <p className="admin-page-desc" style={{ margin: 0, fontSize: '1.05rem', color: '#64748b' }}>
-                        {activeTab === 'users' ? 'Manage and monitor your platform users' : 'Monitor all items created by users'}
-                    </p>
-                </div>
                 )}
 
                 {/* Blog tab content */}
@@ -346,53 +393,395 @@ export default function AdminPanel() {
                     <BlogAdminTab showToast={showToast} />
                 )}
 
-                {/* Search & Filter — only for users/items tabs */}
-                {activeTab !== 'blog' && (
-                <div className="admin-filter-bar" style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem' }}>
-                    <div className="admin-search-container" style={{ position: 'relative', flex: 1 }}>
-                        <Search className="admin-search-icon" size={18} style={{ position: 'absolute', left: '1.25rem', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
-                        <input
-                            className="admin-search-input"
-                            value={search}
-                            onChange={e => {
-                                setSearch(e.target.value);
-                                if (activeTab === 'users') setCurrentPage(1);
-                                else setCurrentItemsPage(1);
-                            }}
-                            placeholder={activeTab === 'users' ? "Search users..." : "Search products..."}
-                            style={{ width: '100%', padding: '0.875rem 1rem 0.875rem 3rem', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '99px', fontSize: '0.95rem', color: '#0f172a', outline: 'none', boxSizing: 'border-box', boxShadow: '0 1px 2px rgba(0,0,0,0.01)' }}
-                        />
-                    </div>
-                    <div className="admin-filter-dropdown" style={{ width: '220px' }}>
-                        {activeTab === 'items' ? (
-                            <CustomSelect
-                                value={selectedUserFilter || ''}
-                                onChange={val => { setSelectedUserFilter(val || null); setCurrentItemsPage(1); }}
-                                options={[
-                                    { value: '', label: 'All Users', icon: (props) => <Filter {...props} color="#f97316" /> },
-                                    ...users.map(u => ({
-                                        value: u.id,
-                                        label: u.name || u.email,
-                                        badge: u.itemCount || 0,
-                                        icon: (props) => <Filter {...props} color="#f97316" />
-                                    }))
-                                ]}
-                                style={{ background: '#fff', border: '1px solid #e2e8f0', color: '#0f172a', borderRadius: '99px', height: '100%', padding: '0.875rem 1.25rem', boxShadow: '0 1px 2px rgba(0,0,0,0.01)', fontWeight: 600 }}
-                            />
+                {/* Price Alerts tab content */}
+                {activeTab === 'price-alerts' && (
+                    <div style={{ width: '100%' }}>
+                        {/* ── Hero Banner ── */}
+                        <div style={{
+                            background: 'linear-gradient(135deg, #92400e 0%, #d97706 50%, #f59e0b 100%)',
+                            borderRadius: '24px',
+                            padding: '2rem 2.5rem',
+                            marginBottom: '2rem',
+                            position: 'relative',
+                            overflow: 'hidden',
+                            boxShadow: '0 20px 40px -12px rgba(217, 119, 6, 0.35)',
+                        }}>
+                            {/* Decorative blobs */}
+                            <div style={{ position: 'absolute', top: '-40px', right: '-40px', width: '180px', height: '180px', borderRadius: '50%', background: 'rgba(255,255,255,0.07)', pointerEvents: 'none' }} />
+                            <div style={{ position: 'absolute', bottom: '-30px', right: '120px', width: '100px', height: '100px', borderRadius: '50%', background: 'rgba(255,255,255,0.05)', pointerEvents: 'none' }} />
+                            <div style={{ position: 'relative', zIndex: 1 }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
+                                    <div style={{ background: 'rgba(255,255,255,0.2)', borderRadius: '12px', padding: '0.5rem', display: 'flex' }}>
+                                        <TrendingDown size={22} color="#fff" />
+                                    </div>
+                                    <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'rgba(255,255,255,0.8)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Price Intelligence</span>
+                                </div>
+                                <h1 style={{ margin: '0 0 0.4rem', fontSize: 'clamp(1.5rem, 4vw, 2.25rem)', fontWeight: 900, color: '#fff', letterSpacing: '-0.03em', lineHeight: 1.1 }}>
+                                    Price Drop Alerts
+                                </h1>
+                                <p style={{ margin: 0, color: 'rgba(255,255,255,0.8)', fontSize: '0.95rem', maxWidth: '480px', lineHeight: 1.6 }}>
+                                    Automatically re-scrapes saved items and sends push notifications the moment a price drops.
+                                </p>
+                            </div>
+                        </div>
+
+                        {priceAlertLoading ? (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                                {[1, 2, 3].map(i => (
+                                    <div key={i} style={{ height: '80px', borderRadius: '16px', background: 'linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%)', backgroundSize: '200% 100%', animation: 'shimmer 1.4s ease-in-out infinite' }} />
+                                ))}
+                            </div>
                         ) : (
-                            <CustomSelect
-                                value={statusFilter}
-                                onChange={val => { setStatusFilter(val); setCurrentPage(1); }}
-                                options={[
-                                    { value: 'all', label: 'All', icon: (props) => <Filter {...props} color="#f97316" /> },
-                                    { value: 'premium', label: 'Premium', icon: (props) => <Filter {...props} color="#f97316" /> },
-                                    { value: 'free', label: 'Free', icon: (props) => <Filter {...props} color="#f97316" /> }
-                                ]}
-                                style={{ background: '#fff', border: '1px solid #e2e8f0', color: '#0f172a', borderRadius: '99px', height: '100%', padding: '0.875rem 1.25rem', boxShadow: '0 1px 2px rgba(0,0,0,0.01)', fontWeight: 600 }}
-                            />
+                            <>
+                                {/* ── Status Cards ── */}
+                                {priceAlertStatus && (
+                                    <div className="pa-stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem', marginBottom: '1.5rem' }}>
+                                        {[
+                                            {
+                                                label: 'Last Run',
+                                                value: priceAlertStatus.lastRun === 'Never' ? 'Never' : new Date(priceAlertStatus.lastRun).toLocaleString('en-IN', { dateStyle: 'short', timeStyle: 'short' }),
+                                                icon: '🕐', gradient: 'linear-gradient(135deg, #6366f1, #818cf8)',
+                                            },
+                                            {
+                                                label: 'Items Checked',
+                                                value: priceAlertStatus.lastSummary?.itemsChecked ?? '—',
+                                                icon: '🔍', gradient: 'linear-gradient(135deg, #0ea5e9, #38bdf8)',
+                                            },
+                                            {
+                                                label: 'Drops Found',
+                                                value: priceAlertStatus.lastSummary?.dropsFound ?? '—',
+                                                icon: '📉', gradient: 'linear-gradient(135deg, #16a34a, #4ade80)',
+                                            },
+                                            {
+                                                label: 'Alerts Sent',
+                                                value: priceAlertStatus.lastSummary?.notificationsSent ?? '—',
+                                                icon: '🔔', gradient: 'linear-gradient(135deg, #d97706, #f59e0b)',
+                                            },
+                                        ].map(card => (
+                                            <div key={card.label} style={{
+                                                background: '#fff',
+                                                border: '1px solid #f1f5f9',
+                                                borderRadius: '18px',
+                                                padding: '1.25rem',
+                                                boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+                                                display: 'flex',
+                                                flexDirection: 'column',
+                                                gap: '0.5rem',
+                                                transition: 'transform 0.2s, box-shadow 0.2s',
+                                            }}>
+                                                <div style={{
+                                                    width: '36px', height: '36px',
+                                                    background: card.gradient,
+                                                    borderRadius: '10px',
+                                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                    fontSize: '1.1rem',
+                                                }}>{card.icon}</div>
+                                                <p style={{ margin: 0, fontSize: '0.72rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{card.label}</p>
+                                                <p style={{ margin: 0, fontSize: '1.35rem', fontWeight: 800, color: '#0f172a', lineHeight: 1 }}>{card.value}</p>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+
+                                {/* ── Two Column Layout ── */}
+                                <div className="pa-two-col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem', alignItems: 'start' }}>
+
+                                    {/* Run Now Card */}
+                                    <div style={{ background: '#fff', border: '1px solid #f1f5f9', borderRadius: '20px', padding: '1.75rem', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.5rem' }}>
+                                            <div style={{ width: '32px', height: '32px', background: 'linear-gradient(135deg, #fef3c7, #fde68a)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem' }}>⚡</div>
+                                            <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 800, color: '#0f172a' }}>Run Job Now</h3>
+                                        </div>
+                                        <p style={{ margin: '0 0 1.5rem', color: '#64748b', fontSize: '0.875rem', lineHeight: 1.6 }}>
+                                            Manually trigger a full price check for all saved items with product links.
+                                        </p>
+
+                                        {/* Progress indicator when running */}
+                                        {priceAlertRunning && (
+                                            <div style={{ background: '#fef3c7', borderRadius: '12px', padding: '0.85rem 1rem', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.75rem', border: '1px solid #fde68a' }}>
+                                                <div style={{ width: '14px', height: '14px', border: '2px solid #d97706', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.7s linear infinite', flexShrink: 0 }} />
+                                                <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#92400e' }}>Scanning products... This may take a few minutes.</span>
+                                            </div>
+                                        )}
+
+                                        <button
+                                            id="price-drop-run-now"
+                                            disabled={priceAlertRunning}
+                                            onClick={async () => {
+                                                setPriceAlertRunning(true);
+                                                try {
+                                                    const res = await fetch(`${API}/api/admin/price-drop/run`, { method: 'POST', headers });
+                                                    const data = await res.json();
+                                                    if (data.success) {
+                                                        setPriceAlertStatus(prev => ({ ...prev, lastRun: data.summary.startedAt, lastSummary: data.summary, isRunning: false }));
+                                                        showToast(`Done! ${data.summary.dropsFound} drop(s) found, ${data.summary.notificationsSent} sent.`);
+                                                        fetchItems();
+                                                    } else {
+                                                        showToast(data.error || 'Job failed', 'error');
+                                                    }
+                                                } catch (e) {
+                                                    showToast('Network error', 'error');
+                                                } finally {
+                                                    setPriceAlertRunning(false);
+                                                }
+                                            }}
+                                            style={{
+                                                width: '100%',
+                                                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.6rem',
+                                                padding: '0.9rem 1.5rem',
+                                                background: priceAlertRunning
+                                                    ? '#f1f5f9'
+                                                    : 'linear-gradient(135deg, #d97706, #f59e0b)',
+                                                color: priceAlertRunning ? '#94a3b8' : '#fff',
+                                                border: 'none', borderRadius: '14px',
+                                                fontWeight: 700, fontSize: '0.95rem',
+                                                cursor: priceAlertRunning ? 'not-allowed' : 'pointer',
+                                                transition: 'all 0.25s',
+                                                boxShadow: priceAlertRunning ? 'none' : '0 4px 12px rgba(217,119,6,0.3)',
+                                                fontFamily: 'inherit',
+                                            }}
+                                        >
+                                            {priceAlertRunning
+                                                ? <><RefreshCw size={17} style={{ animation: 'spin 1s linear infinite' }} /> Scanning…</>
+                                                : <><Play size={17} fill="currentColor" /> Run Price Check</>}
+                                        </button>
+                                        
+                                        {/* Toggle Scheduler */}
+                                        <div style={{ marginTop: '1.25rem', paddingTop: '1.25rem', borderTop: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                            <div>
+                                                <p style={{ margin: 0, fontSize: '0.9rem', fontWeight: 700, color: '#0f172a' }}>Background Job</p>
+                                                <p style={{ margin: 0, fontSize: '0.75rem', color: '#64748b' }}>{schedulerEnabled ? 'Active (runs on schedule)' : 'Paused'}</p>
+                                            </div>
+                                            <button
+                                                disabled={togglingScheduler}
+                                                onClick={async () => {
+                                                    setTogglingScheduler(true);
+                                                    try {
+                                                        const res = await fetch(`${API}/api/admin/price-drop/toggle`, {
+                                                            method: 'PATCH',
+                                                            headers,
+                                                            body: JSON.stringify({ enabled: !schedulerEnabled })
+                                                        });
+                                                        const data = await res.json();
+                                                        if (data.success) {
+                                                            setSchedulerEnabled(data.schedulerEnabled);
+                                                            showToast(data.schedulerEnabled ? 'Scheduler resumed' : 'Scheduler paused');
+                                                        } else {
+                                                            showToast(data.error || 'Failed to toggle', 'error');
+                                                        }
+                                                    } catch (e) {
+                                                        showToast('Network error', 'error');
+                                                    } finally {
+                                                        setTogglingScheduler(false);
+                                                    }
+                                                }}
+                                                style={{
+                                                    position: 'relative', width: '44px', height: '24px',
+                                                    background: schedulerEnabled ? '#10b981' : '#cbd5e1',
+                                                    borderRadius: '99px', border: 'none', cursor: 'pointer',
+                                                    transition: 'background 0.3s ease', padding: 0
+                                                }}
+                                            >
+                                                <div style={{
+                                                    position: 'absolute', top: '2px', left: schedulerEnabled ? '22px' : '2px',
+                                                    width: '20px', height: '20px', background: '#fff', borderRadius: '50%',
+                                                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)', transition: 'left 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
+                                                }} />
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    {/* Schedule Card */}
+                                    <div style={{ background: '#fff', border: '1px solid #f1f5f9', borderRadius: '20px', padding: '1.75rem', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.5rem' }}>
+                                            <div style={{ width: '32px', height: '32px', background: 'linear-gradient(135deg, #e0e7ff, #c7d2fe)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem' }}>🕐</div>
+                                            <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 800, color: '#0f172a' }}>Daily Schedule</h3>
+                                        </div>
+
+                                        {/* Preview pill */}
+                                        <div style={{ background: 'linear-gradient(135deg, #f5f3ff, #ede9fe)', borderRadius: '12px', padding: '0.75rem 1rem', marginBottom: '1.25rem', border: '1px solid #ddd6fe', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                            <div>
+                                                <p style={{ margin: 0, fontSize: '0.72rem', fontWeight: 700, color: '#8b5cf6', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Runs Daily At</p>
+                                                <p style={{ margin: 0, fontSize: '1.4rem', fontWeight: 900, color: '#6d28d9', letterSpacing: '-0.02em' }}>
+                                                    {String(scheduleHour).padStart(2, '0')}:{String(scheduleMinute).padStart(2, '0')} <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#8b5cf6' }}>IST</span>
+                                                </p>
+                                            </div>
+                                            <Clock size={28} color="#c4b5fd" />
+                                        </div>
+
+                                        <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1rem' }}>
+                                            <div style={{ flex: 1 }}>
+                                                <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 700, color: '#64748b', marginBottom: '0.35rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Hour</label>
+                                                <select
+                                                    value={scheduleHour}
+                                                    onChange={e => setScheduleHour(parseInt(e.target.value))}
+                                                    style={{ width: '100%', padding: '0.65rem 0.75rem', border: '1.5px solid #e2e8f0', borderRadius: '10px', fontSize: '0.95rem', background: '#fafbfc', color: '#0f172a', cursor: 'pointer', fontWeight: 700, fontFamily: 'inherit', outline: 'none' }}
+                                                >
+                                                    {Array.from({ length: 24 }, (_, i) => (
+                                                        <option key={i} value={i}>{String(i).padStart(2, '0')}:00</option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                            <div style={{ flex: 1 }}>
+                                                <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 700, color: '#64748b', marginBottom: '0.35rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Minute</label>
+                                                <select
+                                                    value={scheduleMinute}
+                                                    onChange={e => setScheduleMinute(parseInt(e.target.value))}
+                                                    style={{ width: '100%', padding: '0.65rem 0.75rem', border: '1.5px solid #e2e8f0', borderRadius: '10px', fontSize: '0.95rem', background: '#fafbfc', color: '#0f172a', cursor: 'pointer', fontWeight: 700, fontFamily: 'inherit', outline: 'none' }}
+                                                >
+                                                    {[0, 15, 30, 45].map(m => (
+                                                        <option key={m} value={m}>{String(m).padStart(2, '0')}</option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <button
+                                            id="price-drop-save-schedule"
+                                            disabled={scheduleSaving}
+                                            onClick={async () => {
+                                                setScheduleSaving(true);
+                                                const totalMinutesIST = scheduleHour * 60 + scheduleMinute;
+                                                const totalMinutesUTC = (totalMinutesIST - 330 + 1440) % 1440;
+                                                const utcH = Math.floor(totalMinutesUTC / 60);
+                                                const utcM = totalMinutesUTC % 60;
+                                                const cronExpr = `${utcM} ${utcH} * * *`;
+                                                try {
+                                                    const res = await fetch(`${API}/api/admin/price-drop/schedule`, {
+                                                        method: 'POST', headers,
+                                                        body: JSON.stringify({ cronExpression: cronExpr }),
+                                                    });
+                                                    const data = await res.json();
+                                                    if (data.success) {
+                                                        setPriceAlertStatus(prev => ({ ...prev, cronExpression: cronExpr }));
+                                                        showToast(`Schedule saved: ${String(scheduleHour).padStart(2, '0')}:${String(scheduleMinute).padStart(2, '0')} IST daily`);
+                                                    } else {
+                                                        showToast(data.error || 'Failed to update', 'error');
+                                                    }
+                                                } catch {
+                                                    showToast('Network error', 'error');
+                                                } finally {
+                                                    setScheduleSaving(false);
+                                                }
+                                            }}
+                                            style={{
+                                                width: '100%',
+                                                padding: '0.9rem',
+                                                background: scheduleSaving ? '#f1f5f9' : 'linear-gradient(135deg, #6366f1, #818cf8)',
+                                                color: scheduleSaving ? '#94a3b8' : '#fff',
+                                                border: 'none', borderRadius: '14px',
+                                                fontWeight: 700, fontSize: '0.9rem',
+                                                cursor: scheduleSaving ? 'not-allowed' : 'pointer',
+                                                transition: 'all 0.2s',
+                                                boxShadow: scheduleSaving ? 'none' : '0 4px 12px rgba(99,102,241,0.3)',
+                                                fontFamily: 'inherit',
+                                            }}
+                                        >
+                                            {scheduleSaving ? 'Saving…' : '💾 Save Schedule'}
+                                        </button>
+                                    </div>
+                                </div>
+
+
+                                {/* Responsive CSS for this tab */}
+                                <style>{`
+                            .pa-stats-grid { grid-template-columns: repeat(4, 1fr); }
+                            .pa-two-col { grid-template-columns: 1fr 1fr; }
+                            .pa-how-grid { grid-template-columns: repeat(4, 1fr); }
+                            @media (max-width: 900px) {
+                                .pa-stats-grid { grid-template-columns: repeat(2, 1fr) !important; }
+                                .pa-how-grid { grid-template-columns: repeat(2, 1fr) !important; }
+                            }
+                            @media (max-width: 600px) {
+                                .pa-stats-grid { 
+                                    display: grid !important;
+                                    grid-template-columns: repeat(4, 1fr) !important;
+                                    gap: 0.35rem !important;
+                                }
+                                .pa-stats-grid > div {
+                                    padding: 0.5rem !important;
+                                    gap: 0.25rem !important;
+                                    border-radius: 12px !important;
+                                    align-items: center;
+                                    text-align: center;
+                                }
+                                .pa-stats-grid > div > div {
+                                    width: 28px !important;
+                                    height: 28px !important;
+                                    font-size: 0.9rem !important;
+                                    border-radius: 8px !important;
+                                }
+                                .pa-stats-grid > div > p:nth-child(2) {
+                                    font-size: 0.55rem !important;
+                                    letter-spacing: 0 !important;
+                                }
+                                .pa-stats-grid > div > p:nth-child(3) {
+                                    font-size: 0.9rem !important;
+                                }
+                                .pa-stats-grid > div:nth-child(1) > p:nth-child(3) {
+                                    font-size: 0.7rem !important;
+                                }
+                                .pa-two-col { grid-template-columns: 1fr !important; }
+                                .pa-how-grid { grid-template-columns: repeat(2, 1fr) !important; }
+                            }
+                            @keyframes shimmer {
+                                0% { background-position: 200% 0; }
+                                100% { background-position: -200% 0; }
+                            }
+                        `}</style>
+                            </>
                         )}
                     </div>
-                </div>
+                )}
+
+
+                {/* Search & Filter — only for users/items tabs */}
+                {activeTab !== 'blog' && activeTab !== 'price-alerts' && (
+                    <div className="admin-filter-bar" style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem' }}>
+                        <div className="admin-search-container" style={{ position: 'relative', flex: 1 }}>
+                            <Search className="admin-search-icon" size={18} style={{ position: 'absolute', left: '1.25rem', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+                            <input
+                                className="admin-search-input"
+                                value={search}
+                                onChange={e => {
+                                    setSearch(e.target.value);
+                                    if (activeTab === 'users') setCurrentPage(1);
+                                    else setCurrentItemsPage(1);
+                                }}
+                                placeholder={activeTab === 'users' ? "Search users..." : "Search products..."}
+                                style={{ width: '100%', padding: '0.875rem 1rem 0.875rem 3rem', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '99px', fontSize: '0.95rem', color: '#0f172a', outline: 'none', boxSizing: 'border-box', boxShadow: '0 1px 2px rgba(0,0,0,0.01)' }}
+                            />
+                        </div>
+                        <div className="admin-filter-dropdown" style={{ width: '220px' }}>
+                            {activeTab === 'items' ? (
+                                <CustomSelect
+                                    value={selectedUserFilter || ''}
+                                    onChange={val => { setSelectedUserFilter(val || null); setCurrentItemsPage(1); }}
+                                    options={[
+                                        { value: '', label: 'All Users', icon: (props) => <Filter {...props} color="#f97316" /> },
+                                        ...users.map(u => ({
+                                            value: u.id,
+                                            label: u.name || u.email,
+                                            badge: u.itemCount || 0,
+                                            icon: (props) => <Filter {...props} color="#f97316" />
+                                        }))
+                                    ]}
+                                    style={{ background: '#fff', border: '1px solid #e2e8f0', color: '#0f172a', borderRadius: '99px', height: '100%', padding: '0.875rem 1.25rem', boxShadow: '0 1px 2px rgba(0,0,0,0.01)', fontWeight: 600 }}
+                                />
+                            ) : (
+                                <CustomSelect
+                                    value={statusFilter}
+                                    onChange={val => { setStatusFilter(val); setCurrentPage(1); }}
+                                    options={[
+                                        { value: 'all', label: 'All', icon: (props) => <Filter {...props} color="#f97316" /> },
+                                        { value: 'premium', label: 'Premium', icon: (props) => <Filter {...props} color="#f97316" /> },
+                                        { value: 'free', label: 'Free', icon: (props) => <Filter {...props} color="#f97316" /> }
+                                    ]}
+                                    style={{ background: '#fff', border: '1px solid #e2e8f0', color: '#0f172a', borderRadius: '99px', height: '100%', padding: '0.875rem 1.25rem', boxShadow: '0 1px 2px rgba(0,0,0,0.01)', fontWeight: 600 }}
+                                />
+                            )}
+                        </div>
+                    </div>
                 )}
 
                 {activeTab !== 'blog' && (
@@ -401,450 +790,450 @@ export default function AdminPanel() {
                             <>
                                 {/* Stats Cards */}
                                 <div className="admin-stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1.5rem', marginBottom: '2.5rem' }}>
-                            {loadingUsers ? (
-                                Array.from({ length: 4 }).map((_, i) => (
-                                    <div key={i} className="admin-stat-card" style={{ background: '#fff', border: '1px solid #f1f5f9', borderRadius: '16px', padding: '1.5rem', display: 'flex', gap: '1.25rem', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.02)' }}>
-                                        <div className="skeleton-shimmer" style={{ width: '48px', height: '48px', borderRadius: '12px', flexShrink: 0 }} />
-                                        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.5rem', justifyContent: 'center' }}>
-                                            <div className="skeleton-shimmer" style={{ height: '28px', width: '50%' }} />
-                                            <div className="skeleton-shimmer" style={{ height: '14px', width: '80%' }} />
-                                        </div>
-                                    </div>
-                                ))
-                            ) : (
-                                [
-                                    { val: users.length, label: 'Total Users', icon: Users, bg: '#f5f3ff', color: '#7c3aed' },
-                                    { val: totalItemsCount, label: 'Total Items', icon: Package, bg: '#ecfdf5', color: '#10b981' },
-                                    { val: premiumCount, label: 'Premium Users', icon: Crown, bg: '#fff7ed', color: '#f59e0b' },
-                                    { val: freeCount, label: 'Free Users', icon: Users, bg: '#eff6ff', color: '#3b82f6' },
-                                ].map((s, i) => (
-                                    <div key={i} className="admin-stat-card" style={{ background: '#fff', border: '1px solid #f1f5f9', borderRadius: '16px', padding: '1.5rem', display: 'flex', gap: '1.25rem', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -2px rgba(0, 0, 0, 0.02)' }}>
-                                        <div className="admin-stat-icon-wrapper" style={{ width: '48px', height: '48px', borderRadius: '12px', background: s.bg, color: s.color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                                            <s.icon size={24} />
-                                        </div>
-                                        <div className="admin-stat-text-wrapper" style={{ display: 'flex', flexDirection: 'column' }}>
-                                            <p className="admin-stat-val" style={{ margin: 0, fontSize: '1.75rem', fontWeight: 800, color: '#0f172a', lineHeight: 1 }}>{s.val}</p>
-                                            <p className="admin-stat-label" style={{ margin: '0.4rem 0 0', fontSize: '0.9rem', fontWeight: 700, color: '#334155', lineHeight: 1.2 }}>{s.label}</p>
-                                            {s.sub && <p style={{ margin: '0.2rem 0 0', fontSize: '0.75rem', color: '#64748b' }}>{s.sub}</p>}
-                                        </div>
-                                    </div>
-                                ))
-                            )}
-                        </div>
-
-                        {/* Table */}
-                        <div className="admin-table-wrapper" style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
-                            {/* Table Header */}
-                            <div className="admin-table-header" style={{ display: 'grid', gridTemplateColumns: '2.5fr 2fr 1fr 1fr 2.5fr', padding: '1rem 1.5rem', background: '#f8fafc', borderBottom: '1px solid #e2e8f0', fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                                <span>User</span>
-                                <span>Email</span>
-                                <span>Items</span>
-                                <span>Status</span>
-                                <span style={{ textAlign: 'center' }}>Actions</span>
-                            </div>
-
-                            {/* Table Body */}
-                            <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                {loadingUsers ? (
-                                    <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                        {Array.from({ length: 6 }).map((_, i) => (
-                                            <div key={i} style={{ display: 'grid', gridTemplateColumns: '2.5fr 2fr 1fr 1fr 2.5fr', padding: '1.25rem 1.5rem', alignItems: 'center', borderBottom: i < 5 ? '1px solid #f1f5f9' : 'none', gap: '1rem' }}>
-                                                {/* User col */}
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                                                    <div className="skeleton-shimmer" style={{ width: '40px', height: '40px', borderRadius: '50%', flexShrink: 0 }} />
-                                                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                                                        <div className="skeleton-shimmer" style={{ height: '13px', width: '65%' }} />
-                                                        <div className="skeleton-shimmer" style={{ height: '11px', width: '40%' }} />
-                                                    </div>
-                                                </div>
-                                                {/* Email col */}
-                                                <div className="skeleton-shimmer" style={{ height: '13px', width: '80%' }} />
-                                                {/* Items col */}
-                                                <div className="skeleton-shimmer" style={{ height: '13px', width: '30px' }} />
-                                                {/* Status col */}
-                                                <div className="skeleton-shimmer" style={{ height: '24px', width: '60px', borderRadius: '99px' }} />
-                                                {/* Actions col */}
-                                                <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
-                                                    <div className="skeleton-shimmer" style={{ height: '34px', width: '100px', borderRadius: '8px' }} />
-                                                    <div className="skeleton-shimmer" style={{ height: '34px', width: '80px', borderRadius: '8px' }} />
+                                    {loadingUsers ? (
+                                        Array.from({ length: 4 }).map((_, i) => (
+                                            <div key={i} className="admin-stat-card" style={{ background: '#fff', border: '1px solid #f1f5f9', borderRadius: '16px', padding: '1.5rem', display: 'flex', gap: '1.25rem', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.02)' }}>
+                                                <div className="skeleton-shimmer" style={{ width: '48px', height: '48px', borderRadius: '12px', flexShrink: 0 }} />
+                                                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.5rem', justifyContent: 'center' }}>
+                                                    <div className="skeleton-shimmer" style={{ height: '28px', width: '50%' }} />
+                                                    <div className="skeleton-shimmer" style={{ height: '14px', width: '80%' }} />
                                                 </div>
                                             </div>
-                                        ))}
-                                    </div>
-                                ) : currentUsers.length === 0 ? (
-                                    <div style={{ padding: '3rem', textAlign: 'center', color: '#64748b' }}>No users found</div>
-                                ) : (
-                                    currentUsers.map((u, i) => {
-                                        const avatarColor = getAvatarColor(u.name || u.email);
-                                        return (
-                                            <div key={u.id}>
-                                                {/* ===== DESKTOP TABLE ROW ===== */}
-                                                <div className={`admin-table-row admin-desktop-row ${u.isPremium ? 'premium-card' : 'free-card'}`} style={{ display: 'grid', gridTemplateColumns: '2.5fr 2fr 1fr 1fr 2.5fr', padding: '1.25rem 1.5rem', alignItems: 'center', borderBottom: i !== currentUsers.length - 1 ? '1px solid #f1f5f9' : 'none', transition: 'background 0.2s' }}>
-                                                    {/* User Col */}
-                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', minWidth: 0 }}>
-                                                        <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: avatarColor.bg, color: avatarColor.text, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '1rem', flexShrink: 0 }}>
-                                                            {getInitials(u.name, u.email)}
-                                                        </div>
-                                                        <div style={{ minWidth: 0, paddingRight: '1rem' }}>
-                                                            <p style={{ margin: 0, fontWeight: 700, color: '#0f172a', fontSize: '0.95rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{u.name || 'Unknown'}</p>
-                                                            <p style={{ margin: '0.2rem 0 0', fontSize: '0.75rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                                                                <Calendar size={12} /> {new Date(u.createdAt).toLocaleDateString()}
-                                                            </p>
-                                                        </div>
-                                                    </div>
-                                                    {/* Email Col */}
-                                                    <div style={{ color: '#475569', fontSize: '0.9rem', paddingRight: '1rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{u.email}</div>
-                                                    {/* Items Col */}
-                                                    <div style={{ fontWeight: 600, color: '#0f172a', fontSize: '0.95rem' }}>{u.itemCount || 0}</div>
-                                                    {/* Status Col */}
-                                                    <div>
-                                                        {u.isPremium ? (
-                                                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.25rem 0.75rem', background: '#fff7ed', color: '#ea580c', borderRadius: '99px', fontSize: '0.8rem', fontWeight: 700 }}>
-                                                                <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#ea580c' }}></span>Premium
-                                                            </span>
-                                                        ) : (
-                                                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.25rem 0.75rem', background: '#eff6ff', color: '#2563eb', borderRadius: '99px', fontSize: '0.8rem', fontWeight: 700 }}>
-                                                                <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#2563eb' }}></span>Free
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                    {/* Actions Col */}
-                                                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', justifyContent: 'flex-end' }}>
-                                                        {u.isPremium ? (
-                                                            <button onClick={() => revokePremium(u.id)} disabled={actionLoading === u.id + '_revoke'} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 0.75rem', background: '#fff1f2', color: '#e11d48', border: '1px solid #ffe4e6', borderRadius: '8px', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer' }} title="Revoke Premium">
-                                                                <XCircle size={16} /> <span>Revoke</span>
-                                                            </button>
-                                                        ) : (
-                                                            <button onClick={() => grantPremium(u.id)} disabled={actionLoading === u.id + '_grant'} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 0.75rem', background: '#6366f1', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer', boxShadow: '0 2px 4px rgba(99,102,241,0.2)' }} title="Grant Premium">
-                                                                <Crown size={16} /> <span>Grant Premium</span>
-                                                            </button>
-                                                        )}
-                                                        <button onClick={() => deleteUser(u.id)} disabled={actionLoading === u.id + '_delete'} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 0.75rem', background: '#fff1f2', color: '#e11d48', border: '1px solid #ffe4e6', borderRadius: '8px', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer' }} title="Delete user">
-                                                            <Trash2 size={16} /> <span>Delete</span>
-                                                        </button>
-                                                    </div>
+                                        ))
+                                    ) : (
+                                        [
+                                            { val: users.length, label: 'Total Users', icon: Users, bg: '#f5f3ff', color: '#7c3aed' },
+                                            { val: totalItemsCount, label: 'Total Items', icon: Package, bg: '#ecfdf5', color: '#10b981' },
+                                            { val: premiumCount, label: 'Premium Users', icon: Crown, bg: '#fff7ed', color: '#f59e0b' },
+                                            { val: freeCount, label: 'Free Users', icon: Users, bg: '#eff6ff', color: '#3b82f6' },
+                                        ].map((s, i) => (
+                                            <div key={i} className="admin-stat-card" style={{ background: '#fff', border: '1px solid #f1f5f9', borderRadius: '16px', padding: '1.5rem', display: 'flex', gap: '1.25rem', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -2px rgba(0, 0, 0, 0.02)' }}>
+                                                <div className="admin-stat-icon-wrapper" style={{ width: '48px', height: '48px', borderRadius: '12px', background: s.bg, color: s.color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                                    <s.icon size={24} />
                                                 </div>
-
-                                                {/* ===== MOBILE CARD ===== */}
-                                                <div className={`admin-mobile-card ${u.isPremium ? 'premium-card' : 'free-card'}`}>
-                                                    <div className="admin-mobile-badge">{u.isPremium ? 'PREMIUM' : 'FREE'}</div>
-                                                    <div className="admin-mobile-card-body">
-                                                        {/* Avatar + Name */}
-                                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
-                                                            <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: avatarColor.bg, color: avatarColor.text, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '1rem', flexShrink: 0 }}>
-                                                                {getInitials(u.name, u.email)}
-                                                            </div>
-                                                            <div>
-                                                                <p style={{ margin: 0, fontWeight: 700, color: '#0f172a', fontSize: '0.95rem' }}>{u.name || 'Unknown'}</p>
-                                                                <p style={{ margin: '0.15rem 0 0', fontSize: '0.75rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                                                                    <Calendar size={11} /> {new Date(u.createdAt).toLocaleDateString()}
-                                                                </p>
-                                                            </div>
-                                                        </div>
-                                                        {/* Email */}
-                                                        <p style={{ margin: '0 0 0.25rem 0', fontSize: '0.82rem', color: '#475569', paddingLeft: '0' }}>{u.email}</p>
-                                                        {/* Items */}
-                                                        <p style={{ margin: '0 0 1rem 0', fontSize: '0.82rem', color: '#334155', fontWeight: 600 }}>Total Items: {u.itemCount || 0}</p>
-                                                        {/* Buttons — ALWAYS TWO SIDE BY SIDE */}
-                                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.6rem' }}>
-                                                            {u.isPremium ? (
-                                                                <button onClick={() => revokePremium(u.id)} disabled={actionLoading === u.id + '_revoke'} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.4rem', padding: '0.7rem', background: '#fff1f2', color: '#e11d48', border: '1px solid #ffe4e6', borderRadius: '8px', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer', width: '100%' }}>
-                                                                    <XCircle size={15} /> Revoke
-                                                                </button>
-                                                            ) : (
-                                                                <button onClick={() => grantPremium(u.id)} disabled={actionLoading === u.id + '_grant'} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.4rem', padding: '0.7rem', background: '#6366f1', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer', width: '100%', boxShadow: '0 2px 8px rgba(99,102,241,0.3)' }}>
-                                                                    <Crown size={15} /> Grant
-                                                                </button>
-                                                            )}
-                                                            <button onClick={() => deleteUser(u.id)} disabled={actionLoading === u.id + '_delete'} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.4rem', padding: '0.7rem', background: '#fff1f2', color: '#e11d48', border: '1px solid #ffe4e6', borderRadius: '8px', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer', width: '100%' }}>
-                                                                <Trash2 size={15} /> Delete
-                                                            </button>
-                                                        </div>
-                                                    </div>
+                                                <div className="admin-stat-text-wrapper" style={{ display: 'flex', flexDirection: 'column' }}>
+                                                    <p className="admin-stat-val" style={{ margin: 0, fontSize: '1.75rem', fontWeight: 800, color: '#0f172a', lineHeight: 1 }}>{s.val}</p>
+                                                    <p className="admin-stat-label" style={{ margin: '0.4rem 0 0', fontSize: '0.9rem', fontWeight: 700, color: '#334155', lineHeight: 1.2 }}>{s.label}</p>
+                                                    {s.sub && <p style={{ margin: '0.2rem 0 0', fontSize: '0.75rem', color: '#64748b' }}>{s.sub}</p>}
                                                 </div>
                                             </div>
-                                        );
-                                    })
-                                )}
-                            </div>
-                        </div>
-
-                        {/* Pagination Footer Users */}
-                        {!loadingUsers && filteredUsers.length > 0 && (
-                            <div className="admin-pagination-container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1.5rem', padding: '0 0.5rem', paddingBottom: '2rem', flexWrap: 'nowrap', gap: '1rem' }}>
-                                <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                    <button
-                                        onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                                        disabled={currentPage === 1}
-                                        style={{ width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px', cursor: currentPage === 1 ? 'not-allowed' : 'pointer', color: '#64748b', opacity: currentPage === 1 ? 0.5 : 1 }}
-                                    >
-                                        <ChevronLeft size={16} />
-                                    </button>
-                                    {Array.from({ length: totalPages })
-                                        .map((_, i) => i + 1)
-                                        .filter(page => Math.abs(currentPage - page) <= 1)
-                                        .map(page => (
-                                            <button
-                                                key={page}
-                                                onClick={() => setCurrentPage(page)}
-                                                style={{
-                                                    width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                                    background: currentPage === page ? '#eef2ff' : '#fff',
-                                                    border: `1px solid ${currentPage === page ? '#c7d2fe' : '#e2e8f0'}`,
-                                                    color: currentPage === page ? '#4f46e5' : '#64748b',
-                                                    borderRadius: '8px', cursor: 'pointer', fontWeight: 600, fontSize: '0.9rem'
-                                                }}
-                                            >
-                                                {page}
-                                            </button>
-                                        ))}
-                                    <button
-                                        onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                                        disabled={currentPage === totalPages}
-                                        style={{ width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px', cursor: currentPage === totalPages ? 'not-allowed' : 'pointer', color: '#64748b', opacity: currentPage === totalPages ? 0.5 : 1 }}
-                                    >
-                                        <ChevronRight size={16} />
-                                    </button>
-                                </div>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', fontSize: '0.9rem', color: '#64748b', fontWeight: 500 }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                        <span className="admin-rows-text">Rows per page:</span>
-                                        <div style={{ width: '80px' }}>
-                                            <CustomSelect
-                                                value={usersPerPage}
-                                                onChange={(val) => { setUsersPerPage(Number(val)); setCurrentPage(1); }}
-                                                options={[5, 10, 20, 50]}
-                                                style={{ padding: '0.4rem 0.75rem', borderRadius: '8px', border: '1px solid #e2e8f0', background: '#fff', color: '#0f172a', fontSize: '0.85rem' }}
-                                            />
-                                        </div>
-                                    </div>
+                                        ))
+                                    )}
                                 </div>
 
-                            </div>
-                        )}
-                    </>
-                ) : (
-                    <>
-                        {/* Items Table */}
-                        <div className="admin-table-wrapper" style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
-                            <div className="admin-table-header" style={{ display: 'grid', gridTemplateColumns: '2fr 1.5fr 1fr 1fr 1fr', padding: '1rem 1.5rem', background: '#f8fafc', borderBottom: '1px solid #e2e8f0', fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                                <span>Item Details</span>
-                                <span>Created By</span>
-                                <span>Price</span>
-                                <span>Date Added</span>
-                                <span>Link</span>
-                            </div>
+                                {/* Table */}
+                                <div className="admin-table-wrapper" style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
+                                    {/* Table Header */}
+                                    <div className="admin-table-header" style={{ display: 'grid', gridTemplateColumns: '2.5fr 2fr 1fr 1fr 2.5fr', padding: '1rem 1.5rem', background: '#f8fafc', borderBottom: '1px solid #e2e8f0', fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                        <span>User</span>
+                                        <span>Email</span>
+                                        <span>Items</span>
+                                        <span>Status</span>
+                                        <span style={{ textAlign: 'center' }}>Actions</span>
+                                    </div>
 
-                            <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                {loadingItems ? (
+                                    {/* Table Body */}
                                     <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                        {Array.from({ length: 6 }).map((_, i) => (
-                                            <div key={i} style={{ display: 'grid', gridTemplateColumns: '2fr 1.5fr 1fr 1fr 1fr', padding: '1.25rem 1.5rem', alignItems: 'center', borderBottom: i < 5 ? '1px solid #f1f5f9' : 'none', gap: '1rem' }}>
-                                                {/* Item details col */}
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                                                    <div className="skeleton-shimmer" style={{ width: '48px', height: '48px', borderRadius: '8px', flexShrink: 0 }} />
-                                                    <div className="skeleton-shimmer" style={{ height: '13px', width: '60%' }} />
-                                                </div>
-                                                {/* Created by col */}
-                                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                                                    <div className="skeleton-shimmer" style={{ height: '13px', width: '70%' }} />
-                                                    <div className="skeleton-shimmer" style={{ height: '11px', width: '85%' }} />
-                                                </div>
-                                                {/* Price col */}
-                                                <div className="skeleton-shimmer" style={{ height: '13px', width: '50px' }} />
-                                                {/* Date col */}
-                                                <div className="skeleton-shimmer" style={{ height: '13px', width: '70px' }} />
-                                                {/* Link col */}
-                                                <div className="skeleton-shimmer" style={{ height: '30px', width: '70px', borderRadius: '8px' }} />
-                                            </div>
-                                        ))}
-                                    </div>
-                                ) : currentItems.length === 0 ? (
-                                    <div style={{ padding: '3rem', textAlign: 'center', color: '#64748b' }}>
-                                        {selectedUserFilter ? 'This user has no items' : 'No items found'}
-                                    </div>
-                                ) : (
-                                    currentItems.map((item, i) => {
-                                        const creator = users.find(u => u.id === item.user_id) || { name: 'Unknown', email: 'unknown' };
-                                        return (
-                                            <div key={item.id}>
-                                                {/* ===== DESKTOP TABLE ROW ===== */}
-                                                <div className="admin-table-row admin-desktop-row" style={{
-                                                    display: 'grid', gridTemplateColumns: '2fr 1.5fr 1fr 1fr 1fr', padding: '1.25rem 1.5rem',
-                                                    alignItems: 'center', borderBottom: i !== currentItems.length - 1 ? '1px solid #f1f5f9' : 'none',
-                                                    transition: 'background 0.2s', position: 'relative', overflow: 'hidden'
-                                                }}>
-                                                    {item.is_purchased && (
-                                                        <div style={{
-                                                            position: 'absolute', left: 0, top: 0, bottom: 0, width: '4px',
-                                                            background: 'linear-gradient(to bottom, #10b981, #059669)'
-                                                        }} />
-                                                    )}
-                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', minWidth: 0, paddingLeft: item.is_purchased ? '0.5rem' : '0' }}>
-                                                        {item.image ? (
-                                                            <img src={item.image} alt="" style={{ width: '48px', height: '48px', borderRadius: '8px', objectFit: 'cover', flexShrink: 0, border: '1px solid #e2e8f0' }} />
-                                                        ) : (
-                                                            <div style={{ width: '48px', height: '48px', borderRadius: '8px', background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: '#94a3b8' }}>
-                                                                <Package size={24} />
+                                        {loadingUsers ? (
+                                            <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                                {Array.from({ length: 6 }).map((_, i) => (
+                                                    <div key={i} style={{ display: 'grid', gridTemplateColumns: '2.5fr 2fr 1fr 1fr 2.5fr', padding: '1.25rem 1.5rem', alignItems: 'center', borderBottom: i < 5 ? '1px solid #f1f5f9' : 'none', gap: '1rem' }}>
+                                                        {/* User col */}
+                                                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                                                            <div className="skeleton-shimmer" style={{ width: '40px', height: '40px', borderRadius: '50%', flexShrink: 0 }} />
+                                                            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                                                                <div className="skeleton-shimmer" style={{ height: '13px', width: '65%' }} />
+                                                                <div className="skeleton-shimmer" style={{ height: '11px', width: '40%' }} />
                                                             </div>
-                                                        )}
-                                                        <div style={{ minWidth: 0, paddingRight: '1rem' }}>
-                                                            <p style={{ margin: 0, fontWeight: 700, color: '#0f172a', fontSize: '0.95rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                                                {item.name || 'Unnamed Item'}
-                                                            </p>
+                                                        </div>
+                                                        {/* Email col */}
+                                                        <div className="skeleton-shimmer" style={{ height: '13px', width: '80%' }} />
+                                                        {/* Items col */}
+                                                        <div className="skeleton-shimmer" style={{ height: '13px', width: '30px' }} />
+                                                        {/* Status col */}
+                                                        <div className="skeleton-shimmer" style={{ height: '24px', width: '60px', borderRadius: '99px' }} />
+                                                        {/* Actions col */}
+                                                        <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+                                                            <div className="skeleton-shimmer" style={{ height: '34px', width: '100px', borderRadius: '8px' }} />
+                                                            <div className="skeleton-shimmer" style={{ height: '34px', width: '80px', borderRadius: '8px' }} />
                                                         </div>
                                                     </div>
-                                                    <div style={{ minWidth: 0, paddingRight: '1rem' }}>
-                                                        <p style={{ margin: 0, fontWeight: 600, color: '#334155', fontSize: '0.9rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{creator.name || 'Unknown'}</p>
-                                                        <p style={{ margin: '0.1rem 0 0', fontSize: '0.75rem', color: '#64748b', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{creator.email}</p>
-                                                    </div>
-                                                    <div style={{ fontWeight: 700, color: '#0f172a', fontSize: '0.95rem' }}>
-                                                        {item.price ? `₹${item.price}` : 'Free'}
-                                                    </div>
-                                                    <div style={{ color: '#64748b', fontSize: '0.85rem' }}>
-                                                        {new Date(item.created_at).toLocaleDateString()}
-                                                    </div>
-                                                    <div>
-                                                        {item.link ? (
-                                                            <a
-                                                                href={item.link}
-                                                                target="_blank"
-                                                                rel="noopener noreferrer"
-                                                                style={{
-                                                                    display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
-                                                                    padding: '0.4rem 0.75rem', borderRadius: '8px',
-                                                                    background: '#eef2ff', color: '#4f46e5',
-                                                                    fontWeight: 600, fontSize: '0.85rem', textDecoration: 'none'
-                                                                }}
-                                                            >
-                                                                <LinkIcon size={14} /> Link
-                                                            </a>
-                                                        ) : (
-                                                            <span style={{ color: '#94a3b8', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                                                                <LinkIcon size={14} /> No Link
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                </div>
-
-                                                {/* ===== MOBILE CARD ===== */}
-                                                <div className="admin-mobile-card" style={{
-                                                    background: '#fff',
-                                                    position: 'relative',
-                                                    overflow: 'hidden'
-                                                }}>
-                                                    {item.is_purchased && (
-                                                        <div style={{
-                                                            position: 'absolute', left: 0, top: 0, bottom: 0, width: '6px',
-                                                            background: 'linear-gradient(to bottom, #10b981, #059669)'
-                                                        }} />
-                                                    )}
-                                                    <div className="admin-mobile-card-body" style={{ marginTop: 0, borderRadius: '12px', paddingLeft: item.is_purchased ? '1.5rem' : '1.25rem' }}>
-                                                        {/* Item Image + Name */}
-                                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
-                                                            {item.image ? (
-                                                                <img src={item.image} alt="" style={{ width: '48px', height: '48px', borderRadius: '8px', objectFit: 'cover', flexShrink: 0, border: '1px solid #e2e8f0' }} />
-                                                            ) : (
-                                                                <div style={{ width: '48px', height: '48px', borderRadius: '8px', background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: '#94a3b8' }}>
-                                                                    <Package size={24} />
+                                                ))}
+                                            </div>
+                                        ) : currentUsers.length === 0 ? (
+                                            <div style={{ padding: '3rem', textAlign: 'center', color: '#64748b' }}>No users found</div>
+                                        ) : (
+                                            currentUsers.map((u, i) => {
+                                                const avatarColor = getAvatarColor(u.name || u.email);
+                                                return (
+                                                    <div key={u.id}>
+                                                        {/* ===== DESKTOP TABLE ROW ===== */}
+                                                        <div className={`admin-table-row admin-desktop-row ${u.isPremium ? 'premium-card' : 'free-card'}`} style={{ display: 'grid', gridTemplateColumns: '2.5fr 2fr 1fr 1fr 2.5fr', padding: '1.25rem 1.5rem', alignItems: 'center', borderBottom: i !== currentUsers.length - 1 ? '1px solid #f1f5f9' : 'none', transition: 'background 0.2s' }}>
+                                                            {/* User Col */}
+                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', minWidth: 0 }}>
+                                                                <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: avatarColor.bg, color: avatarColor.text, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '1rem', flexShrink: 0 }}>
+                                                                    {getInitials(u.name, u.email)}
                                                                 </div>
-                                                            )}
-                                                            <div style={{ minWidth: 0 }}>
-                                                                <p style={{ margin: 0, fontWeight: 700, color: '#0f172a', fontSize: '0.95rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                                                    {item.name || 'Unnamed Item'}
-                                                                </p>
+                                                                <div style={{ minWidth: 0, paddingRight: '1rem' }}>
+                                                                    <p style={{ margin: 0, fontWeight: 700, color: '#0f172a', fontSize: '0.95rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{u.name || 'Unknown'}</p>
+                                                                    <p style={{ margin: '0.2rem 0 0', fontSize: '0.75rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                                                                        <Calendar size={12} /> {new Date(u.createdAt).toLocaleDateString()}
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+                                                            {/* Email Col */}
+                                                            <div style={{ color: '#475569', fontSize: '0.9rem', paddingRight: '1rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{u.email}</div>
+                                                            {/* Items Col */}
+                                                            <div style={{ fontWeight: 600, color: '#0f172a', fontSize: '0.95rem' }}>{u.itemCount || 0}</div>
+                                                            {/* Status Col */}
+                                                            <div>
+                                                                {u.isPremium ? (
+                                                                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.25rem 0.75rem', background: '#fff7ed', color: '#ea580c', borderRadius: '99px', fontSize: '0.8rem', fontWeight: 700 }}>
+                                                                        <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#ea580c' }}></span>Premium
+                                                                    </span>
+                                                                ) : (
+                                                                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.25rem 0.75rem', background: '#eff6ff', color: '#2563eb', borderRadius: '99px', fontSize: '0.8rem', fontWeight: 700 }}>
+                                                                        <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#2563eb' }}></span>Free
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                            {/* Actions Col */}
+                                                            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', justifyContent: 'flex-end' }}>
+                                                                {u.isPremium ? (
+                                                                    <button onClick={() => revokePremium(u.id)} disabled={actionLoading === u.id + '_revoke'} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 0.75rem', background: '#fff1f2', color: '#e11d48', border: '1px solid #ffe4e6', borderRadius: '8px', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer' }} title="Revoke Premium">
+                                                                        <XCircle size={16} /> <span>Revoke</span>
+                                                                    </button>
+                                                                ) : (
+                                                                    <button onClick={() => grantPremium(u.id)} disabled={actionLoading === u.id + '_grant'} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 0.75rem', background: '#6366f1', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer', boxShadow: '0 2px 4px rgba(99,102,241,0.2)' }} title="Grant Premium">
+                                                                        <Crown size={16} /> <span>Grant Premium</span>
+                                                                    </button>
+                                                                )}
+                                                                <button onClick={() => deleteUser(u.id)} disabled={actionLoading === u.id + '_delete'} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 0.75rem', background: '#fff1f2', color: '#e11d48', border: '1px solid #ffe4e6', borderRadius: '8px', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer' }} title="Delete user">
+                                                                    <Trash2 size={16} /> <span>Delete</span>
+                                                                </button>
                                                             </div>
                                                         </div>
 
-                                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', marginBottom: '1rem', padding: '0.75rem', background: '#f8fafc', borderRadius: '8px' }}>
-                                                            <div>
-                                                                <p style={{ margin: 0, fontSize: '0.72rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 700, marginBottom: '0.2rem' }}>Creator</p>
-                                                                <p style={{ margin: 0, fontWeight: 600, color: '#334155', fontSize: '0.9rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{creator.name || 'Unknown'}</p>
-                                                            </div>
-                                                            <div>
-                                                                <p style={{ margin: 0, fontSize: '0.72rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 700, marginBottom: '0.2rem' }}>Price</p>
-                                                                <p style={{ margin: 0, fontWeight: 700, color: '#0f172a', fontSize: '0.95rem' }}>{item.price ? `₹${item.price}` : 'Free'}</p>
+                                                        {/* ===== MOBILE CARD ===== */}
+                                                        <div className={`admin-mobile-card ${u.isPremium ? 'premium-card' : 'free-card'}`}>
+                                                            <div className="admin-mobile-badge">{u.isPremium ? 'PREMIUM' : 'FREE'}</div>
+                                                            <div className="admin-mobile-card-body">
+                                                                {/* Avatar + Name */}
+                                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
+                                                                    <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: avatarColor.bg, color: avatarColor.text, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '1rem', flexShrink: 0 }}>
+                                                                        {getInitials(u.name, u.email)}
+                                                                    </div>
+                                                                    <div>
+                                                                        <p style={{ margin: 0, fontWeight: 700, color: '#0f172a', fontSize: '0.95rem' }}>{u.name || 'Unknown'}</p>
+                                                                        <p style={{ margin: '0.15rem 0 0', fontSize: '0.75rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                                                                            <Calendar size={11} /> {new Date(u.createdAt).toLocaleDateString()}
+                                                                        </p>
+                                                                    </div>
+                                                                </div>
+                                                                {/* Email */}
+                                                                <p style={{ margin: '0 0 0.25rem 0', fontSize: '0.82rem', color: '#475569', paddingLeft: '0' }}>{u.email}</p>
+                                                                {/* Items */}
+                                                                <p style={{ margin: '0 0 1rem 0', fontSize: '0.82rem', color: '#334155', fontWeight: 600 }}>Total Items: {u.itemCount || 0}</p>
+                                                                {/* Buttons — ALWAYS TWO SIDE BY SIDE */}
+                                                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.6rem' }}>
+                                                                    {u.isPremium ? (
+                                                                        <button onClick={() => revokePremium(u.id)} disabled={actionLoading === u.id + '_revoke'} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.4rem', padding: '0.7rem', background: '#fff1f2', color: '#e11d48', border: '1px solid #ffe4e6', borderRadius: '8px', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer', width: '100%' }}>
+                                                                            <XCircle size={15} /> Revoke
+                                                                        </button>
+                                                                    ) : (
+                                                                        <button onClick={() => grantPremium(u.id)} disabled={actionLoading === u.id + '_grant'} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.4rem', padding: '0.7rem', background: '#6366f1', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer', width: '100%', boxShadow: '0 2px 8px rgba(99,102,241,0.3)' }}>
+                                                                            <Crown size={15} /> Grant
+                                                                        </button>
+                                                                    )}
+                                                                    <button onClick={() => deleteUser(u.id)} disabled={actionLoading === u.id + '_delete'} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.4rem', padding: '0.7rem', background: '#fff1f2', color: '#e11d48', border: '1px solid #ffe4e6', borderRadius: '8px', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer', width: '100%' }}>
+                                                                        <Trash2 size={15} /> Delete
+                                                                    </button>
+                                                                </div>
                                                             </div>
                                                         </div>
-
-                                                        <a
-                                                            href={item.link || '#'}
-                                                            target="_blank"
-                                                            rel="noopener noreferrer"
-                                                            style={{
-                                                                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
-                                                                width: '100%', padding: '0.75rem', borderRadius: '15px',
-                                                                background: item.link ? '#eef2ff' : '#f1f5f9',
-                                                                color: item.link ? '#4f46e5' : '#94a3b8',
-                                                                fontWeight: 700, fontSize: '0.9rem', textDecoration: 'none',
-                                                                pointerEvents: item.link ? 'auto' : 'none'
-                                                            }}
-                                                        >
-                                                            <LinkIcon size={16} /> {item.link ? 'Link' : 'No Link'}
-                                                        </a>
                                                     </div>
-                                                </div>
-                                            </div>
-                                        );
-                                    })
-                                )}
-                            </div>
-                        </div>
-
-                        {/* Pagination Footer Items */}
-                        {!loadingItems && filteredItems.length > 0 && (
-                            <div className="admin-pagination-container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1.5rem', padding: '0 0.5rem', paddingBottom: '2rem', flexWrap: 'nowrap', gap: '1rem' }}>
-                                <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                    <button
-                                        onClick={() => setCurrentItemsPage(p => Math.max(1, p - 1))}
-                                        disabled={currentItemsPage === 1}
-                                        style={{ width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px', cursor: currentItemsPage === 1 ? 'not-allowed' : 'pointer', color: '#64748b', opacity: currentItemsPage === 1 ? 0.5 : 1 }}
-                                    >
-                                        <ChevronLeft size={16} />
-                                    </button>
-                                    {Array.from({ length: totalItemsPages })
-                                        .map((_, i) => i + 1)
-                                        .filter(page => Math.abs(currentItemsPage - page) <= 1)
-                                        .map(page => (
-                                            <button
-                                                key={page}
-                                                onClick={() => setCurrentItemsPage(page)}
-                                                style={{
-                                                    width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                                    background: currentItemsPage === page ? '#eef2ff' : '#fff',
-                                                    border: `1px solid ${currentItemsPage === page ? '#c7d2fe' : '#e2e8f0'}`,
-                                                    color: currentItemsPage === page ? '#4f46e5' : '#64748b',
-                                                    borderRadius: '8px', cursor: 'pointer', fontWeight: 600, fontSize: '0.9rem'
-                                                }}
-                                            >
-                                                {page}
-                                            </button>
-                                        ))}
-                                    <button
-                                        onClick={() => setCurrentItemsPage(p => Math.min(totalItemsPages, p + 1))}
-                                        disabled={currentItemsPage === totalItemsPages}
-                                        style={{ width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px', cursor: currentItemsPage === totalItemsPages ? 'not-allowed' : 'pointer', color: '#64748b', opacity: currentItemsPage === totalItemsPages ? 0.5 : 1 }}
-                                    >
-                                        <ChevronRight size={16} />
-                                    </button>
-                                </div>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', fontSize: '0.9rem', color: '#64748b', fontWeight: 500 }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                        <span className="admin-rows-text">Rows per page:</span>
-                                        <div style={{ width: '80px' }}>
-                                            <CustomSelect
-                                                value={itemsPerPage}
-                                                onChange={(val) => { setItemsPerPage(Number(val)); setCurrentItemsPage(1); }}
-                                                options={[5, 10, 20, 50]}
-                                                style={{ padding: '0.4rem 0.75rem', borderRadius: '8px', border: '1px solid #e2e8f0', background: '#fff', color: '#0f172a', fontSize: '0.85rem' }}
-                                            />
-                                        </div>
+                                                );
+                                            })
+                                        )}
                                     </div>
                                 </div>
-                            </div>
+
+                                {/* Pagination Footer Users */}
+                                {!loadingUsers && filteredUsers.length > 0 && (
+                                    <div className="admin-pagination-container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1.5rem', padding: '0 0.5rem', paddingBottom: '2rem', flexWrap: 'nowrap', gap: '1rem' }}>
+                                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                            <button
+                                                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                                                disabled={currentPage === 1}
+                                                style={{ width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px', cursor: currentPage === 1 ? 'not-allowed' : 'pointer', color: '#64748b', opacity: currentPage === 1 ? 0.5 : 1 }}
+                                            >
+                                                <ChevronLeft size={16} />
+                                            </button>
+                                            {Array.from({ length: totalPages })
+                                                .map((_, i) => i + 1)
+                                                .filter(page => Math.abs(currentPage - page) <= 1)
+                                                .map(page => (
+                                                    <button
+                                                        key={page}
+                                                        onClick={() => setCurrentPage(page)}
+                                                        style={{
+                                                            width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                            background: currentPage === page ? '#eef2ff' : '#fff',
+                                                            border: `1px solid ${currentPage === page ? '#c7d2fe' : '#e2e8f0'}`,
+                                                            color: currentPage === page ? '#4f46e5' : '#64748b',
+                                                            borderRadius: '8px', cursor: 'pointer', fontWeight: 600, fontSize: '0.9rem'
+                                                        }}
+                                                    >
+                                                        {page}
+                                                    </button>
+                                                ))}
+                                            <button
+                                                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                                                disabled={currentPage === totalPages}
+                                                style={{ width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px', cursor: currentPage === totalPages ? 'not-allowed' : 'pointer', color: '#64748b', opacity: currentPage === totalPages ? 0.5 : 1 }}
+                                            >
+                                                <ChevronRight size={16} />
+                                            </button>
+                                        </div>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', fontSize: '0.9rem', color: '#64748b', fontWeight: 500 }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                <span className="admin-rows-text">Rows per page:</span>
+                                                <div style={{ width: '80px' }}>
+                                                    <CustomSelect
+                                                        value={usersPerPage}
+                                                        onChange={(val) => { setUsersPerPage(Number(val)); setCurrentPage(1); }}
+                                                        options={[5, 10, 20, 50]}
+                                                        style={{ padding: '0.4rem 0.75rem', borderRadius: '8px', border: '1px solid #e2e8f0', background: '#fff', color: '#0f172a', fontSize: '0.85rem' }}
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                )}
+                            </>
+                        ) : (
+                            <>
+                                {/* Items Table */}
+                                <div className="admin-table-wrapper" style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
+                                    <div className="admin-table-header" style={{ display: 'grid', gridTemplateColumns: '2fr 1.5fr 1fr 1fr 1fr', padding: '1rem 1.5rem', background: '#f8fafc', borderBottom: '1px solid #e2e8f0', fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                        <span>Item Details</span>
+                                        <span>Created By</span>
+                                        <span>Price</span>
+                                        <span>Date Added</span>
+                                        <span>Link</span>
+                                    </div>
+
+                                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                        {loadingItems ? (
+                                            <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                                {Array.from({ length: 6 }).map((_, i) => (
+                                                    <div key={i} style={{ display: 'grid', gridTemplateColumns: '2fr 1.5fr 1fr 1fr 1fr', padding: '1.25rem 1.5rem', alignItems: 'center', borderBottom: i < 5 ? '1px solid #f1f5f9' : 'none', gap: '1rem' }}>
+                                                        {/* Item details col */}
+                                                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                                                            <div className="skeleton-shimmer" style={{ width: '48px', height: '48px', borderRadius: '8px', flexShrink: 0 }} />
+                                                            <div className="skeleton-shimmer" style={{ height: '13px', width: '60%' }} />
+                                                        </div>
+                                                        {/* Created by col */}
+                                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                                                            <div className="skeleton-shimmer" style={{ height: '13px', width: '70%' }} />
+                                                            <div className="skeleton-shimmer" style={{ height: '11px', width: '85%' }} />
+                                                        </div>
+                                                        {/* Price col */}
+                                                        <div className="skeleton-shimmer" style={{ height: '13px', width: '50px' }} />
+                                                        {/* Date col */}
+                                                        <div className="skeleton-shimmer" style={{ height: '13px', width: '70px' }} />
+                                                        {/* Link col */}
+                                                        <div className="skeleton-shimmer" style={{ height: '30px', width: '70px', borderRadius: '8px' }} />
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        ) : currentItems.length === 0 ? (
+                                            <div style={{ padding: '3rem', textAlign: 'center', color: '#64748b' }}>
+                                                {selectedUserFilter ? 'This user has no items' : 'No items found'}
+                                            </div>
+                                        ) : (
+                                            currentItems.map((item, i) => {
+                                                const creator = users.find(u => u.id === item.user_id) || { name: 'Unknown', email: 'unknown' };
+                                                return (
+                                                    <div key={item.id}>
+                                                        {/* ===== DESKTOP TABLE ROW ===== */}
+                                                        <div className="admin-table-row admin-desktop-row" style={{
+                                                            display: 'grid', gridTemplateColumns: '2fr 1.5fr 1fr 1fr 1fr', padding: '1.25rem 1.5rem',
+                                                            alignItems: 'center', borderBottom: i !== currentItems.length - 1 ? '1px solid #f1f5f9' : 'none',
+                                                            transition: 'background 0.2s', position: 'relative', overflow: 'hidden'
+                                                        }}>
+                                                            {item.is_purchased && (
+                                                                <div style={{
+                                                                    position: 'absolute', left: 0, top: 0, bottom: 0, width: '4px',
+                                                                    background: 'linear-gradient(to bottom, #10b981, #059669)'
+                                                                }} />
+                                                            )}
+                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', minWidth: 0, paddingLeft: item.is_purchased ? '0.5rem' : '0' }}>
+                                                                {item.image ? (
+                                                                    <img src={item.image} alt="" style={{ width: '48px', height: '48px', borderRadius: '8px', objectFit: 'cover', flexShrink: 0, border: '1px solid #e2e8f0' }} />
+                                                                ) : (
+                                                                    <div style={{ width: '48px', height: '48px', borderRadius: '8px', background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: '#94a3b8' }}>
+                                                                        <Package size={24} />
+                                                                    </div>
+                                                                )}
+                                                                <div style={{ minWidth: 0, paddingRight: '1rem' }}>
+                                                                    <p style={{ margin: 0, fontWeight: 700, color: '#0f172a', fontSize: '0.95rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                                                        {item.name || 'Unnamed Item'}
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+                                                            <div style={{ minWidth: 0, paddingRight: '1rem' }}>
+                                                                <p style={{ margin: 0, fontWeight: 600, color: '#334155', fontSize: '0.9rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{creator.name || 'Unknown'}</p>
+                                                                <p style={{ margin: '0.1rem 0 0', fontSize: '0.75rem', color: '#64748b', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{creator.email}</p>
+                                                            </div>
+                                                            <div style={{ fontWeight: 700, color: '#0f172a', fontSize: '0.95rem' }}>
+                                                                {item.price ? `₹${item.price}` : 'Free'}
+                                                            </div>
+                                                            <div style={{ color: '#64748b', fontSize: '0.85rem' }}>
+                                                                {new Date(item.created_at).toLocaleDateString()}
+                                                            </div>
+                                                            <div>
+                                                                {item.link ? (
+                                                                    <a
+                                                                        href={item.link}
+                                                                        target="_blank"
+                                                                        rel="noopener noreferrer"
+                                                                        style={{
+                                                                            display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
+                                                                            padding: '0.4rem 0.75rem', borderRadius: '8px',
+                                                                            background: '#eef2ff', color: '#4f46e5',
+                                                                            fontWeight: 600, fontSize: '0.85rem', textDecoration: 'none'
+                                                                        }}
+                                                                    >
+                                                                        <LinkIcon size={14} /> Link
+                                                                    </a>
+                                                                ) : (
+                                                                    <span style={{ color: '#94a3b8', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                                                                        <LinkIcon size={14} /> No Link
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                        </div>
+
+                                                        {/* ===== MOBILE CARD ===== */}
+                                                        <div className="admin-mobile-card" style={{
+                                                            background: '#fff',
+                                                            position: 'relative',
+                                                            overflow: 'hidden'
+                                                        }}>
+                                                            {item.is_purchased && (
+                                                                <div style={{
+                                                                    position: 'absolute', left: 0, top: 0, bottom: 0, width: '6px',
+                                                                    background: 'linear-gradient(to bottom, #10b981, #059669)'
+                                                                }} />
+                                                            )}
+                                                            <div className="admin-mobile-card-body" style={{ marginTop: 0, borderRadius: '12px', paddingLeft: item.is_purchased ? '1.5rem' : '1.25rem' }}>
+                                                                {/* Item Image + Name */}
+                                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
+                                                                    {item.image ? (
+                                                                        <img src={item.image} alt="" style={{ width: '48px', height: '48px', borderRadius: '8px', objectFit: 'cover', flexShrink: 0, border: '1px solid #e2e8f0' }} />
+                                                                    ) : (
+                                                                        <div style={{ width: '48px', height: '48px', borderRadius: '8px', background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: '#94a3b8' }}>
+                                                                            <Package size={24} />
+                                                                        </div>
+                                                                    )}
+                                                                    <div style={{ minWidth: 0 }}>
+                                                                        <p style={{ margin: 0, fontWeight: 700, color: '#0f172a', fontSize: '0.95rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                                                            {item.name || 'Unnamed Item'}
+                                                                        </p>
+                                                                    </div>
+                                                                </div>
+
+                                                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', marginBottom: '1rem', padding: '0.75rem', background: '#f8fafc', borderRadius: '8px' }}>
+                                                                    <div>
+                                                                        <p style={{ margin: 0, fontSize: '0.72rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 700, marginBottom: '0.2rem' }}>Creator</p>
+                                                                        <p style={{ margin: 0, fontWeight: 600, color: '#334155', fontSize: '0.9rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{creator.name || 'Unknown'}</p>
+                                                                    </div>
+                                                                    <div>
+                                                                        <p style={{ margin: 0, fontSize: '0.72rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 700, marginBottom: '0.2rem' }}>Price</p>
+                                                                        <p style={{ margin: 0, fontWeight: 700, color: '#0f172a', fontSize: '0.95rem' }}>{item.price ? `₹${item.price}` : 'Free'}</p>
+                                                                    </div>
+                                                                </div>
+
+                                                                <a
+                                                                    href={item.link || '#'}
+                                                                    target="_blank"
+                                                                    rel="noopener noreferrer"
+                                                                    style={{
+                                                                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
+                                                                        width: '100%', padding: '0.75rem', borderRadius: '15px',
+                                                                        background: item.link ? '#eef2ff' : '#f1f5f9',
+                                                                        color: item.link ? '#4f46e5' : '#94a3b8',
+                                                                        fontWeight: 700, fontSize: '0.9rem', textDecoration: 'none',
+                                                                        pointerEvents: item.link ? 'auto' : 'none'
+                                                                    }}
+                                                                >
+                                                                    <LinkIcon size={16} /> {item.link ? 'Link' : 'No Link'}
+                                                                </a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* Pagination Footer Items */}
+                                {!loadingItems && filteredItems.length > 0 && (
+                                    <div className="admin-pagination-container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1.5rem', padding: '0 0.5rem', paddingBottom: '2rem', flexWrap: 'nowrap', gap: '1rem' }}>
+                                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                            <button
+                                                onClick={() => setCurrentItemsPage(p => Math.max(1, p - 1))}
+                                                disabled={currentItemsPage === 1}
+                                                style={{ width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px', cursor: currentItemsPage === 1 ? 'not-allowed' : 'pointer', color: '#64748b', opacity: currentItemsPage === 1 ? 0.5 : 1 }}
+                                            >
+                                                <ChevronLeft size={16} />
+                                            </button>
+                                            {Array.from({ length: totalItemsPages })
+                                                .map((_, i) => i + 1)
+                                                .filter(page => Math.abs(currentItemsPage - page) <= 1)
+                                                .map(page => (
+                                                    <button
+                                                        key={page}
+                                                        onClick={() => setCurrentItemsPage(page)}
+                                                        style={{
+                                                            width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                            background: currentItemsPage === page ? '#eef2ff' : '#fff',
+                                                            border: `1px solid ${currentItemsPage === page ? '#c7d2fe' : '#e2e8f0'}`,
+                                                            color: currentItemsPage === page ? '#4f46e5' : '#64748b',
+                                                            borderRadius: '8px', cursor: 'pointer', fontWeight: 600, fontSize: '0.9rem'
+                                                        }}
+                                                    >
+                                                        {page}
+                                                    </button>
+                                                ))}
+                                            <button
+                                                onClick={() => setCurrentItemsPage(p => Math.min(totalItemsPages, p + 1))}
+                                                disabled={currentItemsPage === totalItemsPages}
+                                                style={{ width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px', cursor: currentItemsPage === totalItemsPages ? 'not-allowed' : 'pointer', color: '#64748b', opacity: currentItemsPage === totalItemsPages ? 0.5 : 1 }}
+                                            >
+                                                <ChevronRight size={16} />
+                                            </button>
+                                        </div>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', fontSize: '0.9rem', color: '#64748b', fontWeight: 500 }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                <span className="admin-rows-text">Rows per page:</span>
+                                                <div style={{ width: '80px' }}>
+                                                    <CustomSelect
+                                                        value={itemsPerPage}
+                                                        onChange={(val) => { setItemsPerPage(Number(val)); setCurrentItemsPage(1); }}
+                                                        options={[5, 10, 20, 50]}
+                                                        style={{ padding: '0.4rem 0.75rem', borderRadius: '8px', border: '1px solid #e2e8f0', background: '#fff', color: '#0f172a', fontSize: '0.85rem' }}
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                            </>
                         )}
-                    </>
-                )}
                     </>
                 )} {/* end activeTab !== 'blog' */}
             </div>
@@ -1257,7 +1646,36 @@ export default function AdminPanel() {
                         <button onClick={() => setActiveTab('blog')} style={{ background: 'transparent', border: 'none', color: activeTab === 'blog' ? '#fff' : 'rgba(255,255,255,0.6)', cursor: 'pointer', display: 'flex', padding: '0.5rem' }}>
                             <BookOpen size={22} strokeWidth={activeTab === 'blog' ? 2.5 : 2} />
                         </button>
+                        <button
+                            onClick={() => {
+                                setActiveTab('price-alerts');
+                                setPriceAlertLoading(true);
+                                fetch(`${API}/api/admin/price-drop/status`, { headers })
+                                    .then(r => r.json())
+                                    .then(d => {
+                                        setPriceAlertStatus(d);
+                                        if (d.cronExpression) {
+                                            const parts = d.cronExpression.split(' ');
+                                            if (parts.length >= 2) {
+                                                const utcH = parseInt(parts[1]) || 19;
+                                                const utcM = parseInt(parts[0]) || 30;
+                                                const istM = (utcM + 30) % 60;
+                                                const istH = (utcH + 5 + (utcM + 30 >= 60 ? 1 : 0)) % 24;
+                                                setScheduleHour(istH);
+                                                setScheduleMinute(istM);
+                                            }
+                                        }
+                                    })
+                                    .catch(() => { })
+                                    .finally(() => setPriceAlertLoading(false));
+                            }}
+                            style={{ background: 'transparent', border: 'none', color: activeTab === 'price-alerts' ? '#fbbf24' : 'rgba(255,255,255,0.6)', cursor: 'pointer', display: 'flex', padding: '0.5rem' }}
+                            title="Price Alerts"
+                        >
+                            <TrendingDown size={22} strokeWidth={activeTab === 'price-alerts' ? 2.5 : 2} />
+                        </button>
                     </div>
+
                     <button onClick={refreshData} disabled={loadingUsers || loadingItems} style={{ width: '56px', height: '56px', borderRadius: '50%', background: '#1d4ed8', color: '#fff', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 10px 25px -5px rgba(29, 78, 216, 0.5)' }}>
                         <RefreshCw size={24} strokeWidth={2.5} style={{ animation: (loadingUsers || loadingItems) ? 'spin 1s linear infinite' : 'none' }} />
                     </button>
