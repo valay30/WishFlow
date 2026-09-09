@@ -12,7 +12,7 @@
   /* Primary theme color — overridden by [data-theme] */
   --primary: #10367D;
   --primary-dk: #0A2251;
-  --primary-lt: rgba(16, 54, 125, 0.12);
+  --primary-lt: rgba(var(--primary-rgb), 0.12);
   --primary-rgb: 16, 54, 125;
 
   /* Legacy aliases kept for compatibility */
@@ -54,7 +54,7 @@
 [data-theme="blue"] {
   --primary: #10367D;
   --primary-dk: #0A2251;
-  --primary-lt: rgba(16, 54, 125, 0.12);
+  --primary-lt: rgba(var(--primary-rgb), 0.12);
   --primary-rgb: 16, 54, 125;
 }
 
@@ -321,10 +321,12 @@ ins.adsbygoogle {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: rgba(17, 17, 17, 0.96);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-bottom: 1px solid var(--border);
+  background: rgba(17, 17, 17, 0.75);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 
+              0 8px 24px rgba(0, 0, 0, 0.2);
 }
 
 /* Hide top header on mobile - use bottom nav instead */
@@ -343,9 +345,9 @@ ins.adsbygoogle {
   left: 1.5rem;
   right: 1.5rem;
   height: 68px;
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
   border: 1px solid rgba(255, 255, 255, 0.4);
   border-radius: 99px;
   display: flex;
@@ -353,7 +355,8 @@ ins.adsbygoogle {
   justify-content: space-between;
   z-index: 2000;
   padding: 0.35rem;
-  box-shadow: 0 16px 32px rgba(16, 54, 125, 0.12);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6), 
+              0 16px 32px rgba(0, 0, 0, 0.08);
 }
 
 .bottom-nav-item {
@@ -385,12 +388,12 @@ ins.adsbygoogle {
   color: #fff;
   background: var(--orange);
   font-weight: 600;
-  box-shadow: 0 4px 12px rgba(16, 54, 125, 0.3);
+  box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.3);
 }
 
 .bottom-nav-item:hover:not(.active) {
   color: var(--orange);
-  background: rgba(16, 54, 125, 0.05);
+  background: rgba(var(--primary-rgb), 0.05);
 }
 
 .bottom-nav-add {
@@ -415,7 +418,7 @@ ins.adsbygoogle {
 }
 
 .bottom-nav-add:hover {
-  background: rgba(16, 54, 125, 0.08);
+  background: rgba(var(--primary-rgb), 0.08);
 }
 
 .bottom-nav-add.active {
@@ -611,14 +614,14 @@ ins.adsbygoogle {
 
 .cat-card:hover {
   border-color: var(--orange);
-  box-shadow: 0 0 20px rgba(16, 54, 125, 0.2);
+  box-shadow: 0 0 20px rgba(var(--primary-rgb), 0.2);
   transform: translateY(-3px);
 }
 
 .cat-card.active {
   border-color: var(--orange);
   background: #1f1800;
-  box-shadow: 0 0 24px rgba(16, 54, 125, 0.25);
+  box-shadow: 0 0 24px rgba(var(--primary-rgb), 0.25);
 }
 
 /* ══════════════════════════════════════
@@ -644,7 +647,7 @@ ins.adsbygoogle {
 
 .item-card:hover {
   border-color: var(--orange);
-  box-shadow: 0 0 16px rgba(16, 54, 125, 0.15);
+  box-shadow: 0 0 16px rgba(var(--primary-rgb), 0.15);
 }
 
 /* ══════════════════════════════════════
@@ -688,7 +691,7 @@ ins.adsbygoogle {
 
 .card:hover {
   border-color: var(--orange);
-  box-shadow: 0 0 20px rgba(16, 54, 125, 0.18);
+  box-shadow: 0 0 20px rgba(var(--primary-rgb), 0.18);
   transform: translateY(-3px);
 }
 
@@ -713,14 +716,14 @@ ins.adsbygoogle {
 
 .btn-primary {
   background: var(--orange);
-  color: #000;
+  color: #fff;
   font-weight: 800;
-  box-shadow: 0 4px 18px rgba(16, 54, 125, 0.35);
+  box-shadow: 0 4px 18px rgba(var(--primary-rgb), 0.35);
 }
 
 .btn-primary:hover {
   background: var(--orange-dk);
-  box-shadow: 0 6px 24px rgba(16, 54, 125, 0.5);
+  box-shadow: 0 6px 24px rgba(var(--primary-rgb), 0.5);
   transform: translateY(-1px);
 }
 
@@ -777,7 +780,7 @@ input[type='number'] {
   outline: none;
   border-color: var(--orange);
   background: var(--surface-3);
-  box-shadow: 0 0 0 4px rgba(16, 54, 125, 0.1);
+  box-shadow: 0 0 0 4px rgba(var(--primary-rgb), 0.1);
 }
 
 .select option {
@@ -796,11 +799,11 @@ input[type='number'] {
   height: 3.5rem;
   border-radius: 50%;
   background: var(--orange);
-  color: #000;
+  color: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 20px rgba(16, 54, 125, 0.5);
+  box-shadow: 0 4px 20px rgba(var(--primary-rgb), 0.5);
   border: none;
   cursor: pointer;
   z-index: 100;

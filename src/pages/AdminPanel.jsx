@@ -840,7 +840,7 @@ export default function AdminPanel() {
                                     </div>
                                 </div>
                             </div>
-                            
+
                             {/* Profile Refresh Feature Toggle */}
                             <div style={{ background: '#fff', padding: '2rem', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', border: '1px solid #f1f5f9' }}>
                                 <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '2rem' }}>
