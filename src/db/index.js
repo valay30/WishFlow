@@ -37,10 +37,19 @@ export const auth = {
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: window.location.origin,
+        skipBrowserRedirect: true,
+        redirectTo: window.location.origin + '/',
       }
     });
+    
     if (error) return { success: false, error: error.message };
+
+    // PWA Fix: Manually redirect instead of letting Supabase use assign() 
+    // which can sometimes trigger Custom Tabs to trap the window on Android.
+    if (data?.url) {
+      window.location.href = data.url;
+    }
+    
     return { success: true };
   },
 
