@@ -85,7 +85,7 @@ function AppRoutes() {
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 5000);
-      await fetch(`/ads.txt?_=${Date.now()}`, {
+      await fetch(`/favicon.ico?_=${Date.now()}`, {
         method: 'HEAD',
         cache: 'no-store',
         signal: controller.signal,
