@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
-import { LogOut, User, ArrowLeft, Settings, Shield, ShieldCheck, Bell, LayoutGrid, List as ListIcon, FolderHeart, ChevronDown, ChevronUp, Crown, Lock, Check, X, Columns } from 'lucide-react';
+import { LogOut, User, ArrowLeft, Settings, Shield, ShieldCheck, Bell, LayoutGrid, List as ListIcon, FolderHeart, ChevronDown, ChevronUp, Crown, Lock, Check, X, Columns, RefreshCw } from 'lucide-react';
 import RoastCard from '../components/RoastCard';
 import { useSettings } from '../context/SettingsContext';
 import { db, supabase } from '../db';
@@ -41,7 +41,15 @@ export default function Profile() {
     const [generalAlert, setGeneralAlert] = useState({ isOpen: false, title: '', message: '' });
     const [isUpgrading, setIsUpgrading] = useState(false);
     const [showRoast, setShowRoast] = useState(false);
-    const [roastFeatureEnabled, setRoastFeatureEnabled] = useState(null);
+    const [roastFeatureEnabled, setRoastFeatureEnabled] = useState(() => {
+        // Read cached value from localStorage for instant render, fallback to true
+        const cached = localStorage.getItem('wishflow_roast_feature_enabled');
+        return cached !== null ? cached === 'true' : true;
+    });
+    const [refreshFeatureEnabled, setRefreshFeatureEnabled] = useState(() => {
+        const cached = localStorage.getItem('wishflow_refresh_feature_enabled');
+        return cached !== null ? cached === 'true' : false;
+    });
 
     useEffect(() => {
         const fetchGlobalSettings = async () => {
@@ -51,10 +59,15 @@ export default function Profile() {
                     const data = await res.json();
                     if (data.roast_feature_enabled !== undefined) {
                         setRoastFeatureEnabled(data.roast_feature_enabled);
+                        localStorage.setItem('wishflow_roast_feature_enabled', data.roast_feature_enabled);
+                    }
+                    if (data.refresh_feature_enabled !== undefined) {
+                        setRefreshFeatureEnabled(data.refresh_feature_enabled);
+                        localStorage.setItem('wishflow_refresh_feature_enabled', data.refresh_feature_enabled);
                     }
                 }
             } catch (e) {
-                // silently fail and default to true
+                // silently fail — cached value remains
             }
         };
         fetchGlobalSettings();
@@ -239,27 +252,24 @@ export default function Profile() {
                         onClick={() => setShowRoast(true)}
                         style={{
                             display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
-                            background: user?.isPremium ? 'linear-gradient(135deg, rgba(124,58,237,0.8), rgba(219,39,119,0.8))' : 'rgba(255,255,255,0.1)',
-                            border: '1px solid rgba(255,255,255,0.25)',
-                            color: user?.isPremium ? '#fff' : 'rgba(255,255,255,0.5)',
-                            fontWeight: 700, fontSize: '0.85rem',
+                            background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)',
+                            color: user?.isPremium ? 'rgba(255,255,255,0.8)' : 'rgba(255,255,255,0.5)', 
+                            fontWeight: 600, fontSize: '0.85rem',
                             cursor: user?.isPremium ? 'pointer' : 'not-allowed',
                             fontFamily: 'inherit',
                             padding: '0.5rem 1rem', borderRadius: '99px',
-                            transition: 'all 0.2s',
-                            backdropFilter: 'blur(8px)',
-                            boxShadow: user?.isPremium ? '0 4px 14px rgba(124,58,237,0.4)' : 'none',
+                            transition: 'all 0.2s'
                         }}
                         onMouseEnter={e => { 
                             if (user?.isPremium) {
-                                e.currentTarget.style.transform = 'scale(1.05)'; 
-                                e.currentTarget.style.boxShadow = '0 6px 20px rgba(124,58,237,0.6)'; 
+                                e.currentTarget.style.background = 'rgba(255,255,255,0.2)'; 
+                                e.currentTarget.style.color = '#fff'; 
                             }
                         }}
                         onMouseLeave={e => { 
                             if (user?.isPremium) {
-                                e.currentTarget.style.transform = 'scale(1)'; 
-                                e.currentTarget.style.boxShadow = '0 4px 14px rgba(124,58,237,0.4)'; 
+                                e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; 
+                                e.currentTarget.style.color = 'rgba(255,255,255,0.8)'; 
                             }
                         }}
                     >
@@ -270,17 +280,48 @@ export default function Profile() {
                 )}
 
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.25rem', marginTop: '1rem' }}>
-                    <div style={{
-                        width: '100px', height: '100px', borderRadius: '50%',
-                        background: 'rgba(255,255,255,0.15)',
-                        border: '3px solid rgba(255,255,255,0.2)',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        color: '#fff', fontWeight: 900, fontSize: '2.8rem',
-                        boxShadow: '0 12px 32px rgba(0,0,0,0.3)',
-                        animation: 'fadeInUp 0.6s ease-out'
-                    }}>
-                        {initials}
-                    </div>
+                    {refreshFeatureEnabled ? (
+                        <button
+                            onClick={() => window.location.reload()}
+                            style={{
+                                width: '100px', height: '100px', borderRadius: '50%',
+                                background: 'rgba(255,255,255,0.15)',
+                                border: '3px solid rgba(255,255,255,0.2)',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                color: '#fff', fontWeight: 900, fontSize: '2.8rem',
+                                boxShadow: '0 12px 32px rgba(0,0,0,0.3)',
+                                animation: 'fadeInUp 0.6s ease-out',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s',
+                                padding: 0,
+                                fontFamily: 'inherit',
+                                outline: 'none'
+                            }}
+                            onMouseEnter={e => {
+                                e.currentTarget.style.transform = 'scale(1.05)';
+                                e.currentTarget.style.background = 'rgba(255,255,255,0.25)';
+                            }}
+                            onMouseLeave={e => {
+                                e.currentTarget.style.transform = 'scale(1)';
+                                e.currentTarget.style.background = 'rgba(255,255,255,0.15)';
+                            }}
+                            title="Refresh Page"
+                        >
+                            {initials}
+                        </button>
+                    ) : (
+                        <div style={{
+                            width: '100px', height: '100px', borderRadius: '50%',
+                            background: 'rgba(255,255,255,0.15)',
+                            border: '3px solid rgba(255,255,255,0.2)',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            color: '#fff', fontWeight: 900, fontSize: '2.8rem',
+                            boxShadow: '0 12px 32px rgba(0,0,0,0.3)',
+                            animation: 'fadeInUp 0.6s ease-out'
+                        }}>
+                            {initials}
+                        </div>
+                    )}
                     <div>
                         <h1 style={{ fontSize: '2rem', fontWeight: 900, margin: 0, letterSpacing: '-0.02em', color: '#fff' }}>
                             {user?.name || 'User Name'}

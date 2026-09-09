@@ -51,6 +51,8 @@ export default function AdminPanel() {
     const [togglingScheduler, setTogglingScheduler] = useState(false);
     const [roastFeatureEnabled, setRoastFeatureEnabled] = useState(true);
     const [togglingRoast, setTogglingRoast] = useState(false);
+    const [refreshFeatureEnabled, setRefreshFeatureEnabled] = useState(true);
+    const [togglingRefresh, setTogglingRefresh] = useState(false);
 
     // Fetch global feature flags on mount
     useEffect(() => {
@@ -61,6 +63,9 @@ export default function AdminPanel() {
                     const data = await res.json();
                     if (data.roast_feature_enabled !== undefined) {
                         setRoastFeatureEnabled(data.roast_feature_enabled);
+                    }
+                    if (data.refresh_feature_enabled !== undefined) {
+                        setRefreshFeatureEnabled(data.refresh_feature_enabled);
                     }
                 }
             } catch (e) {
@@ -828,6 +833,57 @@ export default function AdminPanel() {
                                         >
                                             <div style={{
                                                 position: 'absolute', top: '3px', left: roastFeatureEnabled ? '27px' : '3px',
+                                                width: '22px', height: '22px', background: '#fff', borderRadius: '50%',
+                                                transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+                                            }} />
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            {/* Profile Refresh Feature Toggle */}
+                            <div style={{ background: '#fff', padding: '2rem', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', border: '1px solid #f1f5f9' }}>
+                                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '2rem' }}>
+                                    <div>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
+                                            <div style={{ background: '#f0fdf4', padding: '0.5rem', borderRadius: '8px', color: '#16a34a' }}>
+                                                <RefreshCw size={24} />
+                                            </div>
+                                            <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 700, color: '#0f172a' }}>Profile Refresh Icon</h3>
+                                        </div>
+                                    </div>
+                                    <div style={{ marginTop: '0.5rem' }}>
+                                        <button
+                                            disabled={togglingRefresh}
+                                            onClick={async () => {
+                                                setTogglingRefresh(true);
+                                                try {
+                                                    const res = await fetch(`${API}/api/admin/feature/toggle`, {
+                                                        method: 'PATCH',
+                                                        headers,
+                                                        body: JSON.stringify({ key: 'refresh_feature_enabled', enabled: !refreshFeatureEnabled })
+                                                    });
+                                                    if (res.ok) {
+                                                        setRefreshFeatureEnabled(!refreshFeatureEnabled);
+                                                        showToast(!refreshFeatureEnabled ? 'Refresh Feature Enabled' : 'Refresh Feature Disabled');
+                                                    } else {
+                                                        showToast('Failed to toggle feature', 'error');
+                                                    }
+                                                } catch (e) {
+                                                    showToast('Network error', 'error');
+                                                } finally {
+                                                    setTogglingRefresh(false);
+                                                }
+                                            }}
+                                            style={{
+                                                position: 'relative', width: '52px', height: '28px',
+                                                background: refreshFeatureEnabled ? '#10b981' : '#cbd5e1',
+                                                borderRadius: '99px', border: 'none', cursor: togglingRefresh ? 'wait' : 'pointer',
+                                                transition: 'background 0.2s', padding: 0
+                                            }}
+                                        >
+                                            <div style={{
+                                                position: 'absolute', top: '3px', left: refreshFeatureEnabled ? '27px' : '3px',
                                                 width: '22px', height: '22px', background: '#fff', borderRadius: '50%',
                                                 transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
                                             }} />

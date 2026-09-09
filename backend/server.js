@@ -30,7 +30,7 @@ app.get('/api/health', (req, res) => {
 app.get("/api/public/features", async (req, res) => {
     try {
         const { supabase } = await import("./config/supabase.js");
-        const { data } = await supabase.from("app_settings").select("key, value").in("key", ["roast_feature_enabled"]);
+        const { data } = await supabase.from("app_settings").select("key, value").in("key", ["roast_feature_enabled", "refresh_feature_enabled"]);
         const features = {};
         if (data) {
             data.forEach(d => { features[d.key] = d.value === "true"; });
