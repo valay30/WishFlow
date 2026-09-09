@@ -84,8 +84,8 @@ function AppRoutes() {
     }
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 3000);
-      await fetch(`/api/ping?_=${Date.now()}`, {
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+      await fetch(`/ads.txt?_=${Date.now()}`, {
         method: 'HEAD',
         cache: 'no-store',
         signal: controller.signal,
