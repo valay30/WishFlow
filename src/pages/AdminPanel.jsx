@@ -578,7 +578,7 @@ export default function AdminPanel() {
                                                 ? <><RefreshCw size={17} style={{ animation: 'spin 1s linear infinite' }} /> Scanning…</>
                                                 : <><Play size={17} fill="currentColor" /> Run Price Check</>}
                                         </button>
-                                        
+
                                         {/* Toggle Scheduler */}
                                         <div style={{ marginTop: '1.25rem', paddingTop: '1.25rem', borderTop: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                                             <div>
@@ -778,14 +778,12 @@ export default function AdminPanel() {
                             boxShadow: '0 10px 25px -5px rgba(79, 70, 229, 0.4)'
                         }}>
                             <div style={{ position: 'relative', zIndex: 1 }}>
-                                <h2 style={{ margin: '0 0 0.5rem 0', fontSize: '2rem', fontWeight: 800 }}>Global App Settings</h2>
-                                <p style={{ margin: 0, fontSize: '1.05rem', opacity: 0.9, maxWidth: '500px' }}>
-                                    Manage platform-wide features and visibility configurations.
-                                </p>
+                                <h2 style={{ margin: '0 0 0.5rem 0', fontSize: '1.5rem', fontWeight: 800, color: '#fff' }}>Global App Settings</h2>
+
                             </div>
                             <Settings size={120} style={{ position: 'absolute', right: '-10px', top: '50%', transform: 'translateY(-50%)', opacity: 0.1 }} />
                         </div>
-                        
+
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1.5rem', marginBottom: '2rem' }}>
                             <div style={{ background: '#fff', padding: '2rem', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', border: '1px solid #f1f5f9' }}>
                                 <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '2rem' }}>
@@ -796,10 +794,7 @@ export default function AdminPanel() {
                                             </div>
                                             <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 700, color: '#0f172a' }}>Roast Me Button</h3>
                                         </div>
-                                        <p style={{ margin: '0.5rem 0 0', color: '#64748b', fontSize: '0.95rem', lineHeight: 1.5 }}>
-                                            Toggle the visibility of the "Roast Me" AI feature on user profiles. 
-                                            When enabled, premium users can get their wishlist roasted by AI. Free users will see a locked button.
-                                        </p>
+
                                     </div>
                                     <div style={{ marginTop: '0.5rem' }}>
                                         <button
