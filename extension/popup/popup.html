@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Save to WishFlow</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+
+  <!-- ── Header ───────────────────────────────────────────── -->
+  <header class="header">
+    <div class="header-logo">
+      <img src="../icons/icon48.png" alt="WishFlow" class="header-icon" />
+      <div class="header-brand">
+        <span class="header-title">WishFlow</span>
+        <span class="header-tagline">Save products. Buy when it feels right.</span>
+      </div>
+    </div>
+    <button id="btn-logout" class="btn-ghost" title="Sign out" style="display:none;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+        <polyline points="16 17 21 12 16 7"/>
+        <line x1="21" y1="12" x2="9" y2="12"/>
+      </svg>
+    </button>
+  </header>
+
+  <!-- ── Login Screen ─────────────────────────────────────── -->
+  <section id="screen-login" class="screen">
+    <div class="login-hero">
+      <div class="login-icon">⭐</div>
+      <h2 class="login-title">Sign in to save</h2>
+      <p class="login-sub">Use your WishFlow email & password</p>
+    </div>
+    <form id="form-login" class="form" autocomplete="on">
+      <div class="input-group">
+        <label for="inp-email">Email</label>
+        <input id="inp-email" type="email" placeholder="you@example.com" autocomplete="email" required />
+      </div>
+      <div class="input-group">
+        <label for="inp-password">Password</label>
+        <div class="password-wrap">
+          <input id="inp-password" type="password" placeholder="Your password" autocomplete="current-password" required />
+          <button type="button" id="btn-toggle-pass" class="btn-eye" title="Show/hide password">
+            <svg id="eye-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+              <circle cx="12" cy="12" r="3"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+      <button id="btn-login" type="submit" class="btn-primary">
+        <span class="btn-label">Sign In</span>
+        <span class="btn-spinner" style="display:none;"></span>
+      </button>
+      <p class="auth-switch">
+        Don't have an account? <button type="button" id="btn-go-signup" class="link-btn">Create one</button>
+      </p>
+    </form>
+    <div id="login-error" class="error-msg" style="display:none;"></div>
+  </section>
+
+  <!-- ── Sign Up Screen ────────────────────────────────────── -->
+  <section id="screen-signup" class="screen" style="display:none;">
+    <div class="login-hero">
+      <div class="login-icon">✨</div>
+      <h2 class="login-title">Create account</h2>
+      <p class="login-sub">Works on wishflow.shop too</p>
+    </div>
+    <form id="form-signup" class="form" autocomplete="on">
+      <div class="input-group">
+        <label for="inp-name">Full Name</label>
+        <input id="inp-name" type="text" placeholder="Your name" autocomplete="name" required />
+      </div>
+      <div class="input-group">
+        <label for="inp-signup-email">Email</label>
+        <input id="inp-signup-email" type="email" placeholder="you@example.com" autocomplete="email" required />
+      </div>
+      <div class="input-group">
+        <label for="inp-signup-password">Password</label>
+        <div class="password-wrap">
+          <input id="inp-signup-password" type="password" placeholder="Min. 8 characters" autocomplete="new-password" required minlength="8" />
+          <button type="button" id="btn-toggle-signup-pass" class="btn-eye" title="Show/hide password">
+            <svg id="eye-icon-signup" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+              <circle cx="12" cy="12" r="3"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+      <button id="btn-signup" type="submit" class="btn-primary">
+        <span class="btn-label">Create Account</span>
+        <span class="btn-spinner" style="display:none;"></span>
+      </button>
+      <p class="auth-switch">
+        Already have an account? <button type="button" id="btn-go-login" class="link-btn">Sign in</button>
+      </p>
+    </form>
+    <div id="signup-error" class="error-msg" style="display:none;"></div>
+  </section>
+
+  <!-- ── Verify Email Screen ───────────────────────────────── -->
+  <section id="screen-verify" class="screen screen-success" style="display:none;">
+    <div class="success-icon">📧</div>
+    <h2 class="success-title" style="color:#e8a020;">Check your email</h2>
+    <p class="success-sub">We sent a confirmation link to your email.<br/>Click it to activate your account, then sign in.</p>
+    <button id="btn-verify-back" class="btn-primary" style="margin-top:20px;">Go to Sign In</button>
+  </section>
+
+  <!-- ── Main Save Screen ─────────────────────────────────── -->
+  <section id="screen-main" class="screen" style="display:none;">
+
+    <!-- Product Card -->
+    <div id="product-card" class="product-card">
+      <div id="product-loading" class="product-loading">
+        <div class="skeleton skeleton-img"></div>
+        <div class="skeleton-meta">
+          <div class="skeleton skeleton-line long"></div>
+          <div class="skeleton skeleton-line short"></div>
+        </div>
+      </div>
+      <div id="product-info" style="display:none;">
+        <div class="product-image-wrap">
+          <img id="product-img" src="" alt="Product" class="product-img" />
+        </div>
+        <div class="product-meta">
+          <p id="product-title" class="product-title"></p>
+          <p id="product-price" class="product-price"></p>
+          <p id="product-url" class="product-url"></p>
+        </div>
+      </div>
+      <div id="product-error" class="product-error-msg" style="display:none;">
+        <span>⚠️</span>
+        <p>Couldn't detect a product on this page.<br/>Edit the details below manually.</p>
+      </div>
+    </div>
+
+    <!-- Form -->
+    <form id="form-save" class="form" style="margin-top:0.5rem;">
+
+      <!-- Title override -->
+      <div class="input-group">
+        <label for="inp-title">Product Name</label>
+        <input id="inp-title" type="text" placeholder="Product name" required />
+      </div>
+
+      <!-- Price override -->
+      <div class="form-row">
+        <div class="input-group" style="flex:1;">
+          <label for="inp-price">Price (₹)</label>
+          <input id="inp-price" type="number" placeholder="0" min="0" step="0.01" />
+        </div>
+
+        <!-- Category -->
+        <div class="input-group" style="flex:1.4;">
+          <label for="sel-category">Category</label>
+          <select id="sel-category">
+            <option value="-1">Select…</option>
+          </select>
+        </div>
+      </div>
+
+      <button id="btn-save" type="submit" class="btn-primary">
+        <span class="btn-label">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:middle;margin-right:6px;margin-bottom:1px;">
+            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+          </svg>
+          Save to WishFlow
+        </span>
+        <span class="btn-spinner" style="display:none;"></span>
+      </button>
+    </form>
+
+    <div id="save-error" class="error-msg" style="display:none;"></div>
+  </section>
+
+  <!-- ── Success Screen ───────────────────────────────────── -->
+  <section id="screen-success" class="screen screen-success" style="display:none;">
+    <div class="success-icon">🎉</div>
+    <h2 class="success-title">Saved!</h2>
+    <p class="success-sub">Item added to your WishFlow wishlist.</p>
+    <a href="https://wishflow.shop/home" target="_blank" class="btn-secondary">Open WishFlow →</a>
+    <button id="btn-save-another" class="btn-ghost-full">Save another</button>
+  </section>
+
+  <script type="module" src="popup.js"></script>
+</body>
+</html>
