@@ -262,7 +262,10 @@ export default function AdminPanel() {
                     <ChevronLeft size={22} strokeWidth={2.5} />
                 </button>
                 <span style={{ fontSize: '1.1rem', fontWeight: 800, color: '#111' }}>WishFlow Admin</span>
-                <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#6d28d9', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '0.8rem', cursor: 'pointer' }}>
+                <div
+                    onClick={() => setActiveTab('global-settings')}
+                    style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#6d28d9', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '0.8rem', cursor: 'pointer', border: activeTab === 'global-settings' ? '2px solid #c7d2fe' : '2px solid transparent', transition: 'border 0.2s' }}
+                >
                     {getInitials(user?.name, user?.email)}
                 </div>
             </div>
@@ -1781,13 +1784,7 @@ export default function AdminPanel() {
                         >
                             <TrendingDown size={22} strokeWidth={activeTab === 'price-alerts' ? 2.5 : 2} />
                         </button>
-                        <button
-                            onClick={() => setActiveTab('global-settings')}
-                            style={{ background: 'transparent', border: 'none', color: activeTab === 'global-settings' ? '#c7d2fe' : 'rgba(255,255,255,0.6)', cursor: 'pointer', display: 'flex', padding: '0.5rem' }}
-                            title="Global Settings"
-                        >
-                            <Settings size={22} strokeWidth={activeTab === 'global-settings' ? 2.5 : 2} />
-                        </button>
+
                     </div>
 
                     <button onClick={refreshData} disabled={loadingUsers || loadingItems} style={{ width: '56px', height: '56px', borderRadius: '50%', background: '#1d4ed8', color: '#fff', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 10px 25px -5px rgba(29, 78, 216, 0.5)' }}>
