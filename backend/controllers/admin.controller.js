@@ -378,3 +378,16 @@ export const togglePriceDropScheduler = async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 };
+export const toggleGlobalFeature = async (req, res) => {
+    const { key, enabled } = req.body;
+    if (!key || typeof enabled !== "boolean") return res.status(400).json({ error: "key and enabled required" });
+    try {
+        await supabase.from("app_settings").upsert([
+            { key, value: String(enabled), updated_at: new Date().toISOString() }
+        ], { onConflict: "key" });
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+

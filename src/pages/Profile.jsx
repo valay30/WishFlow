@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
 import { LogOut, User, ArrowLeft, Settings, Shield, ShieldCheck, Bell, LayoutGrid, List as ListIcon, FolderHeart, ChevronDown, ChevronUp, Crown, Lock, Check, X, Columns } from 'lucide-react';
+import RoastCard from '../components/RoastCard';
 import { useSettings } from '../context/SettingsContext';
 import { db, supabase } from '../db';
 import TierBadgeCard from '../components/TierBadgeCard';
@@ -39,6 +40,25 @@ export default function Profile() {
     const [paymentStatus, setPaymentStatus] = useState({ isOpen: false, success: false, title: '', message: '' });
     const [generalAlert, setGeneralAlert] = useState({ isOpen: false, title: '', message: '' });
     const [isUpgrading, setIsUpgrading] = useState(false);
+    const [showRoast, setShowRoast] = useState(false);
+    const [roastFeatureEnabled, setRoastFeatureEnabled] = useState(null);
+
+    useEffect(() => {
+        const fetchGlobalSettings = async () => {
+            try {
+                const res = await fetch(`${API_URL}/api/public/features`, { cache: "no-store" });
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.roast_feature_enabled !== undefined) {
+                        setRoastFeatureEnabled(data.roast_feature_enabled);
+                    }
+                }
+            } catch (e) {
+                // silently fail and default to true
+            }
+        };
+        fetchGlobalSettings();
+    }, []);
     const [username, setUsername] = useState('');
     const [isSavingUsername, setIsSavingUsername] = useState(false);
     const [showUsernameModal, setShowUsernameModal] = useState(false);
@@ -211,6 +231,44 @@ export default function Profile() {
                     </button>
                 </div>
 
+                {/* Roast Me button - top right */}
+                {roastFeatureEnabled && (
+                <div style={{ position: 'absolute', top: '2.5rem', right: '1.5rem' }}>
+                    <button
+                        disabled={!user?.isPremium}
+                        onClick={() => setShowRoast(true)}
+                        style={{
+                            display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
+                            background: user?.isPremium ? 'linear-gradient(135deg, rgba(124,58,237,0.8), rgba(219,39,119,0.8))' : 'rgba(255,255,255,0.1)',
+                            border: '1px solid rgba(255,255,255,0.25)',
+                            color: user?.isPremium ? '#fff' : 'rgba(255,255,255,0.5)',
+                            fontWeight: 700, fontSize: '0.85rem',
+                            cursor: user?.isPremium ? 'pointer' : 'not-allowed',
+                            fontFamily: 'inherit',
+                            padding: '0.5rem 1rem', borderRadius: '99px',
+                            transition: 'all 0.2s',
+                            backdropFilter: 'blur(8px)',
+                            boxShadow: user?.isPremium ? '0 4px 14px rgba(124,58,237,0.4)' : 'none',
+                        }}
+                        onMouseEnter={e => { 
+                            if (user?.isPremium) {
+                                e.currentTarget.style.transform = 'scale(1.05)'; 
+                                e.currentTarget.style.boxShadow = '0 6px 20px rgba(124,58,237,0.6)'; 
+                            }
+                        }}
+                        onMouseLeave={e => { 
+                            if (user?.isPremium) {
+                                e.currentTarget.style.transform = 'scale(1)'; 
+                                e.currentTarget.style.boxShadow = '0 4px 14px rgba(124,58,237,0.4)'; 
+                            }
+                        }}
+                    >
+                        🔥 Roast Me
+                        {!user?.isPremium && <Lock size={14} style={{ marginLeft: '4px', opacity: 0.8 }} />}
+                    </button>
+                </div>
+                )}
+
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.25rem', marginTop: '1rem' }}>
                     <div style={{
                         width: '100px', height: '100px', borderRadius: '50%',
@@ -269,6 +327,9 @@ export default function Profile() {
 
                     {/* ── Tier Badge Card ── */}
                     <TierBadgeCard user={user} onUpgrade={handleUpgradeToPremium} isUpgrading={isUpgrading} />
+
+                    {/* Roast Modal */}
+                    {showRoast && <RoastCard onClose={() => setShowRoast(false)} />}
 
                     {/* Options List */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem', marginBottom: '2rem' }}>

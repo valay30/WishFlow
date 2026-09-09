@@ -13,12 +13,22 @@ async function loadScheduleFromDb() {
     try {
         const { data } = await supabase
             .from("app_settings")
-            .select("value")
-            .eq("key", "price_drop_cron")
-            .single();
-        if (data?.value && cron.validate(data.value)) {
-            return data.value;
+            .select("key, value")
+            .in("key", ["price_drop_cron", "price_drop_enabled"]);
+            
+        let cronExpr = DEFAULT_CRON;
+        
+        if (data && data.length > 0) {
+            for (const setting of data) {
+                if (setting.key === "price_drop_cron" && cron.validate(setting.value)) {
+                    cronExpr = setting.value;
+                }
+                if (setting.key === "price_drop_enabled") {
+                    schedulerEnabled = setting.value === "true";
+                }
+            }
         }
+        return cronExpr;
     } catch (e) {
         console.warn("[Scheduler] Could not load cron from DB, using default:", e.message);
     }
@@ -76,3 +86,4 @@ export async function initScheduler() {
     } catch { }
     reschedule(expression);
 }
+

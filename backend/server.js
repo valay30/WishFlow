@@ -26,6 +26,21 @@ app.get('/api/health', (req, res) => {
   res.status(200).json({ status: 'ok', message: 'Backend is running!' });
 });
 
+// Public settings route
+app.get("/api/public/features", async (req, res) => {
+    try {
+        const { supabase } = await import("./config/supabase.js");
+        const { data } = await supabase.from("app_settings").select("key, value").in("key", ["roast_feature_enabled"]);
+        const features = {};
+        if (data) {
+            data.forEach(d => { features[d.key] = d.value === "true"; });
+        }
+        res.json(features);
+    } catch (e) {
+        res.status(500).json({});
+    }
+});
+
 // API Routes
 app.use('/api/payment', paymentRoutes);
 app.use('/api/admin', adminRoutes);
@@ -39,3 +54,4 @@ app.listen(PORT, () => {
   // Start the price drop cron scheduler
   initScheduler().catch(err => console.error('[Scheduler] Failed to init:', err.message));
 });
+

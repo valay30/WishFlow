@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
 import {
     Crown, Users, ArrowLeft, RefreshCw, Search, Trash2, Package,
-    Filter, Calendar, ChevronLeft, ChevronRight, ChevronDown, XCircle, Menu, X, Plus, Link as LinkIcon, BookOpen, TrendingDown, Play, Clock
+    Filter, Calendar, ChevronLeft, ChevronRight, ChevronDown, XCircle, Menu, X, Plus, Link as LinkIcon, BookOpen, TrendingDown, Play, Clock, Settings
 } from 'lucide-react';
 import { API_URL as API, ADMIN_SECRET } from '../config';
 import AlertModal from '../components/AlertModal';
@@ -49,6 +49,26 @@ export default function AdminPanel() {
     const [scheduleSaving, setScheduleSaving] = useState(false);
     const [schedulerEnabled, setSchedulerEnabled] = useState(true);
     const [togglingScheduler, setTogglingScheduler] = useState(false);
+    const [roastFeatureEnabled, setRoastFeatureEnabled] = useState(true);
+    const [togglingRoast, setTogglingRoast] = useState(false);
+
+    // Fetch global feature flags on mount
+    useEffect(() => {
+        const fetchGlobalSettings = async () => {
+            try {
+                const res = await fetch(`${API}/api/public/features`, { cache: 'no-store' });
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.roast_feature_enabled !== undefined) {
+                        setRoastFeatureEnabled(data.roast_feature_enabled);
+                    }
+                }
+            } catch (e) {
+                console.error('fetch global settings error:', e);
+            }
+        };
+        fetchGlobalSettings();
+    }, []);
 
     // Redirect non-admins immediately
     useEffect(() => {
@@ -232,9 +252,9 @@ export default function AdminPanel() {
     };
 
     return (
-        <div className="admin-container" style={{ display: 'flex', minHeight: '100vh', background: '#fafbfc', fontFamily: "'Outfit', sans-serif", color: '#111' }}>
+        <div className="admin-container" style={{ display: 'flex', minHeight: '100vh', background: '#fff', fontFamily: "'Outfit', sans-serif", color: '#111' }}>
             {/* Mobile Header Bar */}
-            <div className="admin-mobile-header" style={{ display: 'none', alignItems: 'center', justifyContent: 'space-between', padding: '1rem 1.5rem', background: '#fafbfc', position: 'sticky', top: 0, zIndex: 100 }}>
+            <div className="admin-mobile-header" style={{ display: 'none', alignItems: 'center', justifyContent: 'space-between', padding: '1rem 1.5rem', background: '#fff', position: 'sticky', top: 0, zIndex: 100 }}>
                 <button
                     onClick={() => navigate('/')}
                     style={{ width: '36px', height: '36px', borderRadius: '50%', background: '#f5f3ff', border: 'none', color: '#4f46e5', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}
@@ -335,6 +355,16 @@ export default function AdminPanel() {
                     >
                         <TrendingDown size={20} /> Price Alerts
                     </button>
+                    <button
+                        onClick={() => {
+                            setActiveTab('global-settings');
+                            setSearch('');
+                            setIsSidebarOpen(false);
+                        }}
+                        style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.875rem 1rem', background: activeTab === 'global-settings' ? '#e0e7ff' : 'transparent', color: activeTab === 'global-settings' ? '#4f46e5' : '#64748b', borderRadius: '12px', border: 'none', cursor: 'pointer', fontWeight: activeTab === 'global-settings' ? 700 : 600, fontSize: '0.95rem', transition: 'all 0.2s' }}
+                    >
+                        <Settings size={20} /> Global Settings
+                    </button>
                 </div>
 
                 {/* Back Button + User Profile */}
@@ -367,7 +397,7 @@ export default function AdminPanel() {
 
 
                 {/* Header — only shown for users/items tabs */}
-                {activeTab !== 'blog' && activeTab !== 'price-alerts' && (
+                {activeTab !== 'blog' && activeTab !== 'price-alerts' && activeTab !== 'global-settings' && (
                     <div className="admin-desktop-header" style={{ marginBottom: '2.5rem' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
                             <h1 style={{ margin: 0, fontSize: '2.25rem', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.02em' }}>
@@ -735,8 +765,85 @@ export default function AdminPanel() {
                 )}
 
 
+                {/* Global Settings tab content */}
+                {activeTab === 'global-settings' && (
+                    <div style={{ width: '100%' }}>
+                        <div style={{
+                            background: 'linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%)',
+                            borderRadius: '16px', padding: '2.5rem 2rem', marginBottom: '2rem',
+                            color: '#fff', position: 'relative', overflow: 'hidden',
+                            boxShadow: '0 10px 25px -5px rgba(79, 70, 229, 0.4)'
+                        }}>
+                            <div style={{ position: 'relative', zIndex: 1 }}>
+                                <h2 style={{ margin: '0 0 0.5rem 0', fontSize: '2rem', fontWeight: 800 }}>Global App Settings</h2>
+                                <p style={{ margin: 0, fontSize: '1.05rem', opacity: 0.9, maxWidth: '500px' }}>
+                                    Manage platform-wide features and visibility configurations.
+                                </p>
+                            </div>
+                            <Settings size={120} style={{ position: 'absolute', right: '-10px', top: '50%', transform: 'translateY(-50%)', opacity: 0.1 }} />
+                        </div>
+                        
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1.5rem', marginBottom: '2rem' }}>
+                            <div style={{ background: '#fff', padding: '2rem', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', border: '1px solid #f1f5f9' }}>
+                                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '2rem' }}>
+                                    <div>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
+                                            <div style={{ background: '#fef2f2', padding: '0.5rem', borderRadius: '8px', color: '#ef4444' }}>
+                                                <span style={{ fontSize: '1.5rem' }}>🔥</span>
+                                            </div>
+                                            <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 700, color: '#0f172a' }}>Roast Me Button</h3>
+                                        </div>
+                                        <p style={{ margin: '0.5rem 0 0', color: '#64748b', fontSize: '0.95rem', lineHeight: 1.5 }}>
+                                            Toggle the visibility of the "Roast Me" AI feature on user profiles. 
+                                            When enabled, premium users can get their wishlist roasted by AI. Free users will see a locked button.
+                                        </p>
+                                    </div>
+                                    <div style={{ marginTop: '0.5rem' }}>
+                                        <button
+                                            disabled={togglingRoast}
+                                            onClick={async () => {
+                                                setTogglingRoast(true);
+                                                try {
+                                                    const res = await fetch(`${API}/api/admin/feature/toggle`, {
+                                                        method: 'PATCH',
+                                                        headers,
+                                                        body: JSON.stringify({ key: 'roast_feature_enabled', enabled: !roastFeatureEnabled })
+                                                    });
+                                                    if (res.ok) {
+                                                        setRoastFeatureEnabled(!roastFeatureEnabled);
+                                                        showToast(!roastFeatureEnabled ? 'Roast Feature Enabled' : 'Roast Feature Disabled');
+                                                    } else {
+                                                        showToast('Failed to toggle feature', 'error');
+                                                    }
+                                                } catch (e) {
+                                                    showToast('Network error', 'error');
+                                                } finally {
+                                                    setTogglingRoast(false);
+                                                }
+                                            }}
+                                            style={{
+                                                position: 'relative', width: '52px', height: '28px',
+                                                background: roastFeatureEnabled ? '#10b981' : '#cbd5e1',
+                                                borderRadius: '99px', border: 'none', cursor: togglingRoast ? 'wait' : 'pointer',
+                                                transition: 'background 0.2s', padding: 0
+                                            }}
+                                        >
+                                            <div style={{
+                                                position: 'absolute', top: '3px', left: roastFeatureEnabled ? '27px' : '3px',
+                                                width: '22px', height: '22px', background: '#fff', borderRadius: '50%',
+                                                transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+                                            }} />
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+
                 {/* Search & Filter — only for users/items tabs */}
-                {activeTab !== 'blog' && activeTab !== 'price-alerts' && (
+                {activeTab !== 'blog' && activeTab !== 'price-alerts' && activeTab !== 'global-settings' && (
                     <div className="admin-filter-bar" style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem' }}>
                         <div className="admin-search-container" style={{ position: 'relative', flex: 1 }}>
                             <Search className="admin-search-icon" size={18} style={{ position: 'absolute', left: '1.25rem', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
@@ -784,7 +891,7 @@ export default function AdminPanel() {
                     </div>
                 )}
 
-                {activeTab !== 'blog' && (
+                {activeTab !== 'blog' && activeTab !== 'price-alerts' && activeTab !== 'global-settings' && (
                     <>
                         {activeTab === 'users' ? (
                             <>
@@ -1274,7 +1381,7 @@ export default function AdminPanel() {
                     }
                     .admin-main-content {
                         padding: 1rem 1rem 6rem 1rem !important;
-                        background: #fafbfc;
+                        background: #fff;
                     }
                     
                     /* Stats Grid Mobile Layout */
@@ -1674,6 +1781,13 @@ export default function AdminPanel() {
                         >
                             <TrendingDown size={22} strokeWidth={activeTab === 'price-alerts' ? 2.5 : 2} />
                         </button>
+                        <button
+                            onClick={() => setActiveTab('global-settings')}
+                            style={{ background: 'transparent', border: 'none', color: activeTab === 'global-settings' ? '#c7d2fe' : 'rgba(255,255,255,0.6)', cursor: 'pointer', display: 'flex', padding: '0.5rem' }}
+                            title="Global Settings"
+                        >
+                            <Settings size={22} strokeWidth={activeTab === 'global-settings' ? 2.5 : 2} />
+                        </button>
                     </div>
 
                     <button onClick={refreshData} disabled={loadingUsers || loadingItems} style={{ width: '56px', height: '56px', borderRadius: '50%', background: '#1d4ed8', color: '#fff', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 10px 25px -5px rgba(29, 78, 216, 0.5)' }}>
@@ -1684,3 +1798,4 @@ export default function AdminPanel() {
         </div>
     );
 }
+
