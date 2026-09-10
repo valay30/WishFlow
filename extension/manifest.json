@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Save to WishFlow",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Save any product from Amazon, Flipkart, Myntra and more directly to your WishFlow wishlist.",
   "icons": {
     "16": "icons/icon16.png",

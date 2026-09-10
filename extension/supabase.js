@@ -112,7 +112,28 @@ export async function getUser(token) {
  * Fetch all categories for the current user.
  */
 export async function getCategories(token, userId) {
-  return supabaseFetch(`/rest/v1/categories?select=id,name&user_id=eq.${userId}&order=id.asc`, { token });
+  const cats = await supabaseFetch(`/rest/v1/categories?select=id,name&user_id=eq.${userId}&order=id.asc`, { token });
+  
+  if (!cats || !cats.length) return [];
+  
+  try {
+    const user = await supabaseFetch('/auth/v1/user', { token });
+    const order = user?.user_metadata?.category_order;
+    if (order && Array.isArray(order) && order.length > 0) {
+      cats.sort((a, b) => {
+        const idxA = order.indexOf(a.id);
+        const idxB = order.indexOf(b.id);
+        if (idxA === -1 && idxB === -1) return 0;
+        if (idxA === -1) return 1;
+        if (idxB === -1) return -1;
+        return idxA - idxB;
+      });
+    }
+  } catch (err) {
+    console.error('Failed to fetch category order for extension', err);
+  }
+  
+  return cats;
 }
 
 /**
