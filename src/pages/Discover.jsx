@@ -14,28 +14,136 @@ function fmt(n) {
     return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(n);
 }
 
-/* ── Immersive Full-Bleed Product card for Discover feed ── */
-function DiscoverCard({ item, onSave, isSaving, isSaved }) {
+/* ── Standard Bento Card (portrait) ── */
+function DiscoverCard({ item, onSave, isSaving, isSaved, isFeatured, index }) {
     const [hovered, setHovered] = useState(false);
     const price = fmt(item.price);
 
+    if (isFeatured) {
+        // Wide landscape feature card
+        return (
+            <div
+                className="bento-feature-card"
+                style={{
+                    position: 'relative',
+                    background: 'var(--surface)',
+                    borderRadius: '24px',
+                    overflow: 'hidden',
+                    border: `1.5px solid ${isSaved ? ORANGE : 'var(--border)'}`,
+                    transition: 'transform 0.3s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.3s ease, border-color 0.25s ease',
+                    transform: hovered ? 'translateY(-5px) scale(1.01)' : 'translateY(0) scale(1)',
+                    boxShadow: isSaved
+                        ? `0 12px 40px rgba(var(--primary-rgb),0.25), inset 0 1px 0 rgba(255,255,255,0.1)`
+                        : hovered ? '0 24px 56px rgba(0,0,0,0.14), inset 0 1px 0 rgba(255,255,255,0.08)' : '0 4px 20px rgba(0,0,0,0.06)',
+                    display: 'flex',
+                    flexDirection: 'row',
+                    gridColumn: 'span 2',
+                    minHeight: '200px',
+                    animationDelay: `${(index % 5) * 60}ms`,
+                }}
+                onMouseEnter={() => setHovered(true)}
+                onMouseLeave={() => setHovered(false)}
+            >
+                {/* Left: Image */}
+                <div style={{ position: 'relative', width: '42%', flexShrink: 0, overflow: 'hidden', borderRadius: '24px 0 0 24px' }}>
+                    {item.image
+                        ? <img src={item.image} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.5s cubic-bezier(0.34,1.56,0.64,1)', transform: hovered ? 'scale(1.1)' : 'scale(1)' }} />
+                        : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg)' }}><Package size={48} color="var(--border)" /></div>
+                    }
+                    {/* Gradient right edge for blending */}
+                    <div style={{ position: 'absolute', top: 0, right: 0, bottom: 0, width: '60px', background: 'linear-gradient(to right, transparent, var(--surface))', pointerEvents: 'none' }} />
+                    {/* Feature badge */}
+
+                </div>
+
+                {/* Right: Details */}
+                <div style={{ flex: 1, padding: '1.5rem 1.5rem 1.5rem 1rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minWidth: 0 }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                        <p style={{
+                            fontWeight: 900, fontSize: '1.5rem', color: 'var(--text)',
+                            margin: 0, lineHeight: 1.25, letterSpacing: '-0.02em',
+                            display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+                        }}>{item.name}</p>
+                        {price && (
+                            <p style={{ margin: 0, fontWeight: 800, fontSize: '1.4rem', color: ORANGE, letterSpacing: '-0.01em' }}>{price}</p>
+                        )}
+                        {item.is_mine && (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                                <Globe size={11} color="var(--text-muted)" />
+                                <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 700 }}>Shared by you</span>
+                            </div>
+                        )}
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginTop: '1rem', flexWrap: 'nowrap' }}>
+                        {item.link && (
+                            <a
+                                href={item.link} target="_blank" rel="noopener noreferrer"
+                                onClick={e => e.stopPropagation()}
+                                style={{
+                                    display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
+                                    padding: '0.75rem 1.6rem', borderRadius: '99px',
+                                    background: ORANGE, color: '#fff',
+                                    border: '1.5px solid transparent',
+                                    fontSize: '0.82rem', fontWeight: 800, textDecoration: 'none',
+                                    transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+                                    boxShadow: '0 4px 14px rgba(var(--primary-rgb),0.35)',
+                                    whiteSpace: 'nowrap',
+                                }}
+                                onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 8px 20px rgba(var(--primary-rgb),0.4)'; }}
+                                onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 14px rgba(var(--primary-rgb),0.35)'; }}
+                            >
+                                View Product →
+                            </a>
+                        )}
+                        {!item.is_mine && (
+                            <button
+                                id={`save-item-featured-${item.id}`}
+                                onClick={(e) => { e.stopPropagation(); onSave(item, isSaved); }}
+                                disabled={isSaving}
+                                style={{
+                                    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                                    padding: '0.75rem 1.4rem', borderRadius: '99px',
+                                    background: isSaved ? 'rgba(var(--primary-rgb),0.1)' : 'var(--surface-2)',
+                                    color: isSaved ? ORANGE : 'var(--text-muted)',
+                                    border: `1.5px solid ${isSaved ? ORANGE : 'var(--border)'}`,
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s ease', fontFamily: 'inherit',
+                                    whiteSpace: 'nowrap',
+                                }}
+                            >
+                                {isSaving
+                                    ? <div style={{ width: '16px', height: '16px', border: '2.5px solid var(--border)', borderTopColor: ORANGE, borderRadius: '50%', animation: 'disc-spin 0.7s linear infinite' }} />
+                                    : isSaved ? <Check size={18} strokeWidth={3} /> : <Bookmark size={18} />
+                                }
+                            </button>
+                        )}
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // Standard portrait card
     return (
         <div
+            className="bento-card"
             style={{
                 position: 'relative',
                 background: 'var(--surface)',
                 borderRadius: '20px',
                 overflow: 'hidden',
                 border: `1px solid ${isSaved ? ORANGE : 'var(--border)'}`,
-                transition: 'transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease',
-                transform: hovered ? 'translateY(-4px)' : 'translateY(0)',
+                transition: 'transform 0.3s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.3s ease, border-color 0.25s ease',
+                transform: hovered ? 'translateY(-5px) scale(1.02)' : 'translateY(0) scale(1)',
                 boxShadow: isSaved
                     ? `0 8px 24px rgba(var(--primary-rgb),0.2)`
-                    : hovered ? '0 16px 40px rgba(var(--primary-rgb),0.12)' : '0 4px 16px rgba(0,0,0,0.04)',
+                    : hovered ? '0 20px 48px rgba(0,0,0,0.13)' : '0 4px 16px rgba(0,0,0,0.04)',
                 cursor: 'default',
                 display: 'flex',
                 flexDirection: 'column',
-                aspectRatio: '3/4', // Tall immersive layout
+                aspectRatio: '3/4',
+                animationDelay: `${(index % 5) * 60}ms`,
             }}
             onMouseEnter={() => setHovered(true)}
             onMouseLeave={() => setHovered(false)}
@@ -43,20 +151,19 @@ function DiscoverCard({ item, onSave, isSaving, isSaved }) {
             {/* Background Image */}
             <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'var(--bg)' }}>
                 {item.image
-                    ? <img src={item.image} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.4s ease', transform: hovered ? 'scale(1.08)' : 'scale(1)' }} />
+                    ? <img src={item.image} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.5s cubic-bezier(0.34,1.56,0.64,1)', transform: hovered ? 'scale(1.1)' : 'scale(1)' }} />
                     : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Package size={40} color="var(--border)" /></div>
                 }
             </div>
 
-            {/* Gradient Overlay for Text Readability */}
+            {/* Gradient overlay */}
             <div style={{
                 position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
-                background: 'linear-gradient(to bottom, rgba(0,0,0,0.0) 0%, rgba(0,0,0,0.0) 40%, rgba(0,0,0,0.85) 100%)',
-                pointerEvents: 'none',
-                zIndex: 1
+                background: 'linear-gradient(to bottom, rgba(0,0,0,0.0) 30%, rgba(0,0,0,0.88) 100%)',
+                pointerEvents: 'none', zIndex: 1
             }} />
 
-            {/* Save Button Overlay (Top Right) */}
+            {/* Save Button */}
             {!item.is_mine && (
                 <button
                     id={`save-item-${item.id}`}
@@ -64,17 +171,18 @@ function DiscoverCard({ item, onSave, isSaving, isSaved }) {
                     disabled={isSaving}
                     style={{
                         position: 'absolute', top: '0.75rem', right: '0.75rem',
-                        background: isSaved ? ORANGE : isSaving ? 'rgba(0,0,0,0.6)' : 'rgba(0,0,0,0.4)',
-                        backdropFilter: 'blur(10px)',
-                        border: '1px solid rgba(255,255,255,0.15)', borderRadius: '50%',
-                        width: '36px', height: '36px',
+                        background: isSaved ? ORANGE : 'rgba(0,0,0,0.45)',
+                        backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)',
+                        border: `1px solid ${isSaved ? 'transparent' : 'rgba(255,255,255,0.2)'}`,
+                        borderRadius: '50%', width: '36px', height: '36px',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                         cursor: isSaving ? 'default' : 'pointer',
-                        transition: 'background 0.2s ease, transform 0.15s ease',
-                        transform: hovered && !isSaved ? 'scale(1.1)' : 'scale(1)',
+                        transition: 'all 0.2s ease',
+                        transform: hovered && !isSaved ? 'scale(1.12)' : 'scale(1)',
                         zIndex: 2,
+                        boxShadow: isSaved ? '0 4px 12px rgba(var(--primary-rgb),0.4)' : 'none',
                     }}
-                    title={isSaved ? 'Saved to wishlist (click to unsave)' : 'Save to my wishlist'}
+                    title={isSaved ? 'Saved (click to unsave)' : 'Save to wishlist'}
                 >
                     {isSaving
                         ? <div style={{ width: '14px', height: '14px', border: '2px solid rgba(255,255,255,0.4)', borderTopColor: '#fff', borderRadius: '50%', animation: 'disc-spin 0.7s linear infinite' }} />
@@ -85,58 +193,44 @@ function DiscoverCard({ item, onSave, isSaving, isSaved }) {
                 </button>
             )}
 
-            {/* Content (Bottom aligned) */}
+            {/* Bottom Content */}
             <div style={{
                 position: 'relative', zIndex: 2, marginTop: 'auto',
-                padding: '0.6rem 0.75rem 0.75rem', display: 'flex', flexDirection: 'column', gap: '0.25rem'
+                padding: '0.7rem 0.85rem 0.85rem', display: 'flex', flexDirection: 'column', gap: '0.3rem'
             }}>
                 <p style={{
-                    fontWeight: 800, fontSize: '0.82rem', color: '#ffffff',
+                    fontWeight: 800, fontSize: '0.85rem', color: '#fff',
                     margin: 0, lineHeight: 1.3,
                     display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
-                    textShadow: '0 2px 8px rgba(0,0,0,0.5)'
-                }}>
-                    {item.name}
-                </p>
+                    textShadow: '0 2px 8px rgba(0,0,0,0.6)'
+                }}>{item.name}</p>
 
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.4rem', marginTop: '0.1rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.4rem' }}>
                     {price
-                        ? <span style={{ fontWeight: 800, fontSize: '0.88rem', color: '#ffffff', textShadow: '0 2px 8px rgba(0,0,0,0.5)', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{price}</span>
-                        : <span style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.7)', flex: 1 }}>No price</span>
+                        ? <span style={{ fontWeight: 800, fontSize: '0.9rem', color: '#fff', textShadow: '0 2px 8px rgba(0,0,0,0.6)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{price}</span>
+                        : <span style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.6)', flex: 1 }}>No price</span>
                     }
                     {item.link && (
                         <a
-                            href={item.link}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            style={{
-                                fontSize: '0.68rem', color: '#ffffff', textDecoration: 'none', fontWeight: 700,
-                                background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(8px)',
-                                padding: '0.28rem 0.65rem', borderRadius: '99px',
-                                border: '1px solid rgba(255,255,255,0.15)',
-                                transition: 'background 0.2s',
-                                flexShrink: 0, whiteSpace: 'nowrap',
-                            }}
-                            onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.25)'}
-                            onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.15)'}
+                            href={item.link} target="_blank" rel="noopener noreferrer"
                             onClick={e => e.stopPropagation()}
-                        >
-                            View →
-                        </a>
+                            style={{
+                                fontSize: '0.7rem', color: '#fff', textDecoration: 'none', fontWeight: 700,
+                                background: 'rgba(255,255,255,0.18)', backdropFilter: 'blur(8px)',
+                                padding: '0.3rem 0.7rem', borderRadius: '99px',
+                                border: '1px solid rgba(255,255,255,0.2)',
+                                transition: 'background 0.2s', flexShrink: 0, whiteSpace: 'nowrap',
+                            }}
+                            onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.28)'}
+                            onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.18)'}
+                        >View →</a>
                     )}
                 </div>
 
-                {/* Shared by you badge */}
                 {item.is_mine && (
-                    <div style={{
-                        display: 'flex', alignItems: 'center', gap: '0.4rem',
-                        marginTop: '0.5rem', paddingTop: '0.6rem',
-                        borderTop: '1px solid rgba(255,255,255,0.15)',
-                    }}>
-                        <Globe size={11} color="rgba(255,255,255,0.9)" />
-                        <span style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.9)', fontWeight: 700 }}>
-                            Shared by you
-                        </span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginTop: '0.35rem', paddingTop: '0.5rem', borderTop: '1px solid rgba(255,255,255,0.15)' }}>
+                        <Globe size={11} color="rgba(255,255,255,0.85)" />
+                        <span style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.85)', fontWeight: 700 }}>Shared by you</span>
                     </div>
                 )}
             </div>
@@ -144,15 +238,26 @@ function DiscoverCard({ item, onSave, isSaving, isSaved }) {
     );
 }
 
-/* ── Immersive Skeleton loader ── */
-function SkeletonCard() {
+/* ── Skeleton loaders ── */
+function SkeletonCard({ featured }) {
     return (
-        <div style={{ position: 'relative', aspectRatio: '3/4', background: 'linear-gradient(90deg, var(--border) 25%, var(--surface) 50%, var(--border) 75%)', backgroundSize: '200% 100%', animation: 'disc-shimmer 1.4s ease-in-out infinite', borderRadius: '20px', overflow: 'hidden' }}>
-            <div style={{ position: 'absolute', bottom: '1rem', left: '1rem', right: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                <div style={{ height: '16px', borderRadius: '6px', background: 'rgba(0,0,0,0.1)', width: '90%' }} />
-                <div style={{ height: '16px', borderRadius: '6px', background: 'rgba(0,0,0,0.1)', width: '65%' }} />
-                <div style={{ height: '14px', borderRadius: '6px', background: 'rgba(0,0,0,0.1)', width: '40%', marginTop: '0.25rem' }} />
-            </div>
+        <div style={{
+            background: 'linear-gradient(90deg, var(--border) 25%, var(--surface) 50%, var(--border) 75%)',
+            backgroundSize: '200% 100%', animation: 'disc-shimmer 1.4s ease-in-out infinite',
+            borderRadius: '20px', overflow: 'hidden',
+            gridColumn: featured ? 'span 2' : 'span 1',
+            aspectRatio: featured ? '16/5' : '3/4',
+        }}>
+            {featured && (
+                <div style={{ display: 'flex', height: '100%' }}>
+                    <div style={{ width: '42%', background: 'rgba(0,0,0,0.05)' }} />
+                    <div style={{ flex: 1, padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.75rem', justifyContent: 'center' }}>
+                        <div style={{ height: '20px', borderRadius: '8px', background: 'rgba(0,0,0,0.08)', width: '80%' }} />
+                        <div style={{ height: '20px', borderRadius: '8px', background: 'rgba(0,0,0,0.08)', width: '55%' }} />
+                        <div style={{ height: '16px', borderRadius: '8px', background: 'rgba(0,0,0,0.06)', width: '35%', marginTop: '0.5rem' }} />
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
@@ -339,16 +444,23 @@ export default function Discover() {
                     100% { background-position: -200% 0; }
                 }
                 @keyframes disc-fadeIn {
-                    from { opacity: 0; transform: translateY(8px); }
+                    from { opacity: 0; transform: translateY(10px); }
                     to   { opacity: 1; transform: translateY(0); }
                 }
                 @keyframes disc-spin {
                     to { transform: rotate(360deg); }
                 }
+                /* ── Bento Box Grid ── */
                 .discover-grid {
                     display: grid;
-                    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-                    gap: 1.25rem;
+                    grid-template-columns: repeat(4, 1fr);
+                    gap: 1rem;
+                }
+                .bento-card {
+                    animation: disc-fadeIn 0.45s ease both;
+                }
+                .bento-feature-card {
+                    animation: disc-fadeIn 0.5s ease both;
                 }
                 .pill-scroll {
                     display: flex;
@@ -361,10 +473,24 @@ export default function Discover() {
                 .pill-scroll::-webkit-scrollbar {
                     display: none;
                 }
-                @media (max-width: 480px) {
+                /* Tablet: 2 columns */
+                @media (max-width: 768px) {
                     .discover-grid {
                         grid-template-columns: repeat(2, 1fr);
                         gap: 0.85rem;
+                    }
+                    .bento-feature-card {
+                        flex-direction: column !important;
+                        min-height: 280px !important;
+                    }
+                    .bento-feature-card > div:first-child {
+                        width: 100% !important;
+                        height: 160px;
+                        border-radius: 24px 24px 0 0 !important;
+                    }
+                    .bento-feature-card > div:first-child > div:last-child {
+                        /* hide right-edge gradient on mobile */
+                        display: none;
                     }
                 }
             `}</style>
@@ -543,10 +669,15 @@ export default function Discover() {
             <div style={{ maxWidth: '960px', margin: '0 auto', padding: '1.5rem' }}>
                 {loading ? (
                     <div className="discover-grid">
-                        {Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={i} />)}
+                        {/* Skeleton: every 5th slot is featured */}
+                        {Array.from({ length: 9 }).map((_, i) => {
+                            const pos = i + 1;
+                            const featured = pos % 5 === 0;
+                            return <SkeletonCard key={i} featured={featured} />;
+                        })}
                     </div>
                 ) : allCards.length === 0 ? (
-                    /* Empty state — no public collections yet */
+                    /* Empty state */
                     <div style={{ textAlign: 'center', padding: '5rem 1rem', animation: 'disc-fadeIn 0.5s ease both' }}>
                         <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: `rgba(var(--primary-rgb),0.08)`, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.25rem' }}>
                             <Globe size={36} color={ORANGE} strokeWidth={1.5} />
@@ -557,7 +688,7 @@ export default function Discover() {
                         </p>
                     </div>
                 ) : filtered.length === 0 ? (
-                    /* No results for current search/filter */
+                    /* No results */
                     <div style={{ textAlign: 'center', padding: '4rem 1rem', animation: 'disc-fadeIn 0.5s ease both' }}>
                         <Search size={40} color="var(--border)" style={{ marginBottom: '1rem' }} />
                         <p style={{ fontWeight: 700, color: 'var(--text-muted)', fontSize: '1rem' }}>No products match "{searchQ}"</p>
@@ -566,8 +697,12 @@ export default function Discover() {
                         </button>
                     </div>
                 ) : (
-                    <div className="discover-grid" style={{ animation: 'disc-fadeIn 0.4s ease both' }}>
-                        {filtered.map(item => {
+                    /* ── Bento Box Grid ── */
+                    <div className="discover-grid">
+                        {filtered.map((item, index) => {
+                            const pos = index + 1;
+                            // Every 5th item is a wide feature card
+                            const isFeatured = pos % 5 === 0;
                             const isSaved = myItems.some(i => (i.link && i.link === item.link) || (!i.link && i.name === item.name));
                             return (
                                 <DiscoverCard
@@ -576,6 +711,8 @@ export default function Discover() {
                                     onSave={handleSave}
                                     isSaving={savingItemId === item.id}
                                     isSaved={isSaved}
+                                    isFeatured={isFeatured}
+                                    index={index}
                                 />
                             );
                         })}
