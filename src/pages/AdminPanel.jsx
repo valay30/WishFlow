@@ -10,6 +10,7 @@ import AlertModal from '../components/AlertModal';
 import CustomSelect from '../components/CustomSelect';
 import BlogAdminTab from '../components/BlogAdminTab';
 import { useIsland } from '../context/IslandContext';
+import { useAdminContext } from '../context/AdminContext';
 
 const headers = {
     'Content-Type': 'application/json',
@@ -19,10 +20,7 @@ const headers = {
 export default function AdminPanel() {
     const { user } = useAuth();
     const navigate = useNavigate();
-    const [users, setUsers] = useState([]);
-    const [items, setItems] = useState([]);
-    const [loadingUsers, setLoadingUsers] = useState(true);
-    const [loadingItems, setLoadingItems] = useState(true);
+    const { users, setUsers, items, setItems, loadingUsers, loadingItems, refreshData } = useAdminContext();
     const [search, setSearch] = useState('');
     const [actionLoading, setActionLoading] = useState(null);
     const [deleteTargetUserId, setDeleteTargetUserId] = useState(null);
@@ -80,45 +78,7 @@ export default function AdminPanel() {
         if (user && !user.isAdmin) navigate('/', { replace: true });
     }, [user, navigate]);
 
-    const fetchUsers = useCallback(async () => {
-        setLoadingUsers(true);
-        try {
-            const res = await fetch(`${API}/api/admin/users`, { headers });
-            if (!res.ok) throw new Error('Failed to fetch users');
-            const data = await res.json();
-            setUsers(Array.isArray(data) ? data : []);
-        } catch (err) {
-            console.error('fetchUsers error:', err);
-            showToast('Failed to load users: ' + err.message, 'error');
-        } finally {
-            setLoadingUsers(false);
-        }
-    }, []);
 
-    const fetchItems = useCallback(async () => {
-        setLoadingItems(true);
-        try {
-            const res = await fetch(`${API}/api/admin/items`, { headers });
-            if (!res.ok) throw new Error('Failed to fetch items');
-            const data = await res.json();
-            setItems(Array.isArray(data) ? data : []);
-        } catch (err) {
-            console.error('fetchItems error:', err);
-            showToast('Failed to load items: ' + err.message, 'error');
-        } finally {
-            setLoadingItems(false);
-        }
-    }, []);
-
-    const refreshData = () => {
-        fetchUsers();
-        fetchItems();
-    };
-
-    useEffect(() => {
-        fetchUsers();
-        fetchItems();
-    }, [fetchUsers, fetchItems]);
 
     const { showIsland } = useIsland();
 

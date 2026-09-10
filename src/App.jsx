@@ -7,6 +7,7 @@ import { AuthProvider } from './context/AuthContext';
 import { useAuth } from './context/useAuth';
 import { SettingsProvider } from './context/SettingsContext';
 import { IslandProvider } from './context/IslandContext';
+import { AdminProvider } from './context/AdminContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout';
 import OfflinePage from './pages/OfflinePage';
@@ -214,11 +215,13 @@ function App() {
     <AuthProvider>
       <SettingsProvider>
         <IslandProvider>
-          <ScrollToTop />
-          <AppRoutes />
-          <CookieBanner />
-          <Analytics />
-          <SpeedInsights />
+          <AdminProvider>
+            <ScrollToTop />
+            <AppRoutes />
+            <CookieBanner />
+            <Analytics />
+            <SpeedInsights />
+          </AdminProvider>
         </IslandProvider>
       </SettingsProvider>
     </AuthProvider>
