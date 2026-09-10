@@ -218,24 +218,34 @@ export const db = {
             return [];
           }
 
-          if (data && data.length > 0) {
-            __categoryCache = data;
-            __fetchingCategories = null;
-            return __categoryCache;
+          let fetchedCats = data || [];
+
+          if (fetchedCats.length === 0) {
+            try {
+              const seeded = await db.categories.initializeDefaults(id);
+              if (seeded && seeded.length > 0) {
+                fetchedCats = seeded;
+              }
+            } catch (err) {
+              console.error('Auto-seed error:', err);
+            }
           }
 
           try {
-            const seeded = await db.categories.initializeDefaults(id);
-            if (seeded && seeded.length > 0) {
-              __categoryCache = seeded;
-              __fetchingCategories = null;
-              return __categoryCache;
+            const order = await db.categoryOrder.get();
+            if (order && order.length > 0) {
+              fetchedCats.sort((a, b) => {
+                const idxA = order.indexOf(a.id);
+                const idxB = order.indexOf(b.id);
+                if (idxA === -1 && idxB === -1) return 0;
+                if (idxA === -1) return 1;
+                if (idxB === -1) return -1;
+                return idxA - idxB;
+              });
             }
-          } catch (err) {
-            console.error('Auto-seed error:', err);
-          }
+          } catch(e) { console.error('Failed to apply category order', e); }
 
-          __categoryCache = [];
+          __categoryCache = fetchedCats;
           __fetchingCategories = null;
           return __categoryCache;
         })();
@@ -279,6 +289,38 @@ export const db = {
         __categoryCache = __categoryCache.map(c => c.id === catId ? { ...c, name } : c);
       }
     },
+
+    updateCacheOrder: (orderedIds) => {
+      if (__categoryCache) {
+        __categoryCache.sort((a, b) => {
+          const idxA = orderedIds.indexOf(a.id);
+          const idxB = orderedIds.indexOf(b.id);
+          if (idxA === -1 && idxB === -1) return 0;
+          if (idxA === -1) return 1;
+          if (idxB === -1) return -1;
+          return idxA - idxB;
+        });
+      }
+    }
+  },
+
+  categoryOrder: {
+    get: async () => {
+      const { data: { user }, error } = await supabase.auth.getUser();
+      if (error || !user) return [];
+      if (user.user_metadata?.category_order && Array.isArray(user.user_metadata.category_order)) {
+          return user.user_metadata.category_order;
+      }
+      return [];
+    },
+    save: async (orderArray) => {
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError || !user) return;
+      const { error } = await supabase.auth.updateUser({
+          data: { category_order: orderArray }
+      });
+      if (error) throw error;
+    }
   },
 
   collections: {
