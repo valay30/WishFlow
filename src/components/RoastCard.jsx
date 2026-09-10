@@ -2,12 +2,13 @@ import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import html2canvas from "html2canvas";
 import { db } from "../db";
+import { useSettings } from "../context/SettingsContext";
 
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const GEMINI_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 
-async function generateRoast(items) {
+async function generateRoast(items, currency) {
   if (!GEMINI_KEY) {
     throw new Error("VITE_GEMINI_API_KEY is not set in your .env file!");
   }
@@ -17,13 +18,17 @@ async function generateRoast(items) {
     .map((item) => `- ${item.name}${item.price ? ` (Rs.${item.price})` : ""}`)
     .join("\n");
 
-  const prompt = `You are a brutally honest, witty, sarcastic friend who loves roasting people shopping wishlists. 
+  let prompt = `You are a brutally honest, witty, sarcastic friend who loves roasting people shopping wishlists. 
 Here is a user wishlist:
 ${productList}
 
 Write a SHORT, funny roast in 2-3 sentences max. Be specific about what you see in the list. 
 Be playful and clever, not mean. Use a conversational tone.
 Do NOT use hashtags, emojis or markdown. Just plain witty text.`;
+
+  if (currency === 'INR') {
+    prompt += `\n\nCRITICAL INSTRUCTION: Write the entire roast in "Hinglish" (a witty, sarcastic mix of Hindi and English written in Latin script), using popular Gen-Z Indian slang. Make it hilarious.`;
+  }
 
   const genAI = new GoogleGenerativeAI(GEMINI_KEY);
   const models = ["gemini-3.5-flash", "gemini-3.5-flash-lite", "gemini-flash-latest"];
@@ -45,6 +50,7 @@ Do NOT use hashtags, emojis or markdown. Just plain witty text.`;
 }
 
 export default function RoastCard({ user, onClose }) {
+  const { currency } = useSettings();
   const [phase, setPhase] = useState("loading");
   const [roastText, setRoastText] = useState("");
   const [stats, setStats] = useState({ count: 0, mostExpensive: 0 });
@@ -69,7 +75,7 @@ export default function RoastCard({ user, onClose }) {
         }
         const maxPrice = Math.max(...items.map((i) => Number(i.price) || 0));
         setStats({ count: items.length, mostExpensive: maxPrice });
-        const roast = await generateRoast(items);
+        const roast = await generateRoast(items, currency);
         setRoastText(roast);
         setPhase("ready");
       } catch (err) {
