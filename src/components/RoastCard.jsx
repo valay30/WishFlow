@@ -37,9 +37,21 @@ function CardVisual({ phase, roastText, dateStr, showButton, onDownload, downloa
   // If capturing, we remove grain and inset shadows to ensure html2canvas paints the white background correctly.
   const innerBoxShadow = isCapture ? "none" : "inset 0 2px 10px rgba(0,0,0,0.1), inset 0 0 0 1px rgba(0,0,0,0.05)";
 
+  const topMask = isCapture ? {} : {
+    WebkitMaskImage: "radial-gradient(circle 11.5px at 0 100%, transparent 99%, #000 100%), radial-gradient(circle 11.5px at 100% 100%, transparent 99%, #000 100%)",
+    WebkitMaskComposite: "source-in",
+    maskComposite: "intersect"
+  };
+
+  const bottomMask = isCapture ? {} : {
+    WebkitMaskImage: "radial-gradient(circle 11.5px at 0 0, transparent 99%, #000 100%), radial-gradient(circle 11.5px at 100% 0, transparent 99%, #000 100%)",
+    WebkitMaskComposite: "source-in",
+    maskComposite: "intersect"
+  };
+
   return (
     <>
-      <div style={{ position: "relative", width: "100%", borderTopLeftRadius: "30px", borderTopRightRadius: "30px", padding: "5px 5px 0 5px", background: FOIL_BG, backgroundSize: "300% 100%", animation: showButton ? "holoGlow 4s linear infinite" : undefined, overflow: "hidden", zIndex: 1 }}>
+      <div style={{ position: "relative", width: "100%", borderTopLeftRadius: "30px", borderTopRightRadius: "30px", padding: "5px 5px 0 5px", background: FOIL_BG, backgroundSize: "300% 100%", animation: showButton ? "holoGlow 4s linear infinite" : undefined, overflow: "hidden", zIndex: 1, ...topMask }}>
         <div style={{ position: "relative", borderTopLeftRadius: "25px", borderTopRightRadius: "25px", fontFamily: "'Inter','Helvetica Neue',sans-serif", backgroundColor: "#ffffff", boxShadow: innerBoxShadow }}>
           {!isCapture && <div style={{ position: "absolute", inset: 0, zIndex: 10, pointerEvents: "none", opacity: 0.05, backgroundImage: GRAIN_URL, borderTopLeftRadius: "25px", borderTopRightRadius: "25px" }} />}
           <div style={{ background: "linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)", padding: "2rem 1.75rem 1.5rem", position: "relative", overflow: "hidden", borderTopLeftRadius: "25px", borderTopRightRadius: "25px" }}>
@@ -71,20 +83,14 @@ function CardVisual({ phase, roastText, dateStr, showButton, onDownload, downloa
               )}
             </div>
           </div>
-          <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: "1px", zIndex: 2 }}>
-            <div style={{ position: "absolute", left: -11, top: -11, width: 22, height: 22, borderRadius: "50%", background: "#1e293b", zIndex: 10 }} />
-            <div style={{ position: "absolute", right: -11, top: -11, width: 22, height: 22, borderRadius: "50%", background: "#1e293b", zIndex: 10 }} />
-          </div>
         </div>
       </div>
 
-      <div style={{ position: "relative", width: "100%", borderBottomLeftRadius: "30px", borderBottomRightRadius: "30px", padding: "0 5px 5px 5px", background: FOIL_BG, backgroundSize: "300% 100%", animation: showButton ? "holoGlow 4s linear infinite" : undefined, zIndex: 2, clipPath: tearing ? "inset(0 0 0 0 round 0 0 30px 30px)" : "none", transformOrigin: "top left", transition: tearing ? "transform 0.8s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.8s ease-in-out, clip-path 0.8s" : "transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.4s ease-in, clip-path 0.6s", transform: tearing ? "rotate(-12deg) translateY(150px)" : "none", opacity: tearing ? 0 : 1 }}>
+      <div style={{ position: "relative", width: "100%", borderBottomLeftRadius: "30px", borderBottomRightRadius: "30px", padding: "0 5px 5px 5px", background: FOIL_BG, backgroundSize: "300% 100%", animation: showButton ? "holoGlow 4s linear infinite" : undefined, zIndex: 2, clipPath: tearing ? "inset(0 0 0 0 round 0 0 30px 30px)" : "none", transformOrigin: "top left", transition: tearing ? "transform 0.8s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.8s ease-in-out, clip-path 0.8s" : "transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.4s ease-in, clip-path 0.6s", transform: tearing ? "rotate(-12deg) translateY(150px)" : "none", opacity: tearing ? 0 : 1, ...bottomMask }}>
         <div style={{ position: "relative", borderBottomLeftRadius: "25px", borderBottomRightRadius: "25px", fontFamily: "'Inter','Helvetica Neue',sans-serif", backgroundColor: "#ffffff", boxShadow: innerBoxShadow }}>
           {!isCapture && <div style={{ position: "absolute", inset: 0, zIndex: 10, pointerEvents: "none", opacity: 0.05, backgroundImage: GRAIN_URL, borderBottomLeftRadius: "25px", borderBottomRightRadius: "25px" }} />}
           <div style={{ position: "relative", height: "1px", margin: 0, zIndex: 2 }}>
-            <div style={{ position: "absolute", left: -11, top: -11, width: 22, height: 22, borderRadius: "50%", background: "#1e293b", zIndex: 20 }} />
             <div style={{ position: "absolute", left: 16, right: 16, top: 0, borderTop: "2px dashed #e2e8f0", zIndex: 1 }} />
-            <div style={{ position: "absolute", right: -11, top: -11, width: 22, height: 22, borderRadius: "50%", background: "#1e293b", zIndex: 20 }} />
           </div>
           <div style={{ position: "relative", padding: "1.25rem 1.75rem", background: "#ffffff", display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center", borderBottomLeftRadius: "25px", borderBottomRightRadius: "25px" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
