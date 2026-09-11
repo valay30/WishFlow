@@ -85,7 +85,7 @@ function AppRoutes() {
     }
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 5000);
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // Increased timeout to 10s
       await fetch(`/favicon.ico?_=${Date.now()}`, {
         method: 'HEAD',
         cache: 'no-store',
@@ -116,12 +116,11 @@ function AppRoutes() {
 
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
-    window.addEventListener('focus', verifyOnlineStatus);
+    // Removed the aggressive 'focus' event listener
 
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
-      window.removeEventListener('focus', verifyOnlineStatus);
     };
   }, []);
 
