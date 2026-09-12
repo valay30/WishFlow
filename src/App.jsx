@@ -36,6 +36,7 @@ const ShareTargetPage  = lazy(() => import('./pages/ShareTargetPage'));
 const Discover         = lazy(() => import('./pages/Discover'));
 const Blog             = lazy(() => import('./pages/Blog'));
 const BlogPost         = lazy(() => import('./pages/BlogPost'));
+const RoastPreview     = lazy(() => import('./pages/RoastPreview'));
 // ────────────────────────────────────────────────────────────────────────────
 
 /** Minimal full-screen spinner shown while a lazy page chunk is loading */
@@ -180,6 +181,7 @@ function AppRoutes() {
           <Route path="/share-target" element={<ShareTargetPage />} />
           <Route path="/blog" element={<Blog />} />
           <Route path="/blog/:slug" element={<BlogPost />} />
+          <Route path="/roast-preview" element={<RoastPreview />} />
 
           {/* ── Public app routes (with Layout) ── */}
           <Route element={<Layout />}>

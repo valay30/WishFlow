@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
 import {
     Crown, Users, ArrowLeft, RefreshCw, Search, Trash2, Package,
-    Filter, Calendar, ChevronLeft, ChevronRight, ChevronDown, XCircle, Menu, X, Plus, Link as LinkIcon, BookOpen, TrendingDown, Play, Clock, Settings
+    Filter, Calendar, ChevronLeft, ChevronRight, ChevronDown, XCircle, Menu, X, Plus, Link as LinkIcon, BookOpen, TrendingDown, Play, Clock, Settings, Eye
 } from 'lucide-react';
 import { API_URL as API, ADMIN_SECRET } from '../config';
 import AlertModal from '../components/AlertModal';
@@ -11,6 +11,7 @@ import CustomSelect from '../components/CustomSelect';
 import BlogAdminTab from '../components/BlogAdminTab';
 import { useIsland } from '../context/IslandContext';
 import { useAdminContext } from '../context/AdminContext';
+import CardVisual, { ROAST_THEMES } from '../components/CardVisual';
 
 const headers = {
     'Content-Type': 'application/json',
@@ -49,6 +50,8 @@ export default function AdminPanel() {
     const [togglingScheduler, setTogglingScheduler] = useState(false);
     const [roastFeatureEnabled, setRoastFeatureEnabled] = useState(true);
     const [togglingRoast, setTogglingRoast] = useState(false);
+    const [roastEnabledThemes, setRoastEnabledThemes] = useState([]);
+    const [previewTheme, setPreviewTheme] = useState(null);
     const [refreshFeatureEnabled, setRefreshFeatureEnabled] = useState(true);
     const [togglingRefresh, setTogglingRefresh] = useState(false);
 
@@ -61,6 +64,12 @@ export default function AdminPanel() {
                     const data = await res.json();
                     if (data.roast_feature_enabled !== undefined) {
                         setRoastFeatureEnabled(data.roast_feature_enabled);
+                    }
+                    if (data.roast_enabled_themes) {
+                        setRoastEnabledThemes(data.roast_enabled_themes);
+                    } else {
+                        // Default to all if not set
+                        setRoastEnabledThemes(ROAST_THEMES.map(t => t.id));
                     }
                     if (data.refresh_feature_enabled !== undefined) {
                         setRefreshFeatureEnabled(data.refresh_feature_enabled);
@@ -798,6 +807,145 @@ export default function AdminPanel() {
                                             }} />
                                         </button>
                                     </div>
+                                </div>
+                                <div style={{ marginTop: '2rem', borderTop: '1px solid #f1f5f9', paddingTop: '1.5rem' }}>
+                                    <h4 style={{ margin: '0 0 1rem', fontSize: '1rem', fontWeight: 700, color: '#0f172a' }}>Available Themes</h4>
+                                    <p style={{ margin: '0 0 1.5rem', fontSize: '0.875rem', color: '#64748b' }}>Select which designs can appear when a user clicks Roast Me. If multiple are selected, one will be chosen randomly.</p>
+                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: '1rem' }}>
+                                        {ROAST_THEMES.map(theme => {
+                                            const isSelected = roastEnabledThemes.includes(theme.id);
+                                            const isLightText = theme.textColor === '#ffffff';
+                                            return (
+                                                <div 
+                                                    key={theme.id}
+                                                    onClick={async () => {
+                                                        const newThemes = isSelected ? roastEnabledThemes.filter(id => id !== theme.id) : [...roastEnabledThemes, theme.id];
+                                                        setRoastEnabledThemes(newThemes);
+                                                        try {
+                                                            await fetch(`${API}/api/admin/setting/update`, {
+                                                                method: 'PATCH',
+                                                                headers,
+                                                                body: JSON.stringify({ key: 'roast_enabled_themes', value: JSON.stringify(newThemes) })
+                                                            });
+                                                        } catch (e) {
+                                                            showToast('Failed to save theme selection', 'error');
+                                                        }
+                                                    }}
+                                                    style={{
+                                                        padding: '1.25rem 0.75rem 0.85rem 0.75rem',
+                                                        borderRadius: '16px',
+                                                        border: isSelected ? '2.5px solid #4f46e5' : '2px solid #e2e8f0',
+                                                        background: theme.bg || '#fff',
+                                                        cursor: 'pointer',
+                                                        display: 'flex',
+                                                        flexDirection: 'column',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'space-between',
+                                                        minHeight: '115px',
+                                                        transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                                                        opacity: isSelected ? 1 : 0.65,
+                                                        position: 'relative',
+                                                        boxShadow: isSelected ? '0 8px 20px -4px rgba(79, 70, 229, 0.25)' : '0 2px 6px rgba(0,0,0,0.04)',
+                                                        transform: isSelected ? 'translateY(-2px)' : 'none'
+                                                    }}
+                                                >
+                                                    {/* Selected Checkmark Badge */}
+                                                    {isSelected && (
+                                                        <div style={{
+                                                            position: 'absolute',
+                                                            top: '-8px',
+                                                            right: '-8px',
+                                                            background: '#4f46e5',
+                                                            color: '#fff',
+                                                            borderRadius: '50%',
+                                                            width: '22px',
+                                                            height: '22px',
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            justifyContent: 'center',
+                                                            boxShadow: '0 2px 6px rgba(79, 70, 229, 0.4)',
+                                                            fontSize: '12px',
+                                                            fontWeight: 800
+                                                        }}>
+                                                            ✓
+                                                        </div>
+                                                    )}
+
+                                                    {/* Theme Name */}
+                                                    <span style={{
+                                                        fontSize: '0.95rem',
+                                                        fontWeight: 700,
+                                                        color: theme.textColor || '#111',
+                                                        letterSpacing: '0.01em',
+                                                        textShadow: isLightText ? '0 1px 2px rgba(0,0,0,0.35)' : 'none',
+                                                        textAlign: 'center'
+                                                    }}>
+                                                        {theme.id.charAt(0).toUpperCase() + theme.id.slice(1)}
+                                                    </span>
+
+                                                    {/* Preview Pill Button */}
+                                                    <button 
+                                                        type="button"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            setPreviewTheme(theme);
+                                                        }}
+                                                        style={{
+                                                            marginTop: '0.75rem',
+                                                            display: 'inline-flex',
+                                                            alignItems: 'center',
+                                                            gap: '5px',
+                                                            padding: '0.35rem 0.75rem',
+                                                            borderRadius: '999px',
+                                                            background: isLightText ? 'rgba(255, 255, 255, 0.22)' : 'rgba(0, 0, 0, 0.07)',
+                                                            color: theme.textColor || '#334155',
+                                                            border: isLightText ? '1px solid rgba(255, 255, 255, 0.35)' : '1px solid rgba(0, 0, 0, 0.1)',
+                                                            backdropFilter: 'blur(4px)',
+                                                            fontSize: '0.75rem',
+                                                            fontWeight: 600,
+                                                            cursor: 'pointer',
+                                                            transition: 'all 0.15s ease',
+                                                            textShadow: 'none'
+                                                        }}
+                                                        onMouseEnter={e => {
+                                                            e.currentTarget.style.transform = 'scale(1.05)';
+                                                            e.currentTarget.style.background = isLightText ? 'rgba(255, 255, 255, 0.35)' : 'rgba(0, 0, 0, 0.14)';
+                                                        }}
+                                                        onMouseLeave={e => {
+                                                            e.currentTarget.style.transform = 'scale(1)';
+                                                            e.currentTarget.style.background = isLightText ? 'rgba(255, 255, 255, 0.22)' : 'rgba(0, 0, 0, 0.07)';
+                                                        }}
+                                                        title={`Preview ${theme.id} design`}
+                                                    >
+                                                        <Eye size={13} strokeWidth={2.2} />
+                                                        <span>Preview</span>
+                                                    </button>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                    
+                                    {previewTheme && (
+                                        <div onClick={() => setPreviewTheme(null)} style={{ position: "fixed", inset: 0, zIndex: 99999, background: "rgba(0,0,0,0.75)", backdropFilter: "blur(12px)", display: "flex", flexDirection: "column", alignItems: "center", padding: "2rem 1rem", overflowY: "auto" }}>
+                                            <div onClick={(e) => e.stopPropagation()} style={{ margin: "auto", display: "flex", flexDirection: "column", alignItems: "center", gap: "1.25rem", width: "100%", maxWidth: "380px" }}>
+                                                <div style={{ position: "relative", width: "100%", borderRadius: "30px", boxShadow: "0 32px 80px rgba(0,0,0,0.5)" }}>
+                                                    <CardVisual 
+                                                        phase="ready" 
+                                                        roastText="Oh look, another person buying an aesthetic water bottle they'll use twice. Your wishlist screams 'I want to be a Pinterest board' but your budget says 'maybe next month'. Please, save your money for something you actually need." 
+                                                        dateStr={new Date().toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })} 
+                                                        showButton={true} 
+                                                        downloading={false} 
+                                                        isCapture={false} 
+                                                        tearing={false} 
+                                                        theme={previewTheme} 
+                                                    />
+                                                </div>
+                                                <div style={{ display: "flex", gap: "0.75rem", width: "100%", marginTop: "1.5rem" }}>
+                                                    <button onClick={() => setPreviewTheme(null)} style={{ flex: 1, padding: "0.9rem 1.25rem", background: "rgba(255,255,255,0.12)", color: "#fff", border: "1px solid rgba(255,255,255,0.2)", borderRadius: "16px", fontWeight: 700, fontSize: "0.95rem", cursor: "pointer", fontFamily: "inherit", backdropFilter: "blur(4px)" }}>Close Preview</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
 

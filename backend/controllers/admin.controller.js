@@ -391,3 +391,15 @@ export const toggleGlobalFeature = async (req, res) => {
     }
 };
 
+export const updateGlobalSetting = async (req, res) => {
+    const { key, value } = req.body;
+    if (!key || typeof value !== "string") return res.status(400).json({ error: "key and string value required" });
+    try {
+        await supabase.from("app_settings").upsert([
+            { key, value, updated_at: new Date().toISOString() }
+        ], { onConflict: "key" });
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};

@@ -246,7 +246,7 @@ export default function Profile() {
 
                 {/* Roast Me button - top right */}
                 {roastFeatureEnabled && (
-                <div style={{ position: 'absolute', top: '2.5rem', right: '1.5rem' }}>
+                <div style={{ position: 'absolute', top: '2.5rem', right: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                     <button
                         disabled={!user?.isPremium}
                         onClick={() => setShowRoast(true)}
