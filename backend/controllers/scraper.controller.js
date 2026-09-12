@@ -51,7 +51,38 @@ const BROWSER_HEADERS = {
     'DNT': '1',
 };
 
-// ── (unshortenUrl removed as it is now combined with main fetch) ─────────────
+// ── Pre-resolve short URLs (amzn.in, amzn.to, a.co, fkrt.it, etc.) ────────────
+// fetch() follows HTTP 301/302 but Amazon short links use JS redirects that
+// result in a 404 or blank page. We resolve them via a lightweight HEAD request
+// with a browser User-Agent so the server-side redirect is followed correctly.
+async function unshortenUrl(url, timeoutMs = 8000) {
+    const SHORT_LINK_RE = /amzn\.(in|to|com)|a\.co\/|fkrt\.it|bit\.ly|tinyurl\.com|t\.co\//i;
+    if (!SHORT_LINK_RE.test(url)) return url; // not a short link, skip
+
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+        // Use GET (not HEAD) because amzn.in returns 404 to HEAD requests
+        const res = await fetch(url, {
+            method: 'GET',
+            headers: {
+                ...BROWSER_HEADERS,
+                // Override UA to a mobile one — amzn.in short links resolve better
+                'User-Agent': 'Mozilla/5.0 (Linux; Android 13; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Mobile Safari/537.36',
+            },
+            redirect: 'follow',
+            signal: controller.signal,
+        });
+        clearTimeout(timer);
+        const resolved = res.url || url;
+        console.log(`[unshortenUrl] ${url} → ${resolved}`);
+        return resolved;
+    } catch (err) {
+        clearTimeout(timer);
+        console.warn('[unshortenUrl] failed:', err.message);
+        return url; // fall back to original URL
+    }
+}
 
 // ── Proxy fallback for cloud datacenter IPs blocked by Amazon/Flipkart ───────
 async function fetchViaProxy(targetUrl) {
@@ -505,7 +536,11 @@ export const extractMetadata = async (req, res) => {
     const rawUrl = req.body.url;
     if (!rawUrl) return res.status(400).json({ error: 'URL is required' });
 
-    let url = rawUrl;
+    // ── Step 0: Pre-resolve short URLs (amzn.in/d/..., fkrt.it, etc.) ────────
+    // Amazon short links use JS redirects that Node's fetch() can't follow.
+    // We resolve them to the full product URL before scraping.
+    let url = await unshortenUrl(rawUrl);
+
     try {
         let parsedUrl = new URL(url);
         if (!/amazon|amzn|a\.co|flipkart|fkrt/i.test(parsedUrl.hostname) && !parsedUrl.searchParams.has('currency')) {
@@ -649,6 +684,9 @@ export const extractMetadata = async (req, res) => {
 
 export async function scrapePriceOnly(url) {
     try {
+        // Pre-resolve short URLs before scraping price
+        url = await unshortenUrl(url);
+
         try {
             let parsedUrl = new URL(url);
             if (!/amazon|amzn|a\.co|flipkart|fkrt/i.test(parsedUrl.hostname) && !parsedUrl.searchParams.has('currency')) {
