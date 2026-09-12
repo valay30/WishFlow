@@ -54,6 +54,8 @@ export default function AdminPanel() {
     const [previewTheme, setPreviewTheme] = useState(null);
     const [refreshFeatureEnabled, setRefreshFeatureEnabled] = useState(true);
     const [togglingRefresh, setTogglingRefresh] = useState(false);
+    const [customCursorEnabled, setCustomCursorEnabled] = useState(true);
+    const [togglingCursor, setTogglingCursor] = useState(false);
 
     // Fetch global feature flags on mount
     useEffect(() => {
@@ -64,6 +66,9 @@ export default function AdminPanel() {
                     const data = await res.json();
                     if (data.roast_feature_enabled !== undefined) {
                         setRoastFeatureEnabled(data.roast_feature_enabled);
+                    }
+                    if (data.custom_cursor_enabled !== undefined) {
+                        setCustomCursorEnabled(data.custom_cursor_enabled);
                     }
                     if (data.roast_enabled_themes) {
                         setRoastEnabledThemes(data.roast_enabled_themes);
@@ -802,6 +807,54 @@ export default function AdminPanel() {
                                         >
                                             <div style={{
                                                 position: 'absolute', top: '3px', left: roastFeatureEnabled ? '27px' : '3px',
+                                                width: '22px', height: '22px', background: '#fff', borderRadius: '50%',
+                                                transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+                                            }} />
+                                        </button>
+                                    </div>
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '2rem', marginTop: '1.5rem', paddingTop: '1.5rem', borderTop: '1px solid #f1f5f9' }}>
+                                    <div>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
+                                            <div style={{ background: '#f8fafc', padding: '0.5rem', borderRadius: '8px', color: '#64748b' }}>
+                                                <span style={{ fontSize: '1.5rem' }}>🖱️</span>
+                                            </div>
+                                            <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 700, color: '#0f172a' }}>Custom Magnetic Cursor</h3>
+                                        </div>
+                                    </div>
+                                    <div style={{ marginTop: '0.5rem' }}>
+                                        <button
+                                            disabled={togglingCursor}
+                                            onClick={async () => {
+                                                setTogglingCursor(true);
+                                                try {
+                                                    const res = await fetch(`${API}/api/admin/feature/toggle`, {
+                                                        method: 'PATCH',
+                                                        headers,
+                                                        body: JSON.stringify({ key: 'custom_cursor_enabled', enabled: !customCursorEnabled })
+                                                    });
+                                                    if (res.ok) {
+                                                        setCustomCursorEnabled(!customCursorEnabled);
+                                                        window.dispatchEvent(new CustomEvent('cursorSettingChanged', { detail: { enabled: !customCursorEnabled } }));
+                                                        showToast(!customCursorEnabled ? 'Custom Cursor Enabled' : 'Custom Cursor Disabled');
+                                                    } else {
+                                                        showToast('Failed to toggle feature', 'error');
+                                                    }
+                                                } catch (e) {
+                                                    showToast('Network error', 'error');
+                                                } finally {
+                                                    setTogglingCursor(false);
+                                                }
+                                            }}
+                                            style={{
+                                                position: 'relative', width: '52px', height: '28px',
+                                                background: customCursorEnabled ? '#10b981' : '#cbd5e1',
+                                                borderRadius: '99px', border: 'none', cursor: togglingCursor ? 'wait' : 'pointer',
+                                                transition: 'background 0.2s', padding: 0
+                                            }}
+                                        >
+                                            <div style={{
+                                                position: 'absolute', top: '3px', left: customCursorEnabled ? '27px' : '3px',
                                                 width: '22px', height: '22px', background: '#fff', borderRadius: '50%',
                                                 transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
                                             }} />

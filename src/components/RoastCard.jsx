@@ -39,7 +39,17 @@ export default function RoastCard({ user, onClose }) {
   const [roastText, setRoastText] = useState("");
   const [downloading, setDownloading] = useState(false);
   const [tearing, setTearing] = useState(false);
-  const [activeTheme, setActiveTheme] = useState(ROAST_THEMES[0]);
+  const [activeTheme, setActiveTheme] = useState(() => {
+    try {
+      const cached = localStorage.getItem('wishflow_roast_enabled_themes');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        const allowed = ROAST_THEMES.filter(t => parsed.includes(t.id));
+        if (allowed.length > 0) return allowed[Math.floor(Math.random() * allowed.length)];
+      }
+    } catch (e) {}
+    return ROAST_THEMES[Math.floor(Math.random() * ROAST_THEMES.length)];
+  });
   const captureRef = useRef(null);
   const hasFetched = useRef(false);
 
@@ -48,18 +58,7 @@ export default function RoastCard({ user, onClose }) {
     hasFetched.current = true;
     (async () => {
       try {
-        const [items, featuresRes] = await Promise.all([
-            db.items.getAll(),
-            fetch(`${API}/api/public/features`).then(r => r.json()).catch(() => ({}))
-        ]);
-        
-        let availableThemes = ROAST_THEMES;
-        if (featuresRes.roast_enabled_themes && Array.isArray(featuresRes.roast_enabled_themes)) {
-            const allowed = ROAST_THEMES.filter(t => featuresRes.roast_enabled_themes.includes(t.id));
-            if (allowed.length > 0) availableThemes = allowed;
-        }
-        const randomIndex = Math.floor(Math.random() * availableThemes.length);
-        setActiveTheme(availableThemes[randomIndex]);
+        const items = await db.items.getAll();
 
         if (!items || items.length === 0) {
           setRoastText("Your wishlist is completely empty. Even your imagination went on vacation.");

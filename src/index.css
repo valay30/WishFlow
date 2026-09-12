@@ -106,6 +106,14 @@ body.product-detail-bg {
 }
 
 /* ══════════════════════════════════════
+   CUSTOM CURSOR
+══════════════════════════════════════ */
+body.custom-cursor-active, 
+body.custom-cursor-active * {
+  cursor: none !important;
+}
+
+/* ══════════════════════════════════════
    RESET
 ══════════════════════════════════════ */
 *,
@@ -1162,3 +1170,64 @@ body::before {
     margin-bottom: 1rem;
   }
 }
+
+/* Premium Card Glowing Border Animation */
+@keyframes premiumBorderGlow {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.premium-glow-card {
+  position: relative;
+  background: #ffffff;
+  border-radius: 28px;
+}
+
+.premium-glow-card::before {
+  content: '';
+  position: absolute;
+  top: -2px; left: -2px; right: -2px; bottom: -2px;
+  border-radius: 30px;
+  background: linear-gradient(90deg, #E85C2C, #FF3D3D, #FF9A5A, #E85C2C);
+  background-size: 300% 300%;
+  animation: premiumBorderGlow 4s ease infinite;
+  z-index: -1;
+}
+
+.ribbon-wrapper {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  overflow: hidden;
+  border-radius: 28px;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.premium-ribbon {
+  position: absolute;
+  top: 30px;
+  right: -43px;
+  width: 170px;
+  background: linear-gradient(135deg, #FF9A5A 0%, #FF3D3D 100%);
+  color: white;
+  padding: 6px 0;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  padding-left: 0.05em; /* optical centering for letter-spacing */
+  text-transform: uppercase;
+  box-shadow: 0 4px 12px rgba(232,92,44,0.4);
+  transform: rotate(45deg);
+  animation: ribbonGlow 3s ease-in-out infinite;
+  text-align: center;
+}
+
+@keyframes ribbonGlow {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.15); }
+}
+

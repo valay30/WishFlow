@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { useInView } from 'framer-motion';
 import { ShoppingBag, Star, Sparkles, ArrowRight } from 'lucide-react';
 import { useSettings } from '../context/SettingsContext';
 
@@ -28,6 +29,59 @@ const SLIDES = [
         gradient: 'linear-gradient(135deg, rgba(16,185,129,0.2) 0%, rgba(16,185,129,0.01) 100%)',
     },
 ];
+
+function DesktopSlide({ slide, index, setStep, isLast, onComplete, currency }) {
+    const ref = useRef(null);
+    const isInView = useInView(ref, { margin: "-40% 0px -40% 0px" });
+    
+    useEffect(() => {
+        if (isInView) {
+            setStep(index);
+        }
+    }, [isInView, index, setStep]);
+
+    const bodyText = slide.id === 'premium' ? `Upgrade to Premium for just ${new Intl.NumberFormat(undefined, { style: 'currency', currency: currency || 'INR', maximumFractionDigits: 0 }).format(100)}. Unlock unlimited items, dark mode, and collection sharing.` : slide.body;
+
+    return (
+        <div ref={ref} className="desktop-slide">
+            <h2 style={{
+                margin: 0,
+                fontSize: '2.5rem',
+                fontWeight: 700,
+                color: '#ffffff',
+                lineHeight: 1.15,
+                whiteSpace: 'pre-line',
+                letterSpacing: '-0.02em',
+                marginBottom: '1rem'
+            }}>
+                {slide.title}
+            </h2>
+            <p style={{
+                margin: 0,
+                fontSize: '1.1rem',
+                lineHeight: 1.6,
+                color: 'rgba(255, 255, 255, 0.6)',
+                fontWeight: 400,
+                marginBottom: '2rem'
+            }}>
+                {bodyText}
+            </p>
+            {isLast && (
+                <button
+                    onClick={onComplete}
+                    className="get-started-btn"
+                    style={{
+                        background: slide.color,
+                        boxShadow: `0 8px 24px ${slide.color}40`,
+                    }}
+                >
+                    Get Started
+                    <ArrowRight size={20} />
+                </button>
+            )}
+        </div>
+    );
+}
 
 export default function OnboardingFlow({ onComplete }) {
     const { currency } = useSettings();
@@ -125,94 +179,98 @@ export default function OnboardingFlow({ onComplete }) {
                         )}
                     </div>
                 
-                {/* Text Content */}
-                <div 
-                    style={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '1rem',
-                        opacity: isAnimating ? 0 : 1,
-                        transform: isAnimating ? 'translateY(10px)' : 'translateY(0)',
-                        transition: 'opacity 0.3s ease, transform 0.3s ease',
-                    }}
-                >
-                    <h2 style={{
-                        margin: 0,
-                        fontSize: '2.25rem',
-                        fontWeight: 700,
-                        color: '#ffffff',
-                        lineHeight: 1.15,
-                        whiteSpace: 'pre-line',
-                        letterSpacing: '-0.02em',
-                    }}>
-                        {slide.title}
-                    </h2>
-                    <p style={{
-                        margin: 0,
-                        fontSize: '1rem',
-                        lineHeight: 1.6,
-                        color: 'rgba(255, 255, 255, 0.6)',
-                        fontWeight: 400,
-                    }}>
-                        {slide.body}
-                    </p>
-                </div>
+                    {/* MOBILE CONTENT (Single Slide) */}
+                    <div className="onboarding-content-mobile">
+                        {/* Text Content */}
+                        <div 
+                            style={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: '1rem',
+                                opacity: isAnimating ? 0 : 1,
+                                transform: isAnimating ? 'translateY(10px)' : 'translateY(0)',
+                                transition: 'opacity 0.3s ease, transform 0.3s ease',
+                            }}
+                        >
+                            <h2 style={{
+                                margin: 0,
+                                fontSize: '2.25rem',
+                                fontWeight: 700,
+                                color: '#ffffff',
+                                lineHeight: 1.15,
+                                whiteSpace: 'pre-line',
+                                letterSpacing: '-0.02em',
+                            }}>
+                                {slide.title}
+                            </h2>
+                            <p style={{
+                                margin: 0,
+                                fontSize: '1rem',
+                                lineHeight: 1.6,
+                                color: 'rgba(255, 255, 255, 0.6)',
+                                fontWeight: 400,
+                            }}>
+                                {slide.body}
+                            </p>
+                        </div>
 
-                {/* Controls (Dots + Button) */}
-                <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    marginTop: '1rem',
-                }}>
-                    {/* Progress Dots */}
-                    <div style={{ display: 'flex', gap: '8px' }}>
-                        {SLIDES.map((_, i) => (
-                            <div
-                                key={i}
-                                style={{
-                                    height: '6px',
-                                    borderRadius: '3px',
-                                    background: i === step ? slide.color : 'rgba(255, 255, 255, 0.15)',
-                                    width: i === step ? '24px' : '6px',
-                                    transition: 'all 0.3s ease',
-                                }}
-                            />
-                        ))}
-                    </div>
-
-                    {/* Next Button */}
-                    <button
-                        onClick={goNext}
-                        style={{
-                            background: slide.color,
-                            color: '#ffffff',
-                            border: 'none',
-                            padding: '16px 32px',
-                            borderRadius: '100px',
-                            fontSize: '1rem',
-                            fontWeight: 600,
+                        {/* Controls (Dots + Button) */}
+                        <div style={{
                             display: 'flex',
                             alignItems: 'center',
-                            gap: '8px',
-                            cursor: 'pointer',
-                            transition: 'all 0.2s',
-                            boxShadow: `0 8px 24px ${slide.color}40`,
-                        }}
-                        onMouseEnter={(e) => {
-                            e.currentTarget.style.transform = 'translateY(-2px)';
-                            e.currentTarget.style.boxShadow = `0 12px 32px ${slide.color}60`;
-                        }}
-                        onMouseLeave={(e) => {
-                            e.currentTarget.style.transform = 'translateY(0)';
-                            e.currentTarget.style.boxShadow = `0 8px 24px ${slide.color}40`;
-                        }}
-                    >
-                        {isLast ? 'Get Started' : 'Next'}
-                        <ArrowRight size={20} />
-                    </button>
+                            justifyContent: 'space-between',
+                            marginTop: '1rem',
+                        }}>
+                            {/* Progress Dots */}
+                            <div style={{ display: 'flex', gap: '8px' }}>
+                                {SLIDES.map((_, i) => (
+                                    <div
+                                        key={i}
+                                        style={{
+                                            height: '6px',
+                                            borderRadius: '3px',
+                                            background: i === step ? slide.color : 'rgba(255, 255, 255, 0.15)',
+                                            width: i === step ? '24px' : '6px',
+                                            transition: 'all 0.3s ease',
+                                        }}
+                                    />
+                                ))}
+                            </div>
+
+                            {/* Next Button */}
+                            <button
+                                onClick={goNext}
+                                className="next-btn-mobile"
+                                style={{
+                                    background: slide.color,
+                                    boxShadow: `0 8px 24px ${slide.color}40`,
+                                }}
+                            >
+                                {isLast ? 'Get Started' : 'Next'}
+                                <ArrowRight size={20} />
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* DESKTOP CONTENT (Scrollable) */}
+                    <div className="onboarding-content-desktop">
+                        <div className="desktop-scroll-container">
+                            <div className="desktop-scroll-padding-top"></div>
+                            {SLIDES.map((s, i) => (
+                                <DesktopSlide 
+                                    key={s.id} 
+                                    slide={s} 
+                                    index={i} 
+                                    setStep={setStep} 
+                                    isLast={i === SLIDES.length - 1} 
+                                    onComplete={onComplete}
+                                    currency={currency}
+                                />
+                            ))}
+                            <div className="desktop-scroll-padding-bottom"></div>
+                        </div>
+                    </div>
                 </div>
-            </div>
             </div>
 
             <style>{`
@@ -249,9 +307,81 @@ export default function OnboardingFlow({ onComplete }) {
                     display: flex;
                     flex-direction: column;
                     justify-content: center;
-                    gap: 2rem;
                     border-top: 1px solid rgba(255,255,255,0.05);
                     box-shadow: 0 -20px 40px rgba(0,0,0,0.5);
+                }
+                .onboarding-content-mobile {
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                    gap: 2rem;
+                }
+                .onboarding-content-desktop {
+                    display: none;
+                }
+                .next-btn-mobile {
+                    color: #ffffff;
+                    border: none;
+                    padding: 16px 32px;
+                    border-radius: 100px;
+                    font-size: 1rem;
+                    font-weight: 600;
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    cursor: pointer;
+                    transition: all 0.2s;
+                }
+                .next-btn-mobile:hover {
+                    transform: translateY(-2px);
+                }
+                .get-started-btn {
+                    color: #ffffff;
+                    border: none;
+                    padding: 16px 32px;
+                    border-radius: 100px;
+                    font-size: 1rem;
+                    font-weight: 600;
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 8px;
+                    cursor: pointer;
+                    transition: all 0.2s;
+                    width: fit-content;
+                }
+                .get-started-btn:hover {
+                    transform: translateY(-2px);
+                }
+                .desktop-slide {
+                    min-height: 100%;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                    padding: 4rem 0;
+                    scroll-snap-align: center;
+                }
+                .desktop-scroll-container {
+                    height: 100%;
+                    overflow-y: auto;
+                    scroll-snap-type: y mandatory;
+                    scroll-behavior: smooth;
+                    padding-right: 2rem;
+                }
+                .desktop-scroll-container::-webkit-scrollbar {
+                    width: 6px;
+                }
+                .desktop-scroll-container::-webkit-scrollbar-track {
+                    background: rgba(255,255,255,0.05);
+                    border-radius: 4px;
+                }
+                .desktop-scroll-container::-webkit-scrollbar-thumb {
+                    background: rgba(255,255,255,0.2);
+                    border-radius: 4px;
+                }
+                .desktop-scroll-padding-top, .desktop-scroll-padding-bottom {
+                    height: 10vh;
+                    scroll-snap-align: none;
                 }
                 .skip-btn {
                     background: rgba(255,255,255,0.1);
@@ -299,12 +429,23 @@ export default function OnboardingFlow({ onComplete }) {
                         border: 1px solid rgba(255,255,255,0.1);
                     }
                     .onboarding-content {
-                        width: 450px;
+                        width: 500px;
                         border-radius: 0;
                         border-top: none;
                         border-left: 1px solid rgba(255,255,255,0.05);
-                        padding: 4rem 3.5rem;
+                        padding: 0;
                         box-shadow: none;
+                        display: block;
+                    }
+                    .onboarding-content-mobile {
+                        display: none !important;
+                    }
+                    .onboarding-content-desktop {
+                        display: block;
+                        height: 100%;
+                        padding-left: 3.5rem;
+                        padding-top: 4rem;
+                        padding-bottom: 4rem;
                     }
                     .skip-button-mobile {
                         display: none;

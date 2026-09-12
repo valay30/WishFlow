@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Crown, ChevronDown, ChevronUp } from 'lucide-react';
 import PricingBanner from './PricingBanner';
 import { useSettings } from '../context/SettingsContext';
+import MagneticButton from './MagneticButton';
 
 export default function TierBadgeCard({ user, onUpgrade, isUpgrading }) {
     const { currency } = useSettings();
@@ -68,47 +69,47 @@ export default function TierBadgeCard({ user, onUpgrade, isUpgrading }) {
                         </div>
                     </div>
                     {!user?.isPremium && (
-                        <button
-                            disabled={isUpgrading}
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                if (!isUpgrading) onUpgrade();
-                            }}
-                            style={{
-                                background: 'rgba(255,255,255,0.2)',
-                                border: '1px solid rgba(255,255,255,0.3)',
-                                color: '#fff', fontSize: '0.75rem', fontWeight: 800,
-                                padding: '0.5rem 1rem', borderRadius: '99px',
-                                whiteSpace: 'nowrap', flexShrink: 0,
-                                cursor: isUpgrading ? 'wait' : 'pointer', outline: 'none',
-                                transition: 'all 0.2s', fontFamily: 'inherit',
-                                boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                                opacity: isUpgrading ? 0.8 : 1
-                            }}
-                            onMouseEnter={e => {
-                                if (!isUpgrading) {
-                                    e.currentTarget.style.background = '#fff';
-                                    e.currentTarget.style.color = 'var(--primary)';
-                                    e.currentTarget.style.transform = 'translateY(-1px)';
-                                }
-                            }}
-                            onMouseLeave={e => {
-                                if (!isUpgrading) {
-                                    e.currentTarget.style.background = 'rgba(255,255,255,0.2)';
-                                    e.currentTarget.style.color = '#fff';
-                                    e.currentTarget.style.transform = 'translateY(0)';
-                                }
-                            }}
-                        >
-                            {isUpgrading ? (
-                                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
-                                    <span style={{ width: '13px', height: '13px', border: '2px solid rgba(255,255,255,0.4)', borderTopColor: '#fff', borderRadius: '50%', animation: 'spin 0.7s linear infinite', display: 'inline-block' }} />
-                                    Opening Payment...
-                                </span>
-                            ) : (
-                                `Upgrade - ${new Intl.NumberFormat(undefined, { style: 'currency', currency: currency || 'INR', maximumFractionDigits: 0 }).format(100)}`
-                            )}
-                        </button>
+                        <MagneticButton className="magnetic-btn">
+                            <button
+                                disabled={isUpgrading}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (!isUpgrading) onUpgrade();
+                                }}
+                                style={{
+                                    background: 'rgba(255,255,255,0.2)',
+                                    border: '1px solid rgba(255,255,255,0.3)',
+                                    color: '#fff', fontSize: '0.75rem', fontWeight: 800,
+                                    padding: '0.5rem 1rem', borderRadius: '99px',
+                                    whiteSpace: 'nowrap', flexShrink: 0,
+                                    cursor: isUpgrading ? 'wait' : 'pointer', outline: 'none',
+                                    transition: 'all 0.2s ease', fontFamily: 'inherit',
+                                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                                    opacity: isUpgrading ? 0.8 : 1
+                                }}
+                                onMouseEnter={e => {
+                                    if (!isUpgrading) {
+                                        e.currentTarget.style.background = '#fff';
+                                        e.currentTarget.style.color = 'var(--primary)';
+                                    }
+                                }}
+                                onMouseLeave={e => {
+                                    if (!isUpgrading) {
+                                        e.currentTarget.style.background = 'rgba(255,255,255,0.2)';
+                                        e.currentTarget.style.color = '#fff';
+                                    }
+                                }}
+                            >
+                                {isUpgrading ? (
+                                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+                                        <span style={{ width: '13px', height: '13px', border: '2px solid rgba(255,255,255,0.4)', borderTopColor: '#fff', borderRadius: '50%', animation: 'spin 0.7s linear infinite', display: 'inline-block' }} />
+                                        Opening Payment...
+                                    </span>
+                                ) : (
+                                    `Upgrade - ${new Intl.NumberFormat(undefined, { style: 'currency', currency: currency || 'INR', maximumFractionDigits: 0 }).format(100)}`
+                                )}
+                            </button>
+                        </MagneticButton>
                     )}
                 </div>
 

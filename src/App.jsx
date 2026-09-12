@@ -13,6 +13,7 @@ import Layout from './components/Layout';
 import OfflinePage from './pages/OfflinePage';
 import OnboardingFlow from './components/OnboardingFlow';
 import CookieBanner from './components/CookieBanner';
+import CustomCursor from './components/CustomCursor';
 
 // ── Lazy-loaded page chunks ──────────────────────────────────────────────────
 // Each page is split into its own chunk and only downloaded when first visited.
@@ -218,6 +219,7 @@ function App() {
         <IslandProvider>
           <AdminProvider>
             <ScrollToTop />
+            <CustomCursor />
             <AppRoutes />
             <CookieBanner />
             <Analytics />

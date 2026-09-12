@@ -1,7 +1,9 @@
 import { useNavigate, Link } from 'react-router-dom';
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { motion, AnimatePresence, useInView, useScroll, useSpring } from 'framer-motion';
 import { Bookmark, FolderHeart, Share2, Link2, Tag, Bell, ChevronDown, Star, Zap, Shield, Check, Compass } from 'lucide-react';
 import AdUnit from '../components/AdUnit';
+import MagneticButton from '../components/MagneticButton';
 
 /* ─────────────────────────────────────────
    Fonts & Keyframes
@@ -11,6 +13,8 @@ const KEYFRAMES = `
 @keyframes lp-glow { 0%,100%{opacity:.5;transform:scale(1)} 50%{opacity:.8;transform:scale(1.07)} }
 @keyframes lp-float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
 @keyframes lp-pulse { 0%,100%{opacity:1} 50%{opacity:0.6} }
+@keyframes lp-marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+@keyframes lp-shine { 0% { left: -100%; } 20% { left: 200%; } 100% { left: 200%; } }
 `;
 const FONT = '"Outfit Variable", "Outfit", sans-serif';
 
@@ -54,12 +58,12 @@ const NOISE_URI = `url("data:image/svg+xml,%3Csvg viewBox='0 0 300 300' xmlns='h
 ───────────────────────────────────────── */
 function WFLogo({ size = 40 }) {
     return (
-        <img 
-            src="/192x192.png" 
-            alt="WishFlow Logo" 
-            width={size} 
-            height={size} 
-            style={{ flexShrink: 0, borderRadius: size * 0.2 }} 
+        <img
+            src="/192x192.png"
+            alt="WishFlow Logo"
+            width={size}
+            height={size}
+            style={{ flexShrink: 0, borderRadius: size * 0.2 }}
         />
     );
 }
@@ -104,25 +108,34 @@ function FAQItem({ q, a }) {
             <button
                 onClick={() => setOpen(!open)}
                 style={{
-                    width: '100%', background: 'none', border: 'none',
+                    width: '100%', background: 'transparent', border: 'none',
                     display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                    padding: '1.4rem 0', cursor: 'pointer', gap: '1rem', textAlign: 'left',
-                    fontFamily: FONT,
+                    padding: '1.4rem 1rem', cursor: 'pointer', gap: '1rem', textAlign: 'left',
+                    fontFamily: FONT, borderRadius: '12px',
+                    transition: 'background 0.2s',
                 }}
+                onMouseEnter={e => e.currentTarget.style.background = 'rgba(232,92,44,0.04)'}
+                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
             >
-                <span style={{ fontWeight: 600, fontSize: 'clamp(0.95rem, 2vw, 1.05rem)', color: '#111', lineHeight: 1.4 }}>{q}</span>
+                <span style={{ fontWeight: 600, fontSize: 'clamp(0.95rem, 2vw, 1.05rem)', color: open ? '#E85C2C' : '#111', lineHeight: 1.4, transition: 'color 0.2s' }}>{q}</span>
                 <ChevronDown size={20} color="#E85C2C" style={{ flexShrink: 0, transition: 'transform 0.3s ease', transform: open ? 'rotate(180deg)' : 'rotate(0deg)' }} />
             </button>
-            <div style={{
-                maxHeight: open ? '500px' : '0',
-                overflow: 'hidden',
-                transition: 'max-height 0.35s ease',
-            }}>
-                <p style={{
-                    margin: '0 0 1.4rem', color: '#666',
-                    fontSize: 'clamp(0.88rem, 1.8vw, 0.98rem)', lineHeight: 1.75, fontFamily: FONT,
-                }}>{a}</p>
-            </div>
+            <AnimatePresence>
+                {open && (
+                    <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.3, ease: 'easeInOut' }}
+                        style={{ overflow: 'hidden' }}
+                    >
+                        <p style={{
+                            margin: '0 1rem 1.4rem', color: '#666',
+                            fontSize: 'clamp(0.88rem, 1.8vw, 0.98rem)', lineHeight: 1.75, fontFamily: FONT,
+                        }}>{a}</p>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }
@@ -158,13 +171,334 @@ const HOW_IT_WORKS = [
 ];
 
 /* ─────────────────────────────────────────
+   Scroll-Telling Components
+───────────────────────────────────────── */
+function StepCard({ step, index, setActiveStep }) {
+    const ref = useRef(null);
+    const isInView = useInView(ref, { margin: "-50% 0px -50% 0px" });
+
+    useEffect(() => {
+        if (isInView) {
+            setActiveStep(index);
+        }
+    }, [isInView, index, setActiveStep]);
+
+    return (
+        <div ref={ref} style={{ height: '80vh', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+            <div style={{
+                background: isInView ? '#ffffff' : 'rgba(255,255,255,0.6)',
+                backdropFilter: 'blur(12px)',
+                border: isInView ? '1px solid rgba(232, 92, 44, 0.15)' : '1px solid #f0f0f0',
+                borderRadius: '28px',
+                padding: '3rem 2.5rem',
+                boxShadow: isInView
+                    ? '0 32px 80px rgba(232, 92, 44, 0.12), 0 4px 20px rgba(232,92,44,0.05)'
+                    : '0 4px 12px rgba(0,0,0,0.02)',
+                transform: isInView ? 'scale(1)' : 'scale(0.92)',
+                opacity: isInView ? 1 : 0.3,
+                transition: 'all 0.6s cubic-bezier(0.2, 1, 0.2, 1)'
+            }}>
+                <div style={{
+                    flexShrink: 0, width: '64px', height: '64px', borderRadius: '20px',
+                    background: isInView ? '#FFF5F2' : '#f5f5f5',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '2rem',
+                    transition: 'all 0.6s'
+                }}>
+                    <step.Icon size={32} color={isInView ? "#E85C2C" : "#999"} strokeWidth={2} />
+                </div>
+                <div style={{ color: isInView ? '#E85C2C' : '#999', fontSize: '0.85rem', fontWeight: 800, letterSpacing: '0.2em', marginBottom: '0.75rem', fontFamily: FONT, transition: 'color 0.6s' }}>STEP {step.step}</div>
+                <h3 style={{ fontFamily: FONT, fontWeight: 800, fontSize: '1.75rem', color: isInView ? '#111' : '#666', margin: '0 0 1rem', transition: 'color 0.6s', lineHeight: 1.2 }}>{step.title}</h3>
+                <p style={{ fontFamily: FONT, fontSize: '1.1rem', color: '#666', margin: 0, lineHeight: 1.75 }}>{step.desc}</p>
+            </div>
+        </div>
+    );
+}
+
+function MockupStep1() {
+    return (
+        <div style={{ width: '100%', height: '100%', background: 'linear-gradient(to bottom, #fdfbfb, #ebedee)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ width: '85%' }}>
+                <motion.div
+                    initial={{ y: 20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ delay: 0.2 }}
+                    style={{ padding: '1.5rem', background: 'rgba(255,255,255,0.8)', backdropFilter: 'blur(20px)', borderRadius: '24px', boxShadow: '0 20px 40px rgba(0,0,0,0.08), inset 0 1px 1px rgba(255,255,255,1)' }}
+                >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.25rem' }}>
+                        <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: '#FFF5F2', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <Link2 size={14} color="#E85C2C" />
+                        </div>
+                        <div style={{ height: '8px', width: '40%', background: '#e2e8f0', borderRadius: '4px' }} />
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '0.75rem' }}>
+                        <div style={{ flex: 1, height: '40px', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0', padding: '0 1rem', display: 'flex', alignItems: 'center', overflow: 'hidden' }}>
+                            <motion.span
+                                initial={{ width: 0 }}
+                                animate={{ width: '100%' }}
+                                transition={{ delay: 0.5, duration: 1, ease: 'linear' }}
+                                style={{ color: '#64748b', fontSize: '0.7rem', whiteSpace: 'nowrap', overflow: 'hidden', display: 'inline-block' }}
+                            >
+                                https://amazon.in/p/xyz
+                            </motion.span>
+                        </div>
+                        <motion.div
+                            initial={{ scale: 0.8 }}
+                            animate={{ scale: [0.8, 1.1, 0.9, 1] }}
+                            transition={{ delay: 1.5, duration: 0.5 }}
+                            style={{ width: '40px', height: '40px', background: 'linear-gradient(135deg, #E85C2C 0%, #FF3D3D 100%)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 8px 16px rgba(232,92,44,0.3)' }}
+                        >
+                            <Star size={16} color="#fff" fill="#fff" />
+                        </motion.div>
+                    </div>
+                </motion.div>
+
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 2.2, duration: 0.5, type: 'spring', damping: 15 }}
+                    style={{ marginTop: '1rem', background: '#fff', borderRadius: '20px', padding: '1rem', boxShadow: '0 12px 30px rgba(0,0,0,0.06)' }}
+                >
+                    <div style={{ display: 'flex', gap: '1rem' }}>
+                        <div style={{ width: '60px', height: '60px', borderRadius: '12px', background: 'linear-gradient(135deg, #f1f5f9, #e2e8f0)' }} />
+                        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                            <div style={{ height: '10px', width: '80%', background: '#94a3b8', borderRadius: '3px', marginBottom: '8px' }} />
+                            <div style={{ height: '10px', width: '40%', background: '#cbd5e1', borderRadius: '3px', marginBottom: '8px' }} />
+                            <div style={{ height: '12px', width: '30%', background: '#E85C2C', borderRadius: '3px' }} />
+                        </div>
+                    </div>
+                </motion.div>
+            </div>
+        </div>
+    );
+}
+
+function MockupStep2() {
+    return (
+        <div style={{ width: '100%', height: '100%', background: '#f8fafc', padding: '5rem 1.25rem 1.25rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ height: '24px', width: '50%', background: '#cbd5e1', borderRadius: '8px' }} />
+                <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#e2e8f0' }} />
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginTop: '0.5rem' }}>
+                <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.1 }} style={{ aspectRatio: '4/5', background: 'linear-gradient(180deg, #fdfbfb 0%, #ebedee 100%)', borderRadius: '20px', padding: '1rem', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', boxShadow: '0 10px 20px rgba(0,0,0,0.04)' }}>
+                    <div style={{ height: '8px', width: '70%', background: '#cbd5e1', borderRadius: '4px', marginBottom: '6px' }} />
+                    <div style={{ height: '12px', width: '40%', background: '#94a3b8', borderRadius: '4px' }} />
+                </motion.div>
+                <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.2 }} style={{ aspectRatio: '1', background: 'linear-gradient(180deg, #FFF5F2 0%, #FFE4DB 100%)', borderRadius: '20px', padding: '1rem', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', boxShadow: '0 10px 20px rgba(232,92,44,0.1)' }}>
+                    <div style={{ height: '8px', width: '80%', background: '#E85C2C', opacity: 0.5, borderRadius: '4px', marginBottom: '6px' }} />
+                    <div style={{ height: '12px', width: '50%', background: '#E85C2C', borderRadius: '4px' }} />
+                </motion.div>
+                <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.3 }} style={{ aspectRatio: '1', background: 'linear-gradient(180deg, #EFF6FF 0%, #DBEAFE 100%)', borderRadius: '20px', padding: '1rem', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', boxShadow: '0 10px 20px rgba(59,130,246,0.1)' }}>
+                    <div style={{ height: '8px', width: '60%', background: '#3b82f6', opacity: 0.5, borderRadius: '4px', marginBottom: '6px' }} />
+                    <div style={{ height: '12px', width: '40%', background: '#3b82f6', borderRadius: '4px' }} />
+                </motion.div>
+                <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.4 }} style={{ aspectRatio: '4/5', background: 'linear-gradient(180deg, #F5F3FF 0%, #EDE9FE 100%)', borderRadius: '20px', padding: '1rem', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', boxShadow: '0 10px 20px rgba(139,92,246,0.1)' }}>
+                    <div style={{ height: '8px', width: '70%', background: '#8b5cf6', opacity: 0.5, borderRadius: '4px', marginBottom: '6px' }} />
+                    <div style={{ height: '12px', width: '40%', background: '#8b5cf6', borderRadius: '4px' }} />
+                </motion.div>
+            </div>
+        </div>
+    );
+}
+
+function MockupStep3() {
+    return (
+        <div style={{ width: '100%', height: '100%', background: '#f8fafc', position: 'relative', overflow: 'hidden' }}>
+            <div style={{ padding: '4rem 1rem 1rem' }}>
+                <div style={{ width: '100%', height: '180px', background: '#e2e8f0', borderRadius: '20px', opacity: 0.5 }} />
+            </div>
+
+            <motion.div
+                initial={{ y: '100%' }}
+                animate={{ y: 0 }}
+                transition={{ type: 'spring', damping: 25, stiffness: 200, delay: 0.1 }}
+                style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(20px)', borderTopLeftRadius: '28px', borderTopRightRadius: '28px', padding: '1.5rem 1.25rem 2.5rem', boxShadow: '0 -20px 40px rgba(0,0,0,0.08)' }}
+            >
+                <div style={{ width: '40px', height: '4px', background: '#e2e8f0', borderRadius: '2px', margin: '0 auto 1.5rem' }} />
+                <div style={{ height: '16px', width: '60%', background: '#cbd5e1', borderRadius: '4px', marginBottom: '1.5rem', margin: '0 auto 1.5rem' }} />
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.75rem' }}>
+                    {[
+                        { c: '#25D366' }, { c: '#1DA1F2' }, { c: '#E1306C' }, { c: '#0088cc' }
+                    ].map((app, i) => (
+                        <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
+                            <motion.div
+                                initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.2 + (i * 0.1), type: 'spring' }}
+                                style={{ width: '40px', height: '40px', borderRadius: '12px', background: app.c, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: `0 8px 16px ${app.c}40` }}
+                            >
+                                <Share2 size={16} color="#fff" />
+                            </motion.div>
+                            <div style={{ height: '4px', width: '20px', background: '#e2e8f0', borderRadius: '2px' }} />
+                        </div>
+                    ))}
+                </div>
+            </motion.div>
+        </div>
+    );
+}
+
+function MockupStep4() {
+    return (
+        <div style={{ width: '100%', height: '100%', background: '#f8fafc', position: 'relative' }}>
+            <motion.div
+                initial={{ y: -50, opacity: 0, scale: 0.9 }}
+                animate={{ y: 0, opacity: 1, scale: 1 }}
+                transition={{ type: 'spring', damping: 20, stiffness: 200, delay: 0.2 }}
+                style={{ position: 'absolute', top: '2.5rem', left: '1rem', right: '1rem', background: '#fff', borderRadius: '20px', padding: '1rem', boxShadow: '0 20px 40px rgba(0,0,0,0.1), 0 1px 3px rgba(0,0,0,0.05)', display: 'flex', gap: '0.75rem', alignItems: 'center' }}
+            >
+                <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 8px 16px rgba(16,185,129,0.3)' }}>
+                    <Bell size={20} color="#fff" fill="#fff" />
+                </div>
+                <div style={{ flex: 1 }}>
+                    <div style={{ height: '12px', width: '80%', background: '#1e293b', borderRadius: '3px', marginBottom: '8px' }} />
+                    <div style={{ height: '8px', width: '50%', background: '#94a3b8', borderRadius: '3px', marginBottom: '6px' }} />
+                    <div style={{ height: '8px', width: '90%', background: '#e2e8f0', borderRadius: '3px' }} />
+                </div>
+            </motion.div>
+        </div>
+    );
+}
+
+function HowItWorksScroll({ isMobile }) {
+    const [activeStep, setActiveStep] = useState(0);
+    const [animationKey, setAnimationKey] = useState(0);
+    const stickyRef = useRef(null);
+    const isStickyInView = useInView(stickyRef, { amount: 0.4 });
+    const colors = ['#E85C2C', '#3b82f6', '#8b5cf6', '#10b981'];
+    const activeColor = colors[activeStep] || colors[0];
+
+    useEffect(() => {
+        if (isStickyInView) {
+            setAnimationKey(prev => prev + 1);
+        }
+    }, [activeStep, isStickyInView]);
+
+    if (isMobile) {
+        return (
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1.5rem' }}>
+                {HOW_IT_WORKS.map((step, i) => (
+                    <div key={i} style={{ display: 'flex', gap: '1.25rem', alignItems: 'flex-start', background: '#fff', border: '1px solid #f0f0f0', borderRadius: '20px', padding: '1.75rem' }}>
+                        <div style={{ flexShrink: 0, width: '48px', height: '48px', borderRadius: '14px', background: '#FFF5F2', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <step.Icon size={22} color="#E85C2C" strokeWidth={2} />
+                        </div>
+                        <div>
+                            <div style={{ color: '#E85C2C', fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.1em', marginBottom: '0.4rem', fontFamily: FONT }}>STEP {step.step}</div>
+                            <h3 style={{ fontFamily: FONT, fontWeight: 700, fontSize: '1rem', color: '#111', margin: '0 0 0.6rem' }}>{step.title}</h3>
+                            <p style={{ fontFamily: FONT, fontSize: '0.88rem', color: '#666', margin: 0, lineHeight: 1.72 }}>{step.desc}</p>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        );
+    }
+
+    return (
+        <div style={{ display: 'flex', alignItems: 'flex-start', position: 'relative', marginTop: '2rem' }}>
+            <div ref={stickyRef} style={{
+                position: 'sticky',
+                top: '90px',
+                width: '50%',
+                height: 'calc(100vh - 90px)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+            }}>
+                <div style={{
+                    position: 'absolute',
+                    width: '350px',
+                    height: '350px',
+                    background: activeColor,
+                    borderRadius: '50%',
+                    filter: 'blur(100px)',
+                    opacity: 0.15,
+                    transition: 'all 0.8s ease'
+                }} />
+
+                <div style={{
+                    width: '280px',
+                    height: '580px',
+                    background: '#ffffff',
+                    borderRadius: '40px',
+                    border: '8px solid #111',
+                    boxShadow: '0 40px 100px rgba(0,0,0,0.1), inset 0 0 0 2px rgba(255,255,255,0.2)',
+                    position: 'relative',
+                    overflow: 'hidden',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    zIndex: 10
+                }}>
+                    <div style={{
+                        position: 'absolute',
+                        top: '10px',
+                        left: '50%',
+                        transform: 'translateX(-50%)',
+                        width: '80px',
+                        height: '24px',
+                        background: '#000',
+                        borderRadius: '16px',
+                        zIndex: 100,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '5px'
+                    }}>
+                        <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#111', boxShadow: 'inset 0 0 4px rgba(255,255,255,0.1)' }} />
+                        <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#111', boxShadow: 'inset 0 0 4px rgba(255,255,255,0.1)' }} />
+                    </div>
+
+                    <AnimatePresence mode="wait">
+                        <motion.div
+                            key={animationKey}
+                            initial={{ opacity: 0, scale: 0.95, filter: 'blur(10px)' }}
+                            animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
+                            exit={{ opacity: 0, scale: 1.05, filter: 'blur(10px)' }}
+                            transition={{ duration: 0.5, ease: [0.2, 1, 0.2, 1] }}
+                            style={{ flex: 1, display: 'flex', width: '100%', height: '100%', position: 'absolute', inset: 0, background: '#fafafa' }}
+                        >
+                            {activeStep === 0 && <MockupStep1 />}
+                            {activeStep === 1 && <MockupStep2 />}
+                            {activeStep === 2 && <MockupStep3 />}
+                            {activeStep === 3 && <MockupStep4 />}
+                        </motion.div>
+                    </AnimatePresence>
+                </div>
+            </div>
+            <div style={{ width: '50%', padding: '0 2rem 50vh' }}>
+                {HOW_IT_WORKS.map((step, i) => (
+                    <StepCard key={i} step={step} index={i} setActiveStep={setActiveStep} />
+                ))}
+            </div>
+        </div>
+    );
+}
+
+/* ─────────────────────────────────────────
    Full Page (Scrollable)
 ───────────────────────────────────────── */
 export default function LandingPage() {
     const navigate = useNavigate();
+
+    // Manual scroll progress tracker (guaranteed to work across all browsers/setups)
+    const [scrollProgress, setScrollProgress] = useState(0);
+    useEffect(() => {
+        const handleScroll = () => {
+            const scrollTop = window.scrollY || document.documentElement.scrollTop;
+            const scrollHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            if (scrollHeight > 0) {
+                setScrollProgress(scrollTop / scrollHeight);
+            }
+        };
+        window.addEventListener('scroll', handleScroll, { passive: true });
+        handleScroll(); // Initial check
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
+
     const [activeSlide, setActiveSlide] = useState(0);
     const [dragDelta, setDragDelta] = useState(0);
     const [dragging, setDragging] = useState(false);
+    const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
     const touchStartX = useRef(null);
     const touchStartY = useRef(null);
     const autoRef = useRef(null);
@@ -216,18 +550,34 @@ export default function LandingPage() {
         setDragDelta(0); touchStartX.current = null; resetAuto();
     };
 
+    const handleMouseMove = (e) => {
+        if (isMobile) return;
+        const x = (e.clientX / window.innerWidth) * 2 - 1;
+        const y = (e.clientY / window.innerHeight) * 2 - 1;
+        setMousePos({ x, y });
+    };
+
     return (
-        <div style={{ background: '#fdfdfd', fontFamily: FONT, overflowX: 'hidden' }}>
+        <div style={{ background: '#fdfdfd', fontFamily: FONT, overflowX: 'clip' }}>
+            {/* Scroll Progress Bar */}
+            <div style={{ position: 'fixed', top: 0, left: 0, right: 0, height: '4px', background: 'rgba(0,0,0,0.05)', zIndex: 99999 }}>
+                <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'linear-gradient(90deg, #E85C2C, #FF3D3D)', width: `${scrollProgress * 100}%`, transition: 'width 0.1s ease-out' }} />
+            </div>
+
             <style>{KEYFRAMES}</style>
 
             {/* ── NAVBAR ── */}
             <nav style={{
-                position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100,
+                position: 'fixed', top: isMobile ? '16px' : '24px', left: '50%', transform: 'translateX(-50%)', zIndex: 100,
+                width: 'calc(100% - 32px)', maxWidth: '1000px',
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                padding: '1rem 2rem',
-                background: 'rgba(255,255,255,0.9)',
-                backdropFilter: 'blur(16px)',
-                borderBottom: '1px solid rgba(0,0,0,0.06)',
+                padding: isMobile ? '0.75rem 1.25rem' : '0.8rem 1.5rem',
+                background: 'rgba(255, 255, 255, 0.5)',
+                backdropFilter: 'blur(40px) saturate(200%)',
+                WebkitBackdropFilter: 'blur(40px) saturate(200%)',
+                border: '1px solid rgba(255, 255, 255, 0.3)',
+                borderRadius: '100px',
+                boxShadow: '0 8px 32px rgba(0,0,0,0.08), inset 0 0 0 1px rgba(255,255,255,0.2), inset 0 2px 4px rgba(255,255,255,0.8)',
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
                     <WFLogo size={28} />
@@ -276,9 +626,19 @@ export default function LandingPage() {
                     <button
                         onClick={() => navigate('/auth')}
                         style={{
-                            background: '#E85C2C', color: '#fff', border: 'none',
+                            background: 'linear-gradient(135deg, #E85C2C 0%, #FF3D3D 100%)', color: '#fff', border: 'none',
                             borderRadius: '50px', padding: '0.5rem 1.4rem',
                             fontWeight: 700, fontSize: '0.9rem', cursor: 'pointer', fontFamily: FONT,
+                            boxShadow: '0 4px 12px rgba(232,92,44,0.25), inset 0 1px 1px rgba(255,255,255,0.4)',
+                            transition: 'transform 0.15s, box-shadow 0.15s',
+                        }}
+                        onMouseEnter={e => {
+                            e.currentTarget.style.transform = 'translateY(-1px)';
+                            e.currentTarget.style.boxShadow = '0 6px 16px rgba(232,92,44,0.3), inset 0 1px 1px rgba(255,255,255,0.4)';
+                        }}
+                        onMouseLeave={e => {
+                            e.currentTarget.style.transform = 'translateY(0)';
+                            e.currentTarget.style.boxShadow = '0 4px 12px rgba(232,92,44,0.25), inset 0 1px 1px rgba(255,255,255,0.4)';
                         }}
                     >
                         Get Started
@@ -287,28 +647,35 @@ export default function LandingPage() {
             </nav>
 
             {/* ── HERO SECTION ── */}
-            <section style={{
-                minHeight: '100dvh',
-                display: 'flex', flexDirection: 'column',
-                alignItems: 'center',
-                paddingTop: isMobile ? '80px' : '90px',
-                paddingBottom: isMobile ? '3rem' : '5rem',
-                position: 'relative', overflow: 'hidden',
-            }}>
+            <section
+                onMouseMove={handleMouseMove}
+                style={{
+                    minHeight: '100dvh',
+                    display: 'flex', flexDirection: 'column',
+                    alignItems: 'center',
+                    paddingTop: isMobile ? '110px' : '150px',
+                    paddingBottom: isMobile ? '3rem' : '5rem',
+                    position: 'relative', overflow: 'hidden',
+                }}>
                 {/* Ambient glows */}
                 {FEATURES.map((s, i) => (
-                    <div key={i} style={{
-                        position: 'absolute',
-                        top: isMobile ? '28%' : '45%',
-                        left: isMobile ? '50%' : `${18 + i * 32}%`,
-                        transform: 'translate(-50%, -50%)',
-                        width: isMobile ? '340px' : '460px', height: isMobile ? '340px' : '460px',
-                        borderRadius: '50%',
-                        background: `radial-gradient(circle, ${s.glow} 0%, transparent 68%)`,
-                        pointerEvents: 'none', transition: 'opacity 0.6s ease',
-                        opacity: isMobile ? (i === activeSlide ? 1 : 0) : 1,
-                        animation: `lp-glow ${5 + i}s ease-in-out ${i * 1.2}s infinite`,
-                    }} />
+                    <motion.div key={i}
+                        animate={{
+                            x: isMobile ? '-50%' : `calc(-50% + ${mousePos.x * -40 * (i + 1)}px)`,
+                            y: isMobile ? '-50%' : `calc(-50% + ${mousePos.y * -40 * (i + 1)}px)`
+                        }}
+                        transition={{ type: "spring", stiffness: 100, damping: 30, mass: 0.5 }}
+                        style={{
+                            position: 'absolute',
+                            top: isMobile ? '28%' : '45%',
+                            left: isMobile ? '50%' : `${18 + i * 32}%`,
+                            width: isMobile ? '340px' : '460px', height: isMobile ? '340px' : '460px',
+                            borderRadius: '50%',
+                            pointerEvents: 'none',
+                            opacity: isMobile ? (i === activeSlide ? 1 : 0) : 1,
+                        }}>
+                        <div style={{ width: '100%', height: '100%', borderRadius: '50%', background: `radial-gradient(circle, ${s.glow} 0%, transparent 68%)`, animation: `lp-glow ${5 + i}s ease-in-out ${i * 1.2}s infinite` }} />
+                    </motion.div>
                 ))}
 
                 {/* Headline */}
@@ -328,21 +695,21 @@ export default function LandingPage() {
                     <p style={{ color: '#666', fontSize: isMobile ? '1rem' : '1.15rem', maxWidth: '540px', margin: '0 auto 1.75rem', lineHeight: 1.6 }}>
                         Save products from any website, organize them into beautiful collections, and share your wishlist with friends & family — all for free.
                     </p>
-                    <button
-                        onClick={() => navigate('/auth')}
-                        style={{
-                            background: '#E85C2C', color: '#fff', border: 'none',
-                            borderRadius: '50px', padding: isMobile ? '0.95rem 2.2rem' : '1rem 2.75rem',
-                            fontWeight: 700, fontSize: '1rem', cursor: 'pointer', fontFamily: FONT,
-                            boxShadow: '0 12px 32px rgba(232,92,44,0.25)', letterSpacing: '-0.01em',
-                            transition: 'transform 0.15s',
-                            display: 'block', margin: '0 auto'
-                        }}
-                        onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
-                        onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
-                    >
-                        Start for Free — No Card Needed
-                    </button>
+                    <MagneticButton className="magnetic-btn" style={{ display: 'block', margin: '0 auto' }}>
+                        <button
+                            onClick={() => navigate('/auth')}
+                            style={{
+                                background: '#E85C2C', color: '#fff', border: 'none',
+                                borderRadius: '50px', padding: isMobile ? '0.95rem 2.2rem' : '1rem 2.75rem',
+                                fontWeight: 700, fontSize: '1rem', cursor: 'pointer', fontFamily: FONT,
+                                boxShadow: '0 12px 32px rgba(232,92,44,0.25)', letterSpacing: '-0.01em',
+                                transition: 'transform 0.15s ease-out',
+
+                            }}
+                        >
+                            Start for Free — No Card Needed
+                        </button>
+                    </MagneticButton>
                     {isMobile && (
                         <button
                             onClick={() => navigate('/discover')}
@@ -370,6 +737,82 @@ export default function LandingPage() {
                         </button>
                     )}
                 </div>
+
+                {/* Floating Mockup */}
+                <motion.div
+                    initial={{ y: 30, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ delay: 0.1, duration: 0.8, ease: "easeOut" }}
+                    style={{
+                        marginTop: isMobile ? '1.5rem' : '3.5rem',
+                        marginBottom: isMobile ? '1.5rem' : '4rem',
+                        position: 'relative',
+                        width: '100%',
+                        maxWidth: '960px',
+                        padding: '0 1.5rem',
+                        zIndex: 2,
+                        perspective: '1200px'
+                    }}
+                >
+                    <motion.div
+                        animate={{ y: [0, -15, 0] }}
+                        transition={{ repeat: Infinity, duration: 6, ease: "easeInOut" }}
+                        style={{
+                            background: 'rgba(255, 255, 255, 0.7)',
+                            backdropFilter: 'blur(20px)',
+                            WebkitBackdropFilter: 'blur(20px)',
+                            border: '1px solid rgba(255, 255, 255, 0.8)',
+                            borderRadius: '16px',
+                            boxShadow: '0 25px 50px rgba(0,0,0,0.08), 0 2px 10px rgba(0,0,0,0.05), inset 0 1px 1px rgba(255,255,255,1)',
+                            overflow: 'hidden',
+                            transform: 'rotateX(3deg) rotateY(0deg)',
+                            transformStyle: 'preserve-3d',
+                            display: 'flex',
+                            flexDirection: 'column'
+                        }}
+                    >
+                        {/* Fake Mac Header */}
+                        <div style={{ height: '32px', background: 'rgba(250, 250, 250, 0.9)', borderBottom: '1px solid rgba(0,0,0,0.04)', display: 'flex', alignItems: 'center', padding: '0 1rem', gap: '6px' }}>
+                            <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#ff5f56' }} />
+                            <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#ffbd2e' }} />
+                            <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#27c93f' }} />
+                        </div>
+                        {/* Fake App Body */}
+                        <div style={{ display: 'flex', height: isMobile ? '280px' : '480px' }}>
+                            {/* Fake Sidebar */}
+                            {!isMobile && (
+                                <div style={{ width: '22%', borderRight: '1px solid rgba(0,0,0,0.04)', padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem', background: 'rgba(248, 250, 252, 0.5)' }}>
+                                    <div style={{ height: 28, background: 'rgba(232,92,44,0.15)', borderRadius: 8, width: '80%', marginBottom: '1rem' }} />
+                                    <div style={{ height: 14, background: 'rgba(0,0,0,0.04)', borderRadius: 4, width: '100%' }} />
+                                    <div style={{ height: 14, background: 'rgba(0,0,0,0.04)', borderRadius: 4, width: '90%' }} />
+                                    <div style={{ height: 14, background: 'rgba(0,0,0,0.04)', borderRadius: 4, width: '85%' }} />
+                                    <div style={{ height: 14, background: 'rgba(0,0,0,0.04)', borderRadius: 4, width: '95%' }} />
+                                </div>
+                            )}
+                            {/* Fake Main Content */}
+                            <div style={{ flex: 1, padding: isMobile ? '1.5rem' : '2.5rem', display: 'flex', flexDirection: 'column', gap: isMobile ? '1rem' : '1.5rem', background: '#fff' }}>
+                                {/* Fake Navbar */}
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '1rem', borderBottom: '1px solid rgba(0,0,0,0.04)' }}>
+                                    <div style={{ height: isMobile ? 24 : 32, background: 'rgba(0,0,0,0.04)', borderRadius: 8, width: '35%' }} />
+                                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                        <div style={{ width: isMobile ? 28 : 36, height: isMobile ? 28 : 36, borderRadius: '50%', background: 'rgba(0,0,0,0.04)' }} />
+                                        <div style={{ width: isMobile ? 60 : 90, height: isMobile ? 28 : 36, borderRadius: 16, background: '#E85C2C' }} />
+                                    </div>
+                                </div>
+                                {/* Fake Cards Grid */}
+                                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)', gap: isMobile ? '0.75rem' : '1.5rem', flex: 1 }}>
+                                    {[1, 2, 3].slice(0, isMobile ? 2 : 3).map(i => (
+                                        <div key={i} style={{ background: 'rgba(248,250,252,0.8)', borderRadius: 16, border: '1px solid rgba(0,0,0,0.03)', padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                                            <div style={{ height: isMobile ? '60px' : '120px', background: 'rgba(0,0,0,0.04)', borderRadius: 12 }} />
+                                            <div style={{ height: 14, background: 'rgba(0,0,0,0.05)', borderRadius: 4, width: '85%' }} />
+                                            <div style={{ height: 12, background: 'rgba(0,0,0,0.03)', borderRadius: 4, width: '45%' }} />
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    </motion.div>
+                </motion.div>
 
                 {/* Mobile: Carousel / Desktop: 3 cards row */}
                 {isMobile ? (
@@ -403,8 +846,8 @@ export default function LandingPage() {
                 ) : (
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '2rem', width: '100%', maxWidth: '960px', height: 'clamp(300px, 42vh, 440px)', position: 'relative', zIndex: 2, padding: '0 2rem', boxSizing: 'border-box', animation: 'lp-fadeIn 0.5s ease 0.1s both' }}>
                         {FEATURES.map(s => (
-                            <div 
-                                key={s.id} 
+                            <div
+                                key={s.id}
                                 style={{ background: '#fff', borderRadius: '24px', border: '1px solid #f0f0f0', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden', boxShadow: '0 24px 64px rgba(0,0,0,0.06)', transition: 'transform 0.3s ease, border 0.3s ease, box-shadow 0.3s ease' }}
                                 onMouseEnter={e => {
                                     e.currentTarget.style.border = '2px solid #E85C2C';
@@ -440,13 +883,28 @@ export default function LandingPage() {
                     </div>
                 )}
 
-                {/* Scroll nudge — desktop only */}
-                {!isMobile && (
-                    <div style={{ position: 'absolute', bottom: '1.5rem', left: '50%', transform: 'translateX(-50%)', zIndex: 2, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.35rem', animation: 'lp-pulse 2.2s ease-in-out infinite', opacity: 0.5, cursor: 'pointer' }} onClick={() => window.scrollBy({ top: window.innerHeight * 0.9, behavior: 'smooth' })}>
-                        <span style={{ color: '#888', fontSize: '0.7rem', fontFamily: FONT, letterSpacing: '0.08em', fontWeight: 600 }}>SCROLL</span>
-                        <ChevronDown size={18} color="#888" />
-                    </div>
-                )}
+
+            </section>
+
+            {/* ── MARQUEE SECTION ── */}
+            <section style={{ width: '100%', overflow: 'hidden', padding: isMobile ? '1.5rem 0 2.5rem' : '3rem 0', background: '#fdfdfd', borderTop: '1px solid rgba(0,0,0,0.03)', borderBottom: '1px solid rgba(0,0,0,0.03)', position: 'relative' }}>
+                <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: isMobile ? '50px' : '150px', background: 'linear-gradient(to right, #fdfdfd, transparent)', zIndex: 10 }} />
+                <div style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: isMobile ? '50px' : '150px', background: 'linear-gradient(to left, #fdfdfd, transparent)', zIndex: 10 }} />
+
+                <div style={{ textAlign: 'center', marginBottom: isMobile ? '1.5rem' : '2rem', color: '#a1a1aa', fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.15em', fontFamily: FONT }}>
+                    WORKS SEAMLESSLY WITH
+                </div>
+                <div style={{ display: 'flex', width: 'max-content', animation: 'lp-marquee 30s linear infinite' }}>
+                    {[...Array(2)].map((_, arrayIndex) => (
+                        <div key={arrayIndex} style={{ display: 'flex', gap: isMobile ? '2.5rem' : '4rem', paddingRight: isMobile ? '2.5rem' : '4rem', alignItems: 'center' }}>
+                            {['Amazon', 'Flipkart', 'Myntra', 'Nykaa', 'Ajio', 'Blinkit', 'Zepto', 'Meesho'].map((store, i) => (
+                                <span key={i} style={{ fontSize: isMobile ? '1.4rem' : '1.8rem', fontWeight: 800, color: '#e2e8f0', fontFamily: FONT, letterSpacing: '-0.03em', textTransform: 'lowercase', transition: 'color 0.3s' }} onMouseEnter={e => e.currentTarget.style.color = '#cbd5e1'} onMouseLeave={e => e.currentTarget.style.color = '#e2e8f0'}>
+                                    {store}
+                                </span>
+                            ))}
+                        </div>
+                    ))}
+                </div>
             </section>
 
             {/* ── WHY WISHFLOW (3 Feature Bullets) ── */}
@@ -496,20 +954,7 @@ export default function LandingPage() {
                         </p>
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)', gap: '1.5rem' }}>
-                        {HOW_IT_WORKS.map((step, i) => (
-                            <div key={i} style={{ display: 'flex', gap: '1.25rem', alignItems: 'flex-start', background: '#fff', border: '1px solid #f0f0f0', borderRadius: '20px', padding: '1.75rem' }}>
-                                <div style={{ flexShrink: 0, width: '48px', height: '48px', borderRadius: '14px', background: '#FFF5F2', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                    <step.Icon size={22} color="#E85C2C" strokeWidth={2} />
-                                </div>
-                                <div>
-                                    <div style={{ color: '#E85C2C', fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.1em', marginBottom: '0.4rem', fontFamily: FONT }}>STEP {step.step}</div>
-                                    <h3 style={{ fontFamily: FONT, fontWeight: 700, fontSize: '1rem', color: '#111', margin: '0 0 0.6rem' }}>{step.title}</h3>
-                                    <p style={{ fontFamily: FONT, fontSize: '0.88rem', color: '#666', margin: 0, lineHeight: 1.72 }}>{step.desc}</p>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
+                    <HowItWorksScroll isMobile={isMobile} />
                 </div>
             </section>
 
@@ -578,27 +1023,27 @@ export default function LandingPage() {
                                 Basic Features
                             </div>
 
-                            <button
-                                onClick={() => navigate('/auth')}
-                                style={{
-                                    width: '100%',
-                                    padding: '0.95rem',
-                                    background: '#f1f5f9',
-                                    color: '#334155',
-                                    border: 'none',
-                                    borderRadius: '16px',
-                                    fontWeight: 700,
-                                    fontSize: '0.95rem',
-                                    fontFamily: FONT,
-                                    cursor: 'pointer',
-                                    marginBottom: '1.75rem',
-                                    transition: 'background 0.2s',
-                                }}
-                                onMouseEnter={e => e.currentTarget.style.background = '#e2e8f0'}
-                                onMouseLeave={e => e.currentTarget.style.background = '#f1f5f9'}
-                            >
-                                Start for Free
-                            </button>
+                            <MagneticButton className="magnetic-btn" style={{ width: '100%', display: 'block' }}>
+                                <button
+                                    onClick={() => navigate('/auth')}
+                                    style={{
+                                        width: '100%',
+                                        padding: '0.95rem',
+                                        background: '#f1f5f9',
+                                        color: '#334155',
+                                        border: 'none',
+                                        borderRadius: '16px',
+                                        fontWeight: 700,
+                                        fontSize: '0.95rem',
+                                        fontFamily: FONT,
+                                        cursor: 'pointer',
+                                        marginBottom: '1.75rem',
+                                        transition: 'background 0.2s',
+                                    }}
+                                >
+                                    Start for Free
+                                </button>
+                            </MagneticButton>
 
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
                                 {[
@@ -616,16 +1061,18 @@ export default function LandingPage() {
                     </div>
 
                     {/* Premium Card */}
-                    <div style={{
-                        background: '#ffffff',
-                        borderRadius: '28px',
+                    <div className="premium-glow-card" style={{
                         padding: isMobile ? '1.75rem' : '2.25rem',
                         display: 'flex',
                         flexDirection: 'column',
                         justifyContent: 'space-between',
-                        boxShadow: '0 25px 60px rgba(232,92,44,0.15), 0 0 0 2px #E85C2C',
-                        position: 'relative',
+                        boxShadow: '0 25px 60px rgba(232,92,44,0.15)',
                     }}>
+                        <div className="ribbon-wrapper">
+                            <div className="premium-ribbon">
+                                Most Popular
+                            </div>
+                        </div>
                         <div>
                             {/* Top header pill */}
                             <div style={{
@@ -658,37 +1105,30 @@ export default function LandingPage() {
                                 Unlock all features
                             </div>
 
-                            <button
-                                onClick={() => {
-                                    sessionStorage.setItem('upgradeIntent', '1');
-                                    navigate('/auth');
-                                }}
-                                style={{
-                                    width: '100%',
-                                    padding: '0.95rem',
-                                    background: 'linear-gradient(135deg, #FF9A5A 0%, #FF3D3D 100%)',
-                                    color: '#ffffff',
-                                    border: 'none',
-                                    borderRadius: '16px',
-                                    fontWeight: 700,
-                                    fontSize: '0.95rem',
-                                    fontFamily: FONT,
-                                    cursor: 'pointer',
-                                    marginBottom: '1.75rem',
-                                    transition: 'transform 0.15s, background 0.2s',
-                                    boxShadow: '0 8px 24px rgba(232,92,44,0.25)',
-                                }}
-                                onMouseEnter={e => {
-                                    e.currentTarget.style.transform = 'translateY(-1px)';
-                                    e.currentTarget.style.transform = 'translateY(-2px)';
-                                }}
-                                onMouseLeave={e => {
-                                    e.currentTarget.style.transform = 'translateY(0)';
-                                    e.currentTarget.style.transform = 'translateY(0)';
-                                }}
-                            >
-                                Upgrade Now
-                            </button>
+                            <MagneticButton className="magnetic-btn" style={{ width: '100%', display: 'block' }}>
+                                <button
+                                    onClick={() => {
+                                        sessionStorage.setItem('upgradeIntent', '1');
+                                        navigate('/auth');
+                                    }}
+                                    style={{
+                                        width: '100%',
+                                        padding: '0.95rem',
+                                        background: 'linear-gradient(135deg, #FF9A5A 0%, #FF3D3D 100%)',
+                                        color: '#ffffff',
+                                        border: 'none',
+                                        borderRadius: '16px',
+                                        fontWeight: 700,
+                                        fontSize: '0.95rem',
+                                        fontFamily: FONT,
+                                        cursor: 'pointer',
+                                        marginBottom: '1.75rem',
+                                        boxShadow: '0 8px 24px rgba(232,92,44,0.25)',
+                                    }}
+                                >
+                                    Upgrade Now
+                                </button>
+                            </MagneticButton>
 
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
                                 {[
@@ -709,35 +1149,7 @@ export default function LandingPage() {
                 </div>
             </section>
 
-            {/* ── TRUST BADGES ── */}
-            <section style={{ padding: isMobile ? '4rem 1.5rem' : '5rem 2rem', maxWidth: '900px', margin: '0 auto' }}>
-                <div style={{
-                    display: 'flex',
-                    flexDirection: isMobile ? 'column' : 'row',
-                    flexWrap: 'wrap',
-                    justifyContent: 'center',
-                    alignItems: isMobile ? 'flex-start' : 'center',
-                    gap: isMobile ? '1.75rem' : '3rem',
-                    width: isMobile ? 'fit-content' : '100%',
-                    margin: '0 auto',
-                }}>
-                    {[
-                        { Icon: Shield, label: 'Private by Default', sub: 'Your wishlist is only visible to you' },
-                        { Icon: Zap, label: 'Works Offline', sub: 'Browse saved items without internet' },
-                        { Icon: Star, label: 'Completely Free', sub: 'Core features are free forever' },
-                    ].map((b, i) => (
-                        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                            <div style={{ width: '42px', height: '42px', borderRadius: '12px', background: '#FFF5F2', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                                <b.Icon size={18} color="#E85C2C" />
-                            </div>
-                            <div style={{ textAlign: 'left' }}>
-                                <div style={{ color: '#111', fontWeight: 700, fontSize: '0.92rem', fontFamily: FONT }}>{b.label}</div>
-                                <div style={{ color: '#666', fontSize: '0.8rem', fontFamily: FONT }}>{b.sub}</div>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            </section>
+
 
             {/* ── FAQ ── */}
             <section style={{ padding: isMobile ? '5rem 1.5rem' : '7rem 2rem', background: '#fafafa', borderTop: '1px solid rgba(0,0,0,0.04)' }}>
@@ -766,28 +1178,45 @@ export default function LandingPage() {
             </div>
 
             {/* ── CTA BANNER ── */}
-            <section style={{ padding: isMobile ? '5rem 1.5rem' : '7rem 2rem', textAlign: 'center' }}>
-                <div style={{ maxWidth: '600px', margin: '0 auto' }}>
-                    <h2 style={{ fontWeight: 900, fontSize: isMobile ? '2.2rem' : 'clamp(2.2rem, 4vw, 3.2rem)', color: '#111', margin: '0 0 1rem', letterSpacing: '-0.02em', lineHeight: 1.15 }}>
-                        Start saving your wishlist today
-                    </h2>
-                    <p style={{ color: '#666', fontSize: '1.05rem', margin: '0 0 2rem', lineHeight: 1.7 }}>
-                        Join thousands of smart shoppers who use WishFlow to never forget a product they love.
-                    </p>
-                    <button
-                        onClick={() => navigate('/auth')}
-                        style={{
-                            background: '#E85C2C', color: '#fff', border: 'none',
-                            borderRadius: '50px', padding: '1rem 2.75rem',
-                            fontWeight: 700, fontSize: '1rem', cursor: 'pointer', fontFamily: FONT,
-                            boxShadow: '0 12px 32px rgba(232,92,44,0.25)',
-                            transition: 'transform 0.15s',
-                        }}
-                        onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
-                        onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
-                    >
-                        Create Free Account
-                    </button>
+            <section style={{ padding: isMobile ? '3rem 1.5rem 5rem' : '5rem 2rem 7rem', display: 'flex', justifyContent: 'center' }}>
+                <div style={{
+                    position: 'relative', overflow: 'hidden',
+                    width: '100%', maxWidth: '1000px',
+                    borderRadius: '32px',
+                    background: '#FFF5F2',
+                    border: '1px solid rgba(232,92,44,0.1)',
+                    padding: isMobile ? '4rem 1.5rem' : '6rem 4rem',
+                    textAlign: 'center',
+                }}>
+                    {/* Glowing Orbs for the CTA */}
+                    <div style={{ position: 'absolute', top: '-50%', left: '-20%', width: '60%', height: '150%', background: 'radial-gradient(ellipse at center, rgba(232,92,44,0.12) 0%, transparent 70%)', transform: 'rotate(-20deg)', pointerEvents: 'none' }} />
+                    <div style={{ position: 'absolute', bottom: '-50%', right: '-20%', width: '60%', height: '150%', background: 'radial-gradient(ellipse at center, rgba(255,61,61,0.12) 0%, transparent 70%)', transform: 'rotate(20deg)', pointerEvents: 'none' }} />
+
+                    <div style={{ position: 'relative', zIndex: 2 }}>
+                        <h2 style={{ fontWeight: 900, fontSize: isMobile ? '2.2rem' : 'clamp(2.5rem, 4vw, 3.5rem)', color: '#111', margin: '0 0 1.25rem', letterSpacing: '-0.02em', lineHeight: 1.15 }}>
+                            Ready to build your <span style={{ background: 'linear-gradient(135deg, #E85C2C 0%, #FF3D3D 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>dream wishlist?</span>
+                        </h2>
+                        <p style={{ color: '#555', fontSize: '1.1rem', margin: '0 auto 2.5rem', lineHeight: 1.7, maxWidth: '500px' }}>
+                            Join thousands of smart shoppers who use WishFlow to save, organize, and track products they love.
+                        </p>
+
+                        <div style={{ position: 'relative', display: 'inline-block', margin: '0 auto' }}>
+                            <MagneticButton className="magnetic-btn">
+                                <button
+                                    onClick={() => navigate('/auth')}
+                                    style={{
+                                        background: '#E85C2C', color: '#fff', border: 'none',
+                                        borderRadius: '50px', padding: '1rem 2.75rem',
+                                        fontWeight: 700, fontSize: '1rem', cursor: 'pointer', fontFamily: FONT,
+                                        boxShadow: '0 12px 32px rgba(232,92,44,0.25)',
+                                        transition: 'transform 0.15s ease-out',
+                                    }}
+                                >
+                                    Start for Free
+                                </button>
+                            </MagneticButton>
+                        </div>
+                    </div>
                 </div>
             </section>
 

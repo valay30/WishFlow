@@ -96,16 +96,18 @@ export default function PricingBanner({ onUpgrade }) {
             </div>
 
             {/* Premium Plan */}
-            <div style={{
-                background: '#ffffff',
-                borderRadius: '24px',
+            <div className="premium-glow-card" style={{
                 width: '100%',
                 display: 'flex',
                 flexDirection: 'column',
                 boxShadow: '0 4px 20px rgba(0,0,0,0.03)',
                 border: '1px solid #f1f5f9',
-                overflow: 'hidden'
             }}>
+                <div className="ribbon-wrapper">
+                    <div className="premium-ribbon">
+                        Most Popular
+                    </div>
+                </div>
                 {/* Header block */}
                 <div style={{
                     background: '#e0eaff',

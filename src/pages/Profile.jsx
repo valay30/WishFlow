@@ -61,6 +61,9 @@ export default function Profile() {
                         setRoastFeatureEnabled(data.roast_feature_enabled);
                         localStorage.setItem('wishflow_roast_feature_enabled', data.roast_feature_enabled);
                     }
+                    if (data.roast_enabled_themes !== undefined) {
+                        localStorage.setItem('wishflow_roast_enabled_themes', JSON.stringify(data.roast_enabled_themes));
+                    }
                     if (data.refresh_feature_enabled !== undefined) {
                         setRefreshFeatureEnabled(data.refresh_feature_enabled);
                         localStorage.setItem('wishflow_refresh_feature_enabled', data.refresh_feature_enabled);
