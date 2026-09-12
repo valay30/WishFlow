@@ -52,35 +52,37 @@ const BROWSER_HEADERS = {
 };
 
 // ── Pre-resolve short URLs (amzn.in, amzn.to, a.co, fkrt.it, etc.) ────────────
-// fetch() follows HTTP 301/302 but Amazon short links use JS redirects that
-// result in a 404 or blank page. We resolve them via a lightweight HEAD request
-// with a browser User-Agent so the server-side redirect is followed correctly.
+// Amazon short links use a JS-based redirect that Node's fetch() can't follow
+// with a simple HEAD request — the server returns 404 or blank HTML.
+// We do a real GET with a mobile UA, follow all redirects, and return both
+// the resolved URL and the already-fetched HTML so we don't hit Amazon twice.
 async function unshortenUrl(url, timeoutMs = 8000) {
     const SHORT_LINK_RE = /amzn\.(in|to|com)|a\.co\/|fkrt\.it|bit\.ly|tinyurl\.com|t\.co\//i;
-    if (!SHORT_LINK_RE.test(url)) return url; // not a short link, skip
+    if (!SHORT_LINK_RE.test(url)) return { url, html: null, hostname: null }; // not a short link
 
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeoutMs);
     try {
-        // Use GET (not HEAD) because amzn.in returns 404 to HEAD requests
         const res = await fetch(url, {
             method: 'GET',
             headers: {
                 ...BROWSER_HEADERS,
-                // Override UA to a mobile one — amzn.in short links resolve better
+                // Mobile UA: amzn.in short links resolve better on mobile UA
                 'User-Agent': 'Mozilla/5.0 (Linux; Android 13; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Mobile Safari/537.36',
             },
             redirect: 'follow',
             signal: controller.signal,
         });
         clearTimeout(timer);
-        const resolved = res.url || url;
-        console.log(`[unshortenUrl] ${url} → ${resolved}`);
-        return resolved;
+        const resolvedUrl = res.url || url;
+        const html = await res.text();
+        const hostname = (() => { try { return new URL(resolvedUrl).hostname.toLowerCase(); } catch { return ''; } })();
+        console.log(`[unshortenUrl] ${url} → ${resolvedUrl}`);
+        return { url: resolvedUrl, html, hostname };
     } catch (err) {
         clearTimeout(timer);
         console.warn('[unshortenUrl] failed:', err.message);
-        return url; // fall back to original URL
+        return { url, html: null, hostname: null }; // fall back to original URL
     }
 }
 
@@ -537,9 +539,12 @@ export const extractMetadata = async (req, res) => {
     if (!rawUrl) return res.status(400).json({ error: 'URL is required' });
 
     // ── Step 0: Pre-resolve short URLs (amzn.in/d/..., fkrt.it, etc.) ────────
-    // Amazon short links use JS redirects that Node's fetch() can't follow.
-    // We resolve them to the full product URL before scraping.
-    let url = await unshortenUrl(rawUrl);
+    // Returns { url, html, hostname } — html/hostname are pre-fetched so we
+    // don't hit Amazon twice (second requests are more likely to get blocked).
+    const unshortened = await unshortenUrl(rawUrl);
+    let url = unshortened.url;
+    let prefetchedHtml     = unshortened.html;     // may be null for non-short URLs
+    let prefetchedHostname = unshortened.hostname; // may be null for non-short URLs
 
     try {
         let parsedUrl = new URL(url);
@@ -561,9 +566,11 @@ export const extractMetadata = async (req, res) => {
         const isDifficultDomain = /amazon|amzn|a\.co|flipkart|fkrt|myntra/i.test(url);
 
         // ── Step 1: Start BOTH direct fetch and proxy fetch in parallel ───────
-        // For difficult domains we race them — whoever returns usable data first wins.
-        // For easy domains we only do a direct fetch (proxy is a costly no-op).
-        const directPromise = fetchDirect(url, 7000).catch(() => null);
+        // If we already pre-fetched the HTML (short URL was resolved), reuse it.
+        // For difficult domains we also start the proxy in parallel as a fallback.
+        const directPromise = prefetchedHtml
+            ? Promise.resolve({ html: prefetchedHtml, finalUrl: url, hostname: prefetchedHostname })
+            : fetchDirect(url, 7000).catch(() => null);
         // CRITICAL: MUST have .catch() attached immediately to prevent UnhandledRejection crashes!
         const proxyPromise  = isDifficultDomain ? fetchViaProxy(url).catch(() => null) : Promise.resolve(null);
 
