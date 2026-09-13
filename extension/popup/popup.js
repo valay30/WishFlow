@@ -95,10 +95,18 @@ async function getValidToken() {
         await saveSession(newSession);
         return newSession.access_token;
       }
-    } catch { /* fall through to logout */ }
+    } catch (err) {
+      console.error('[WishFlow] Token refresh failed:', err);
+      // If the error is a network failure (e.g. offline when waking up laptop), 
+      // DO NOT clear the session. Just return null to let the UI show login/error, 
+      // but keep the session so it recovers once online.
+      if (err.message === 'Failed to fetch' || !navigator.onLine) {
+        return null;
+      }
+    }
   }
 
-  // Refresh failed — clear session, show login
+  // Refresh failed permanently (e.g. revoked/expired) — clear session, show login
   await clearSession();
   return null;
 }

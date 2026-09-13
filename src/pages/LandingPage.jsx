@@ -1147,6 +1147,98 @@ export default function LandingPage() {
                         </div>
                     </div>
                 </div>
+
+                {/* ── VIDEO EMBED SECTION (MacBook Mockup) ── */}
+                <div style={{
+                    marginTop: isMobile ? '4rem' : '6rem',
+                    maxWidth: '850px',
+                    marginLeft: 'auto',
+                    marginRight: 'auto',
+                    position: 'relative',
+                    padding: '0 1rem'
+                }}>
+                    {/* Screen */}
+                    <div style={{
+                        background: '#111',
+                        padding: '2.5% 2.5% 4%',
+                        borderRadius: '3% 3% 0 0',
+                        position: 'relative',
+                        boxShadow: 'inset 0 0 0 1px #333, 0 15px 35px rgba(0,0,0,0.4)',
+                        border: '1px solid rgba(255,255,255,0.05)',
+                        borderBottom: 'none'
+                    }}>
+                        {/* Notch */}
+                        <div style={{
+                            position: 'absolute',
+                            top: '2%',
+                            left: '50%',
+                            transform: 'translateX(-50%)',
+                            width: '12%',
+                            height: '2.5%',
+                            background: '#000',
+                            borderRadius: '0 0 8px 8px',
+                            zIndex: 10
+                        }} />
+
+                        {/* Screen Content */}
+                        <div style={{
+                            aspectRatio: '16/9',
+                            background: '#000',
+                            position: 'relative',
+                            borderRadius: '6px',
+                            overflow: 'hidden',
+                            border: '1px solid #000'
+                        }}>
+                            <iframe
+                                width="100%"
+                                height="100%"
+                                src="https://www.youtube.com/embed/xfhV0W-aHFU?si=TkCrZvSobGWMhs_S"
+                                title="WishFlow Demo"
+                                frameBorder="0"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                allowFullScreen
+                                style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 'none' }}
+                            ></iframe>
+                        </div>
+
+                        {/* MacBook Pro Text */}
+                        <div style={{
+                            position: 'absolute',
+                            bottom: '1.2%',
+                            left: '50%',
+                            transform: 'translateX(-50%)',
+                            color: '#555',
+                            fontSize: isMobile ? '0.45rem' : '0.65rem',
+                            fontWeight: '700',
+                            letterSpacing: '0.15em'
+                        }}>
+                            MacBook Pro
+                        </div>
+                    </div>
+
+                    {/* Base */}
+                    <div style={{
+                        position: 'relative',
+                        width: '106%',
+                        marginLeft: '-3%',
+                        height: isMobile ? '12px' : '20px',
+                        background: 'linear-gradient(to bottom, #e5e5e5 0%, #a3a3a3 100%)',
+                        borderRadius: '0 0 12px 12px',
+                        boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.8), 0 25px 40px rgba(0,0,0,0.3)',
+                        display: 'flex',
+                        justifyContent: 'center'
+                    }}>
+                        {/* Trackpad Indent */}
+                        <div style={{
+                            width: '15%',
+                            height: '40%',
+                            background: '#9ca3af',
+                            borderBottomLeftRadius: '6px',
+                            borderBottomRightRadius: '6px',
+                            boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.15)'
+                        }} />
+                    </div>
+                </div>
             </section>
 
 
