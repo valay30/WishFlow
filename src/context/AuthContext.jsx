@@ -14,27 +14,28 @@ export function AuthProvider({ children }) {
     });
 
     useEffect(() => {
-        const initSession = async () => {
-            try {
-                const currentUser = await auth.getCurrentUser();
-                setUser(currentUser);
-            } catch (error) {
-                console.error("Error initializing session:", error);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        initSession();
+        let mounted = true;
 
         // Listen for Supabase session changes (e.g., login in another tab or token refresh)
         const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
             if (event === 'PASSWORD_RECOVERY') {
                 // User clicked the reset link from their email — show reset screen
-                setRecoveryMode(true);
-                setLoading(false);
+                if (mounted) {
+                    setRecoveryMode(true);
+                    setLoading(false);
+                }
                 return;
             }
+            
+            // Explicitly handle SIGNED_OUT event
+            if (event === 'SIGNED_OUT') {
+                if (mounted) {
+                    setUser(null);
+                    setLoading(false);
+                }
+                return;
+            }
+
             if (session) {
                 const baseUser = {
                     id: session.user.id,
@@ -43,13 +44,15 @@ export function AuthProvider({ children }) {
                     isPremium: session.user.user_metadata?.is_premium || false,
                     isAdmin: session.user.user_metadata?.is_admin || false,
                 };
-                setUser(baseUser);
+                
+                if (mounted) setUser(baseUser);
 
                 supabase.from('profiles').select('username').eq('id', session.user.id).maybeSingle().then(({ data }) => {
-                    if (data?.username) {
+                    if (data?.username && mounted) {
                         setUser(prev => prev ? { ...prev, username: data.username } : null);
                     }
                 });
+                
                 if (sessionStorage.getItem('isGoogleLoginRedirect') === 'true') {
                     sessionStorage.removeItem('isGoogleLoginRedirect');
                     // Check if this Google user already has categories.
@@ -73,20 +76,25 @@ export function AuthProvider({ children }) {
                     return;
                 }
 
-                if (sessionStorage.getItem('showOnboarding') === 'true') {
+                if (sessionStorage.getItem('showOnboarding') === 'true' && mounted) {
                     setIsNewSignup(true);
                 }
 
                 if (window.location.hash && (window.location.hash.includes('access_token=') || window.location.hash.includes('error='))) {
                     window.history.replaceState(null, '', window.location.pathname + window.location.search);
                 }
-            } else {
-                setUser(null);
+            } else if (event === 'INITIAL_SESSION') {
+                // Initial load with no session
+                if (mounted) setUser(null);
             }
-            setLoading(false);
+            
+            if (mounted) setLoading(false);
         });
 
-        return () => subscription.unsubscribe();
+        return () => {
+            mounted = false;
+            subscription.unsubscribe();
+        };
     }, []);
 
     const signInWithGoogle = async () => {
