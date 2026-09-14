@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Check, Globe, Edit2, Share, Trash2 } from 'lucide-react';
+import { ArrowRight, Check, Globe, Edit2, Share, Trash2, Link2 } from 'lucide-react';
 import { motion, useMotionValue, useSpring, useTransform, AnimatePresence } from 'framer-motion';
 import MagneticButton from './MagneticButton';
 import { useSettings } from '../context/SettingsContext';
@@ -488,6 +488,23 @@ export default function ItemCard({
                                         })} 
                                     />
                                 )}
+                                <ContextMenuItem
+                                    icon={Link2} label="Share Item Link"
+                                    onClick={(e) => handleAction(e, async () => {
+                                        const url = `${window.location.origin}/shared/item/${item.id}`;
+                                        try {
+                                            await navigator.clipboard.writeText(url);
+                                        } catch {
+                                            const ta = document.createElement('textarea');
+                                            ta.value = url;
+                                            document.body.appendChild(ta);
+                                            ta.select();
+                                            document.execCommand('copy');
+                                            document.body.removeChild(ta);
+                                        }
+                                        showIsland({ title: 'Link Copied', subtitle: 'Item link copied to clipboard!', type: 'success' });
+                                    })}
+                                />
                                 {onRemove && (
                                     <ContextMenuItem 
                                         icon={Trash2} label="Delete Item" 

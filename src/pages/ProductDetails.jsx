@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { db } from '../db';
-import { Trash2, Edit, ArrowLeft, ExternalLink, Upload, X, Check, PackageCheck, Copy } from 'lucide-react';
+import { Trash2, Edit, ArrowLeft, ExternalLink, Upload, X, Check, PackageCheck, Copy, Share2 } from 'lucide-react';
 import { uploadToImageKit } from '../utils/imagekit';
 import AlertModal from '../components/AlertModal';
 import CustomSelect from '../components/CustomSelect';
@@ -389,13 +389,36 @@ export default function ProductDetails() {
                                 </div>
 
                                 {item.link && (
-                                    <div style={{ background: 'var(--surface-2)', borderRadius: '14px', padding: '1rem', display: 'flex', alignItems: 'center', gap: '0.75rem', border: '1px solid var(--border)' }}>
-                                        <ExternalLink size={16} color="#9CA3AF" style={{ flexShrink: 0 }} />
-                                        <span style={{ fontSize: '0.85rem', color: 'var(--text-dim)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
-                                            Source: {item.link.replace(/^https?:\/\//, '')}
-                                        </span>
-                                        <button onClick={handleCopyLink} title="Copy Link" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '8px', padding: '0.4rem', color: 'var(--text-dim)', cursor: 'pointer', flexShrink: 0 }}>
-                                            {copiedLink ? <Check size={14} color="#10B981" /> : <Copy size={14} />}
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', minWidth: 0 }}>
+                                        <div style={{ background: 'var(--surface-2)', borderRadius: '10px', padding: '0.55rem 0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem', border: '1px solid var(--border)', flex: 1, minWidth: 0 }}>
+                                            <ExternalLink size={13} color="#9CA3AF" style={{ flexShrink: 0 }} />
+                                            <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
+                                                {item.link.replace(/^https?:\/\//, '')}
+                                            </span>
+                                            <button onClick={handleCopyLink} title="Copy Link" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '6px', padding: '0.3rem', color: 'var(--text-dim)', cursor: 'pointer', flexShrink: 0 }}>
+                                                {copiedLink ? <Check size={12} color="#10B981" /> : <Copy size={12} />}
+                                            </button>
+                                        </div>
+                                        <button
+                                            onClick={async () => {
+                                                const url = `${window.location.origin}/shared/item/${item.id}`;
+                                                if (navigator.share) {
+                                                    try {
+                                                        await navigator.share({ title: item.name, text: `Check out this item on WishFlow!`, url });
+                                                    } catch (err) {
+                                                        if (err.name !== 'AbortError') showIsland({ title: 'Error', subtitle: 'Could not share', type: 'error' });
+                                                    }
+                                                } else {
+                                                    try { await navigator.clipboard.writeText(url); } catch { const ta = document.createElement('textarea'); ta.value = url; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); }
+                                                    showIsland({ title: 'Link Copied', subtitle: 'Item link copied to clipboard!', type: 'success' });
+                                                }
+                                            }}
+                                            title="Share Item Link"
+                                            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: '10px', padding: '0.55rem', color: 'var(--primary)', cursor: 'pointer', flexShrink: 0, transition: 'all 0.2s', alignSelf: 'stretch', aspectRatio: '1' }}
+                                            onMouseEnter={e => { e.currentTarget.style.background = 'var(--primary)'; e.currentTarget.style.color = '#fff'; }}
+                                            onMouseLeave={e => { e.currentTarget.style.background = 'var(--surface-2)'; e.currentTarget.style.color = 'var(--primary)'; }}
+                                        >
+                                            <Share2 size={15} />
                                         </button>
                                     </div>
                                 )}
@@ -671,25 +694,49 @@ export default function ProductDetails() {
 
                                 {/* Source Link */}
                                 {item.link && (
-                                    <div style={{
-                                        padding: '0.75rem 1rem',
-                                        background: 'var(--surface-2)',
-                                        borderRadius: '12px',
-                                        border: `1px solid ${BORDER}`,
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: '0.6rem',
-                                        minWidth: 0,
-                                    }}>
-                                        <ExternalLink size={14} style={{ color: 'var(--text)', flexShrink: 0 }} />
-                                        <p style={{
-                                            margin: 0, fontSize: '0.78rem', color: 'var(--text)',
-                                            whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', flex: 1
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', minWidth: 0 }}>
+                                        <div style={{
+                                            padding: '0.5rem 0.75rem',
+                                            background: 'var(--surface-2)',
+                                            borderRadius: '10px',
+                                            border: `1px solid ${BORDER}`,
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '0.5rem',
+                                            minWidth: 0,
+                                            flex: 1,
                                         }}>
-                                            Source: {item.link.replace(/^https?:\/\//, '')}
-                                        </p>
-                                        <button onClick={handleCopyLink} title="Copy Link" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '8px', padding: '0.35rem', color: 'var(--text-dim)', cursor: 'pointer', flexShrink: 0 }}>
-                                            {copiedLink ? <Check size={13} color="#10B981" /> : <Copy size={13} />}
+                                            <ExternalLink size={13} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
+                                            <p style={{
+                                                margin: 0, fontSize: '0.73rem', color: 'var(--text-muted)',
+                                                whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', flex: 1
+                                            }}>
+                                                {item.link.replace(/^https?:\/\//, '')}
+                                            </p>
+                                            <button onClick={handleCopyLink} title="Copy Link" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '6px', padding: '0.3rem', color: 'var(--text-dim)', cursor: 'pointer', flexShrink: 0 }}>
+                                                {copiedLink ? <Check size={12} color="#10B981" /> : <Copy size={12} />}
+                                            </button>
+                                        </div>
+                                        <button
+                                            onClick={async () => {
+                                                const url = `${window.location.origin}/shared/item/${item.id}`;
+                                                if (navigator.share) {
+                                                    try {
+                                                        await navigator.share({ title: item.name, text: `Check out this item on WishFlow!`, url });
+                                                    } catch (err) {
+                                                        if (err.name !== 'AbortError') showIsland({ title: 'Error', subtitle: 'Could not share', type: 'error' });
+                                                    }
+                                                } else {
+                                                    try { await navigator.clipboard.writeText(url); } catch { const ta = document.createElement('textarea'); ta.value = url; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); }
+                                                    showIsland({ title: 'Link Copied', subtitle: 'Item link copied to clipboard!', type: 'success' });
+                                                }
+                                            }}
+                                            title="Share Item Link"
+                                            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--surface-2)', border: `1px solid ${BORDER}`, borderRadius: '10px', padding: '0.5rem', color: 'var(--primary)', cursor: 'pointer', flexShrink: 0, transition: 'all 0.2s', alignSelf: 'stretch', aspectRatio: '1' }}
+                                            onMouseEnter={e => { e.currentTarget.style.background = 'var(--primary)'; e.currentTarget.style.color = '#fff'; }}
+                                            onMouseLeave={e => { e.currentTarget.style.background = 'var(--surface-2)'; e.currentTarget.style.color = 'var(--primary)'; }}
+                                        >
+                                            <Share2 size={15} />
                                         </button>
                                     </div>
                                 )}

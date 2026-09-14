@@ -33,6 +33,7 @@ const Refund           = lazy(() => import('./pages/Refund'));
 const About            = lazy(() => import('./pages/About'));
 const Contact          = lazy(() => import('./pages/Contact'));
 const SharedCollection = lazy(() => import('./pages/SharedCollection'));
+const SharedItem       = lazy(() => import('./pages/SharedItem'));
 const ShareTargetPage  = lazy(() => import('./pages/ShareTargetPage'));
 const Discover         = lazy(() => import('./pages/Discover'));
 const Blog             = lazy(() => import('./pages/Blog'));
@@ -169,6 +170,11 @@ function AppRoutes() {
                     sessionStorage.removeItem('upgradeIntent');
                     return <Navigate to="/profile?upgrade=true" replace />;
                   }
+                  const postLoginRedirect = sessionStorage.getItem('postLoginRedirect');
+                  if (postLoginRedirect) {
+                    sessionStorage.removeItem('postLoginRedirect');
+                    return <Navigate to={postLoginRedirect} replace />;
+                  }
                   return <Navigate to="/home" replace />;
                 })()
               : <AuthPage />
@@ -179,6 +185,7 @@ function AppRoutes() {
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/shared/collection/:id" element={<SharedCollection />} />
+          <Route path="/shared/item/:id" element={<SharedItem />} />
           <Route path="/share-target" element={<ShareTargetPage />} />
           <Route path="/blog" element={<Blog />} />
           <Route path="/blog/:slug" element={<BlogPost />} />

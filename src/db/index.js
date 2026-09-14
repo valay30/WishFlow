@@ -696,6 +696,15 @@ export const db = {
       if (itemsErr) return [];
       return items;
     },
+    getItem: async (itemId) => {
+      const { data, error } = await supabase
+        .from('items')
+        .select('*')
+        .eq('id', itemId)
+        .maybeSingle();
+      if (error) return null;
+      return data;
+    },
     // New direct sharing methods
     sendShareRequest: async (collectionId, username) => {
       // 1. Find user by username
