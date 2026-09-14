@@ -92,7 +92,7 @@ export default function CustomCursor() {
           borderRadius: '50%',
           backgroundColor: isHovering ? 'transparent' : 'var(--primary)',
           pointerEvents: 'none',
-          zIndex: 999999,
+          zIndex: 99999999,
         }}
       />
       {/* The trailing magnetic ring */}
@@ -111,7 +111,7 @@ export default function CustomCursor() {
           backgroundColor: isHovering ? 'rgba(var(--primary-rgb), 0.15)' : 'transparent',
           border: `1.5px solid ${isHovering ? 'var(--primary)' : 'var(--text-muted)'}`,
           pointerEvents: 'none',
-          zIndex: 999998,
+          zIndex: 99999998,
           opacity: isHovering ? 1 : 0.5,
         }}
         animate={{
