@@ -1,13 +1,18 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useAuth } from './useAuth';
 import { useIsland } from './IslandContext';
-import { API_URL as API, ADMIN_SECRET } from '../config';
+import { API_URL as API } from '../config';
+import { supabase } from '../db';
 
 export const AdminContext = createContext(null);
 
-const headers = {
-    'Content-Type': 'application/json',
-    'x-admin-secret': ADMIN_SECRET,
+// Builds auth headers with the live Supabase JWT — called fresh before every request
+const getAuthHeaders = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    return {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${session?.access_token ?? ''}`,
+    };
 };
 
 export function AdminProvider({ children }) {
@@ -26,6 +31,7 @@ export function AdminProvider({ children }) {
     const fetchUsers = useCallback(async () => {
         setLoadingUsers(true);
         try {
+            const headers = await getAuthHeaders();
             const res = await fetch(`${API}/api/admin/users`, { headers });
             if (!res.ok) throw new Error('Failed to fetch users');
             const data = await res.json();
@@ -41,6 +47,7 @@ export function AdminProvider({ children }) {
     const fetchItems = useCallback(async () => {
         setLoadingItems(true);
         try {
+            const headers = await getAuthHeaders();
             const res = await fetch(`${API}/api/admin/items`, { headers });
             if (!res.ok) throw new Error('Failed to fetch items');
             const data = await res.json();
@@ -52,6 +59,7 @@ export function AdminProvider({ children }) {
             setLoadingItems(false);
         }
     }, [showToast]);
+
 
     const refreshData = useCallback(() => {
         fetchUsers();

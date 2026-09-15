@@ -5,7 +5,8 @@ import {
     Crown, Users, ArrowLeft, RefreshCw, Search, Trash2, Package,
     Filter, Calendar, ChevronLeft, ChevronRight, ChevronDown, XCircle, Menu, X, Plus, Link as LinkIcon, BookOpen, TrendingDown, Play, Clock, Settings, Eye
 } from 'lucide-react';
-import { API_URL as API, ADMIN_SECRET } from '../config';
+import { API_URL as API } from '../config';
+import { supabase } from '../db';
 import AlertModal from '../components/AlertModal';
 import CustomSelect from '../components/CustomSelect';
 import BlogAdminTab from '../components/BlogAdminTab';
@@ -13,9 +14,13 @@ import { useIsland } from '../context/IslandContext';
 import { useAdminContext } from '../context/AdminContext';
 import CardVisual, { ROAST_THEMES } from '../components/CardVisual';
 
-const headers = {
-    'Content-Type': 'application/json',
-    'x-admin-secret': ADMIN_SECRET,
+// Builds auth headers with the live Supabase JWT — called fresh before every request
+const getAuthHeaders = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    return {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${session?.access_token ?? ''}`,
+    };
 };
 
 export default function AdminPanel() {
@@ -110,6 +115,7 @@ export default function AdminPanel() {
         setGrantTargetUserId(null);
         setActionLoading(userId + '_grant');
         try {
+            const headers = await getAuthHeaders();
             const res = await fetch(`${API}/api/admin/grant-premium`, {
                 method: 'POST', headers,
                 body: JSON.stringify({ userId }),
@@ -135,6 +141,7 @@ export default function AdminPanel() {
         setRevokeTargetUserId(null);
         setActionLoading(userId + '_revoke');
         try {
+            const headers = await getAuthHeaders();
             const res = await fetch(`${API}/api/admin/revoke-premium`, {
                 method: 'POST', headers,
                 body: JSON.stringify({ userId }),
@@ -160,6 +167,7 @@ export default function AdminPanel() {
         setDeleteTargetUserId(null);
         setActionLoading(userId + '_delete');
         try {
+            const headers = await getAuthHeaders();
             const res = await fetch(`${API}/api/admin/users/${userId}`, {
                 method: 'DELETE', headers,
             });
@@ -308,7 +316,7 @@ export default function AdminPanel() {
                             setIsSidebarOpen(false);
                             // Fetch status when tab opens
                             setPriceAlertLoading(true);
-                            fetch(`${API}/api/admin/price-drop/status`, { headers })
+                            getAuthHeaders().then(headers => fetch(`${API}/api/admin/price-drop/status`, { headers }))
                                 .then(r => r.json())
                                 .then(d => {
                                     setPriceAlertStatus(d);
@@ -522,6 +530,7 @@ export default function AdminPanel() {
                                             onClick={async () => {
                                                 setPriceAlertRunning(true);
                                                 try {
+                                                    const headers = await getAuthHeaders();
                                                     const res = await fetch(`${API}/api/admin/price-drop/run`, { method: 'POST', headers });
                                                     const data = await res.json();
                                                     if (data.success) {
@@ -569,6 +578,7 @@ export default function AdminPanel() {
                                                 onClick={async () => {
                                                     setTogglingScheduler(true);
                                                     try {
+                                                        const headers = await getAuthHeaders();
                                                         const res = await fetch(`${API}/api/admin/price-drop/toggle`, {
                                                             method: 'PATCH',
                                                             headers,
@@ -659,6 +669,7 @@ export default function AdminPanel() {
                                                 const utcM = totalMinutesUTC % 60;
                                                 const cronExpr = `${utcM} ${utcH} * * *`;
                                                 try {
+                                                    const headers = await getAuthHeaders();
                                                     const res = await fetch(`${API}/api/admin/price-drop/schedule`, {
                                                         method: 'POST', headers,
                                                         body: JSON.stringify({ cronExpression: cronExpr }),
@@ -781,6 +792,7 @@ export default function AdminPanel() {
                                             onClick={async () => {
                                                 setTogglingRoast(true);
                                                 try {
+                                                    const headers = await getAuthHeaders();
                                                     const res = await fetch(`${API}/api/admin/feature/toggle`, {
                                                         method: 'PATCH',
                                                         headers,
@@ -828,6 +840,7 @@ export default function AdminPanel() {
                                             onClick={async () => {
                                                 setTogglingCursor(true);
                                                 try {
+                                                    const headers = await getAuthHeaders();
                                                     const res = await fetch(`${API}/api/admin/feature/toggle`, {
                                                         method: 'PATCH',
                                                         headers,
@@ -875,6 +888,7 @@ export default function AdminPanel() {
                                                         const newThemes = isSelected ? roastEnabledThemes.filter(id => id !== theme.id) : [...roastEnabledThemes, theme.id];
                                                         setRoastEnabledThemes(newThemes);
                                                         try {
+                                                            const headers = await getAuthHeaders();
                                                             await fetch(`${API}/api/admin/setting/update`, {
                                                                 method: 'PATCH',
                                                                 headers,

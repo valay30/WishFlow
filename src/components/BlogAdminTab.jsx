@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import { API_URL as API, ADMIN_SECRET } from '../config';
+import { API_URL as API } from '../config';
+import { supabase } from '../db';
 import { uploadToImageKit } from '../utils/imagekit';
 import {
     Plus, Trash2, Edit3, Eye, EyeOff, RefreshCw,
@@ -8,7 +9,14 @@ import {
     Megaphone, Tv2, Save, Globe
 } from 'lucide-react';
 
-const H = { 'Content-Type': 'application/json', 'x-admin-secret': ADMIN_SECRET };
+// Builds auth headers with the live Supabase JWT — called fresh before every request
+const getAuthHeaders = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    return {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${session?.access_token ?? ''}`,
+    };
+};
 const FONT = "'Outfit', sans-serif";
 
 /* ── Helpers ────────────────────────────────────────────────────────────── */
@@ -190,7 +198,8 @@ function BlogForm({ post, onSave, onCancel, showToast }) {
             const payload = { ...form, isPublished: publish !== null ? publish : form.isPublished };
             const url = isEdit ? `${API}/api/admin/blog/${post.id}` : `${API}/api/admin/blog`;
             const method = isEdit ? 'PUT' : 'POST';
-            const res = await fetch(url, { method, headers: H, body: JSON.stringify(payload) });
+            const headers = await getAuthHeaders();
+            const res = await fetch(url, { method, headers, body: JSON.stringify(payload) });
             if (!res.ok) { const d = await res.json(); throw new Error(d.error || 'Save failed'); }
             const saved = await res.json();
             showToast(isEdit ? 'Post updated ✓' : 'Post created ✓');
@@ -439,7 +448,8 @@ export default function BlogAdminTab({ showToast }) {
     const fetchPosts = useCallback(async () => {
         setLoading(true);
         try {
-            const res = await fetch(`${API}/api/admin/blog`, { headers: H });
+            const headers = await getAuthHeaders();
+            const res = await fetch(`${API}/api/admin/blog`, { headers });
             const data = await res.json();
             setPosts(Array.isArray(data) ? data : []);
         } catch {
@@ -467,7 +477,8 @@ export default function BlogAdminTab({ showToast }) {
     const handleToggle = async (post) => {
         setActionId(post.id);
         try {
-            const res = await fetch(`${API}/api/admin/blog/${post.id}/publish`, { method: 'PATCH', headers: H });
+            const headers = await getAuthHeaders();
+            const res = await fetch(`${API}/api/admin/blog/${post.id}/publish`, { method: 'PATCH', headers });
             const updated = await res.json();
             setPosts(prev => prev.map(p => p.id === updated.id ? updated : p));
             showToast(updated.isPublished ? 'Post published ✓' : 'Post moved to draft');
@@ -484,7 +495,8 @@ export default function BlogAdminTab({ showToast }) {
         setDeletePost(null);
         setActionId(id);
         try {
-            await fetch(`${API}/api/admin/blog/${id}`, { method: 'DELETE', headers: H });
+            const headers = await getAuthHeaders();
+            await fetch(`${API}/api/admin/blog/${id}`, { method: 'DELETE', headers });
             setPosts(prev => prev.filter(p => p.id !== id));
             showToast('Post deleted');
         } catch {
