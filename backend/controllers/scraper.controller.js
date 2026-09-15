@@ -617,6 +617,7 @@ export const extractMetadata = async (req, res) => {
         // ── Step 4: Extract raw data from parsed HTML ────────────────────────
         let raw = assembleRaw($, hostname, finalUrl);
 
+
         // ── Step 5: If page looks blocked, merge in proxy data ───────────────
         // The proxy was already running in background — just await it (cheap, not a new call)
         if (isPageBlocked(raw, html)) {
@@ -692,7 +693,8 @@ export const extractMetadata = async (req, res) => {
 export async function scrapePriceOnly(url) {
     try {
         // Pre-resolve short URLs before scraping price
-        url = await unshortenUrl(url);
+        const unshortened = await unshortenUrl(url);
+        url = unshortened.url;
 
         try {
             let parsedUrl = new URL(url);
