@@ -1,6 +1,12 @@
 import { supabase } from '../config/supabase.js';
 import { runPriceDrop } from '../jobs/priceDropJob.js';
-import { reschedule, getCurrentSchedule, pauseScheduler, resumeScheduler, isSchedulerEnabled } from '../jobs/cronScheduler.js';
+import webpush from 'web-push';
+
+webpush.setVapidDetails(
+  'mailto:admin@wishflow.com',
+  process.env.VAPID_PUBLIC_KEY,
+  process.env.VAPID_PRIVATE_KEY
+);
 
 
 
@@ -330,54 +336,7 @@ export const runPriceDropNow = async (req, res) => {
     }
 };
 
-export const updatePriceDropSchedule = async (req, res) => {
-    const { cronExpression } = req.body;
-    if (!cronExpression) return res.status(400).json({ error: 'cronExpression is required' });
-    try {
-        reschedule(cronExpression);
-        await supabase.from('app_settings').upsert([
-            { key: 'price_drop_cron', value: cronExpression, updated_at: new Date().toISOString() }
-        ], { onConflict: 'key' });
-        res.json({ success: true, cronExpression });
-    } catch (err) {
-        res.status(400).json({ error: err.message });
-    }
-};
-
-export const getPriceDropStatus = async (req, res) => {
-    try {
-        const { data: settings } = await supabase
-            .from('app_settings')
-            .select('key, value')
-            .in('key', ['price_drop_cron', 'price_drop_last_run', 'price_drop_last_summary']);
-        const map = {};
-        (settings || []).forEach(s => { map[s.key] = s.value; });
-        res.json({
-            cronExpression: map['price_drop_cron'] || getCurrentSchedule(),
-            lastRun: map['price_drop_last_run'] || 'Never',
-            lastSummary: map['price_drop_last_summary'] ? JSON.parse(map['price_drop_last_summary']) : null,
-            isRunning: jobRunning,
-            schedulerEnabled: isSchedulerEnabled(),
-        });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-};
-
-export const togglePriceDropScheduler = async (req, res) => {
-    const { enabled } = req.body;
-    if (typeof enabled !== 'boolean') return res.status(400).json({ error: 'enabled (boolean) is required' });
-    try {
-        if (enabled) resumeScheduler(); else pauseScheduler();
-        // Persist the preference
-        await supabase.from('app_settings').upsert([
-            { key: 'price_drop_enabled', value: String(enabled), updated_at: new Date().toISOString() }
-        ], { onConflict: 'key' });
-        res.json({ success: true, schedulerEnabled: enabled });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-};
+// Scheduler functions removed
 export const toggleGlobalFeature = async (req, res) => {
     const { key, enabled } = req.body;
     if (!key || typeof enabled !== "boolean") return res.status(400).json({ error: "key and enabled required" });
@@ -401,5 +360,63 @@ export const updateGlobalSetting = async (req, res) => {
         res.json({ success: true });
     } catch (err) {
         res.status(500).json({ error: err.message });
+    }
+};
+
+export const broadcastNotification = async (req, res) => {
+    const { title, body, url, image } = req.body;
+
+    if (!title || !body) {
+        return res.status(400).json({ error: 'Title and body are required' });
+    }
+
+    try {
+        const { data: subscriptions, error } = await supabase
+            .from('push_subscriptions')
+            .select('*');
+
+        if (error) throw error;
+
+        if (!subscriptions || subscriptions.length === 0) {
+            return res.status(200).json({ success: true, sentCount: 0, message: 'No subscriptions found' });
+        }
+
+        const payload = JSON.stringify({
+            title,
+            body,
+            url: url || '/',
+            image: image || undefined
+        });
+
+        let sentCount = 0;
+        let failedCount = 0;
+
+        const sendPromises = subscriptions.map(async (sub) => {
+            const pushSubscription = {
+                endpoint: sub.endpoint,
+                keys: {
+                    p256dh: sub.keys_p256dh,
+                    auth: sub.keys_auth
+                }
+            };
+
+            try {
+                await webpush.sendNotification(pushSubscription, payload);
+                sentCount++;
+            } catch (err) {
+                console.error('Error sending push to endpoint:', sub.endpoint, err);
+                failedCount++;
+                if (err.statusCode === 410 || err.statusCode === 404) {
+                    await supabase.from('push_subscriptions').delete().eq('id', sub.id);
+                }
+            }
+        });
+
+        await Promise.allSettled(sendPromises);
+
+        res.json({ success: true, sentCount, failedCount });
+    } catch (error) {
+        console.error('Broadcast error:', error);
+        res.status(500).json({ error: 'Failed to broadcast notifications' });
     }
 };

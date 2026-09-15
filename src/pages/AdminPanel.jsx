@@ -47,12 +47,6 @@ export default function AdminPanel() {
     const [priceAlertStatus, setPriceAlertStatus] = useState(null);
     const [priceAlertLoading, setPriceAlertLoading] = useState(false);
     const [priceAlertRunning, setPriceAlertRunning] = useState(false);
-    const [scheduleHour, setScheduleHour] = useState(1);
-    const [scheduleMinute, setScheduleMinute] = useState(0);
-    const [scheduleTimezone, setScheduleTimezone] = useState('IST');
-    const [scheduleSaving, setScheduleSaving] = useState(false);
-    const [schedulerEnabled, setSchedulerEnabled] = useState(true);
-    const [togglingScheduler, setTogglingScheduler] = useState(false);
     const [roastFeatureEnabled, setRoastFeatureEnabled] = useState(true);
     const [togglingRoast, setTogglingRoast] = useState(false);
     const [roastEnabledThemes, setRoastEnabledThemes] = useState([]);
@@ -61,6 +55,14 @@ export default function AdminPanel() {
     const [togglingRefresh, setTogglingRefresh] = useState(false);
     const [customCursorEnabled, setCustomCursorEnabled] = useState(true);
     const [togglingCursor, setTogglingCursor] = useState(false);
+
+    // Broadcast Notification state
+    const [broadcastTitle, setBroadcastTitle] = useState('');
+    const [broadcastBody, setBroadcastBody] = useState('');
+    const [broadcastUrl, setBroadcastUrl] = useState('');
+    const [broadcastImage, setBroadcastImage] = useState('');
+    const [broadcastLoading, setBroadcastLoading] = useState(false);
+    const [isBroadcastModalOpen, setIsBroadcastModalOpen] = useState(false);
 
     // Fetch global feature flags on mount
     useEffect(() => {
@@ -184,6 +186,38 @@ export default function AdminPanel() {
             showToast('Failed to delete user: ' + err.message, 'error');
         } finally {
             setActionLoading(null);
+        }
+    };
+
+    const confirmBroadcast = async () => {
+        setIsBroadcastModalOpen(false);
+        setBroadcastLoading(true);
+        try {
+            const headers = await getAuthHeaders();
+            const res = await fetch(`${API}/api/admin/broadcast-notification`, {
+                method: 'POST',
+                headers,
+                body: JSON.stringify({ 
+                    title: broadcastTitle, 
+                    body: broadcastBody, 
+                    url: broadcastUrl, 
+                    image: broadcastImage 
+                })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                showToast(`Sent successfully to ${data.sentCount} users!`);
+                setBroadcastTitle('');
+                setBroadcastBody('');
+                setBroadcastUrl('');
+                setBroadcastImage('');
+            } else {
+                showToast(data.error || 'Failed to send broadcast', 'error');
+            }
+        } catch (e) {
+            showToast('Network error', 'error');
+        } finally {
+            setBroadcastLoading(false);
         }
     };
 
@@ -567,144 +601,8 @@ export default function AdminPanel() {
                                                 : <><Play size={17} fill="currentColor" /> Run Price Check</>}
                                         </button>
 
-                                        {/* Toggle Scheduler */}
-                                        <div style={{ marginTop: '1.25rem', paddingTop: '1.25rem', borderTop: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                            <div>
-                                                <p style={{ margin: 0, fontSize: '0.9rem', fontWeight: 700, color: '#0f172a' }}>Background Job</p>
-                                                <p style={{ margin: 0, fontSize: '0.75rem', color: '#64748b' }}>{schedulerEnabled ? 'Active (runs on schedule)' : 'Paused'}</p>
-                                            </div>
-                                            <button
-                                                disabled={togglingScheduler}
-                                                onClick={async () => {
-                                                    setTogglingScheduler(true);
-                                                    try {
-                                                        const headers = await getAuthHeaders();
-                                                        const res = await fetch(`${API}/api/admin/price-drop/toggle`, {
-                                                            method: 'PATCH',
-                                                            headers,
-                                                            body: JSON.stringify({ enabled: !schedulerEnabled })
-                                                        });
-                                                        const data = await res.json();
-                                                        if (data.success) {
-                                                            setSchedulerEnabled(data.schedulerEnabled);
-                                                            showToast(data.schedulerEnabled ? 'Scheduler resumed' : 'Scheduler paused');
-                                                        } else {
-                                                            showToast(data.error || 'Failed to toggle', 'error');
-                                                        }
-                                                    } catch (e) {
-                                                        showToast('Network error', 'error');
-                                                    } finally {
-                                                        setTogglingScheduler(false);
-                                                    }
-                                                }}
-                                                style={{
-                                                    position: 'relative', width: '44px', height: '24px',
-                                                    background: schedulerEnabled ? '#10b981' : '#cbd5e1',
-                                                    borderRadius: '99px', border: 'none', cursor: 'pointer',
-                                                    transition: 'background 0.3s ease', padding: 0
-                                                }}
-                                            >
-                                                <div style={{
-                                                    position: 'absolute', top: '2px', left: schedulerEnabled ? '22px' : '2px',
-                                                    width: '20px', height: '20px', background: '#fff', borderRadius: '50%',
-                                                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)', transition: 'left 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
-                                                }} />
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                    {/* Schedule Card */}
-                                    <div style={{ background: '#fff', border: '1px solid #f1f5f9', borderRadius: '20px', padding: '1.75rem', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.5rem' }}>
-                                            <div style={{ width: '32px', height: '32px', background: 'linear-gradient(135deg, #e0e7ff, #c7d2fe)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem' }}>🕐</div>
-                                            <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 800, color: '#0f172a' }}>Daily Schedule</h3>
-                                        </div>
-
-                                        {/* Preview pill */}
-                                        <div style={{ background: 'linear-gradient(135deg, #f5f3ff, #ede9fe)', borderRadius: '12px', padding: '0.75rem 1rem', marginBottom: '1.25rem', border: '1px solid #ddd6fe', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                            <div>
-                                                <p style={{ margin: 0, fontSize: '0.72rem', fontWeight: 700, color: '#8b5cf6', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Runs Daily At</p>
-                                                <p style={{ margin: 0, fontSize: '1.4rem', fontWeight: 900, color: '#6d28d9', letterSpacing: '-0.02em' }}>
-                                                    {String(scheduleHour).padStart(2, '0')}:{String(scheduleMinute).padStart(2, '0')} <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#8b5cf6' }}>IST</span>
-                                                </p>
-                                            </div>
-                                            <Clock size={28} color="#c4b5fd" />
-                                        </div>
-
-                                        <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1rem' }}>
-                                            <div style={{ flex: 1 }}>
-                                                <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 700, color: '#64748b', marginBottom: '0.35rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Hour</label>
-                                                <select
-                                                    value={scheduleHour}
-                                                    onChange={e => setScheduleHour(parseInt(e.target.value))}
-                                                    style={{ width: '100%', padding: '0.65rem 0.75rem', border: '1.5px solid #e2e8f0', borderRadius: '10px', fontSize: '0.95rem', background: '#fafbfc', color: '#0f172a', cursor: 'pointer', fontWeight: 700, fontFamily: 'inherit', outline: 'none' }}
-                                                >
-                                                    {Array.from({ length: 24 }, (_, i) => (
-                                                        <option key={i} value={i}>{String(i).padStart(2, '0')}:00</option>
-                                                    ))}
-                                                </select>
-                                            </div>
-                                            <div style={{ flex: 1 }}>
-                                                <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 700, color: '#64748b', marginBottom: '0.35rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Minute</label>
-                                                <select
-                                                    value={scheduleMinute}
-                                                    onChange={e => setScheduleMinute(parseInt(e.target.value))}
-                                                    style={{ width: '100%', padding: '0.65rem 0.75rem', border: '1.5px solid #e2e8f0', borderRadius: '10px', fontSize: '0.95rem', background: '#fafbfc', color: '#0f172a', cursor: 'pointer', fontWeight: 700, fontFamily: 'inherit', outline: 'none' }}
-                                                >
-                                                    {[0, 15, 30, 45].map(m => (
-                                                        <option key={m} value={m}>{String(m).padStart(2, '0')}</option>
-                                                    ))}
-                                                </select>
-                                            </div>
-                                        </div>
-
-                                        <button
-                                            id="price-drop-save-schedule"
-                                            disabled={scheduleSaving}
-                                            onClick={async () => {
-                                                setScheduleSaving(true);
-                                                const totalMinutesIST = scheduleHour * 60 + scheduleMinute;
-                                                const totalMinutesUTC = (totalMinutesIST - 330 + 1440) % 1440;
-                                                const utcH = Math.floor(totalMinutesUTC / 60);
-                                                const utcM = totalMinutesUTC % 60;
-                                                const cronExpr = `${utcM} ${utcH} * * *`;
-                                                try {
-                                                    const headers = await getAuthHeaders();
-                                                    const res = await fetch(`${API}/api/admin/price-drop/schedule`, {
-                                                        method: 'POST', headers,
-                                                        body: JSON.stringify({ cronExpression: cronExpr }),
-                                                    });
-                                                    const data = await res.json();
-                                                    if (data.success) {
-                                                        setPriceAlertStatus(prev => ({ ...prev, cronExpression: cronExpr }));
-                                                        showToast(`Schedule saved: ${String(scheduleHour).padStart(2, '0')}:${String(scheduleMinute).padStart(2, '0')} IST daily`);
-                                                    } else {
-                                                        showToast(data.error || 'Failed to update', 'error');
-                                                    }
-                                                } catch {
-                                                    showToast('Network error', 'error');
-                                                } finally {
-                                                    setScheduleSaving(false);
-                                                }
-                                            }}
-                                            style={{
-                                                width: '100%',
-                                                padding: '0.9rem',
-                                                background: scheduleSaving ? '#f1f5f9' : 'linear-gradient(135deg, #6366f1, #818cf8)',
-                                                color: scheduleSaving ? '#94a3b8' : '#fff',
-                                                border: 'none', borderRadius: '14px',
-                                                fontWeight: 700, fontSize: '0.9rem',
-                                                cursor: scheduleSaving ? 'not-allowed' : 'pointer',
-                                                transition: 'all 0.2s',
-                                                boxShadow: scheduleSaving ? 'none' : '0 4px 12px rgba(99,102,241,0.3)',
-                                                fontFamily: 'inherit',
-                                            }}
-                                        >
-                                            {scheduleSaving ? 'Saving…' : '💾 Save Schedule'}
-                                        </button>
                                     </div>
                                 </div>
-
 
                                 {/* Responsive CSS for this tab */}
                                 <style>{`
@@ -1064,6 +962,86 @@ export default function AdminPanel() {
                                             }} />
                                         </button>
                                     </div>
+                                </div>
+                            </div>
+                            
+                            {/* Broadcast Notification Feature */}
+                            <div style={{ background: '#fff', padding: '2rem', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', border: '1px solid #f1f5f9' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem' }}>
+                                    <div style={{ background: '#f5f3ff', padding: '0.5rem', borderRadius: '8px', color: '#8b5cf6' }}>
+                                        <span style={{ fontSize: '1.5rem' }}>📢</span>
+                                    </div>
+                                    <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 700, color: '#0f172a' }}>Global Broadcast Notification</h3>
+                                </div>
+                                <p style={{ margin: '0 0 1.5rem 0', fontSize: '0.9rem', color: '#64748b' }}>
+                                    Send a push notification to all users who have subscribed.
+                                </p>
+                                
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                                    <div>
+                                        <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.4rem' }}>Title</label>
+                                        <input 
+                                            type="text"
+                                            value={broadcastTitle}
+                                            onChange={(e) => setBroadcastTitle(e.target.value)}
+                                            placeholder="e.g., Huge Summer Sale!"
+                                            style={{ width: '100%', padding: '0.75rem 1rem', border: '1px solid #cbd5e1', borderRadius: '8px', outline: 'none', fontFamily: 'inherit' }}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.4rem' }}>Body</label>
+                                        <textarea 
+                                            value={broadcastBody}
+                                            onChange={(e) => setBroadcastBody(e.target.value)}
+                                            placeholder="e.g., Check out these new discounts on your wishlist items."
+                                            rows={2}
+                                            style={{ width: '100%', padding: '0.75rem 1rem', border: '1px solid #cbd5e1', borderRadius: '8px', outline: 'none', fontFamily: 'inherit', resize: 'vertical' }}
+                                        />
+                                    </div>
+                                    <div style={{ display: 'flex', gap: '1rem' }}>
+                                        <div style={{ flex: 1 }}>
+                                            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.4rem' }}>Target URL (Optional)</label>
+                                            <input 
+                                                type="text"
+                                                value={broadcastUrl}
+                                                onChange={(e) => setBroadcastUrl(e.target.value)}
+                                                placeholder="e.g., /discover"
+                                                style={{ width: '100%', padding: '0.75rem 1rem', border: '1px solid #cbd5e1', borderRadius: '8px', outline: 'none', fontFamily: 'inherit' }}
+                                            />
+                                        </div>
+                                        <div style={{ flex: 1 }}>
+                                            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.4rem' }}>Image URL (Optional)</label>
+                                            <input 
+                                                type="text"
+                                                value={broadcastImage}
+                                                onChange={(e) => setBroadcastImage(e.target.value)}
+                                                placeholder="e.g., https://example.com/banner.png"
+                                                style={{ width: '100%', padding: '0.75rem 1rem', border: '1px solid #cbd5e1', borderRadius: '8px', outline: 'none', fontFamily: 'inherit' }}
+                                            />
+                                        </div>
+                                    </div>
+                                    <button
+                                        disabled={broadcastLoading || !broadcastTitle || !broadcastBody}
+                                        onClick={() => setIsBroadcastModalOpen(true)}
+                                        style={{
+                                            marginTop: '0.5rem',
+                                            alignSelf: 'flex-start',
+                                            padding: '0.75rem 1.5rem',
+                                            background: (broadcastLoading || !broadcastTitle || !broadcastBody) ? '#cbd5e1' : '#4f46e5',
+                                            color: '#fff',
+                                            border: 'none',
+                                            borderRadius: '8px',
+                                            fontWeight: 600,
+                                            cursor: (broadcastLoading || !broadcastTitle || !broadcastBody) ? 'not-allowed' : 'pointer',
+                                            transition: 'background 0.2s',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '0.5rem'
+                                        }}
+                                    >
+                                        {broadcastLoading ? <RefreshCw size={18} style={{ animation: 'spin 1s linear infinite' }} /> : <Play size={18} fill="currentColor" />}
+                                        {broadcastLoading ? 'Sending...' : 'Send Broadcast'}
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -1956,6 +1934,17 @@ export default function AdminPanel() {
                 isDestructive={true}
                 onCancel={() => setRevokeTargetUserId(null)}
                 onConfirm={confirmRevokePremium}
+            />
+
+            <AlertModal
+                isOpen={isBroadcastModalOpen}
+                title="Global Broadcast Notification"
+                message="Are you sure you want to send this push notification to ALL subscribed users?"
+                cancelText="Cancel"
+                confirmText="Send Broadcast"
+                isDestructive={false}
+                onCancel={() => setIsBroadcastModalOpen(false)}
+                onConfirm={confirmBroadcast}
             />
 
             <AlertModal
