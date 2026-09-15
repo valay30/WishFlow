@@ -50,8 +50,14 @@ async function supabaseGet(table, column, value, select = '*') {
 function buildOgTags({ title, description, image, url }) {
   const safeTitle = (title || DEFAULT_TITLE).replace(/"/g, '&quot;');
   const safeDesc  = (description || DEFAULT_DESC).replace(/"/g, '&quot;');
-  const safeImage = image || DEFAULT_IMAGE;
+  let safeImage = image || DEFAULT_IMAGE;
   const safeUrl   = url || SITE_URL;
+
+  // Optimize ImageKit URLs for exact 1200x630 Open Graph dimensions
+  if (safeImage.includes('ik.imagekit.io')) {
+    const sep = safeImage.includes('?') ? '&' : '?';
+    safeImage = `${safeImage}${sep}tr=w-1200,h-630,fo-auto,c-at_max`;
+  }
 
   return `
     <!-- Open Graph (injected by WishFlow Edge Middleware) -->
@@ -153,9 +159,16 @@ export default async function middleware(request) {
   const response = await fetch(request.url);
   const html     = await response.text();
 
-  // Inject OG tags right after <head>
+  // Strip out the existing static tags so we don't end up with duplicates
+  const cleanHtml = html
+    .replace(/<title>.*?<\/title>/gi, '')
+    .replace(/<meta[^>]*name="description"[^>]*>/gi, '')
+    .replace(/<meta[^>]*property="og:[^>]*>/gi, '')
+    .replace(/<meta[^>]*name="twitter:[^>]*>/gi, '');
+
+  // Inject our dynamic OG tags right after <head>
   const ogBlock  = buildOgTags(meta);
-  const injected = html.replace('<head>', `<head>${ogBlock}`);
+  const injected = cleanHtml.replace('<head>', `<head>${ogBlock}`);
 
   return new Response(injected, {
     status: response.status,
