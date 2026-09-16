@@ -3,7 +3,10 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
 import { useIsland } from '../context/IslandContext';
 import { db } from '../db';
-import { Search, Package, Compass, Bookmark, X, Globe, Check, SlidersHorizontal } from 'lucide-react';
+import { Search, Package, Compass, Bookmark, X, Globe, Check, SlidersHorizontal, ChevronDown, Sparkles, Clock, TrendingUp, TrendingDown } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import Slider from 'rc-slider';
+import 'rc-slider/assets/index.css';
 import AdUnit from '../components/AdUnit';
 
 const ORANGE = 'var(--primary)';
@@ -275,8 +278,9 @@ export default function Discover() {
     const [activeCategory, setActiveCategory] = useState('all');
     const [activeSort, setActiveSort] = useState('trending');
     const [activeStore, setActiveStore] = useState('all');
-    const [activeBudget, setActiveBudget] = useState('all');
+    const [priceRange, setPriceRange] = useState([0, 10000]);
     const [showFilters, setShowFilters] = useState(false);
+    const [isSortOpen, setIsSortOpen] = useState(false);
     const [myItems, setMyItems] = useState([]);
     const [savingItemId, setSavingItemId] = useState(null); // id of item currently saving
     const [saveError, setSaveError] = useState('');
@@ -313,13 +317,7 @@ export default function Discover() {
     const actuallyCollapsed = isCollapsed && !forceExpand;
     const islandRef = useRef(null);
 
-    // Delayed content swap — let CSS transition start before swapping children
-    // This prevents layout reflow mid-animation which causes lag on mobile
-    const [displayCollapsed, setDisplayCollapsed] = useState(false);
-    useEffect(() => {
-        const timer = setTimeout(() => setDisplayCollapsed(actuallyCollapsed), actuallyCollapsed ? 20 : 0);
-        return () => clearTimeout(timer);
-    }, [actuallyCollapsed]);
+    // Delayed content swap is no longer needed since we use framer-motion AnimatePresence
 
     // Click outside to collapse
     useEffect(() => {
@@ -363,13 +361,11 @@ export default function Discover() {
             cards = cards.filter(c => c.name?.toLowerCase().includes(q));
         }
 
-        if (activeBudget !== 'all') {
+        if (priceRange[0] > 0 || priceRange[1] < 10000) {
             cards = cards.filter(c => {
                 if (!c.price) return false;
-                if (activeBudget === 'under500') return c.price < 500;
-                if (activeBudget === '500to2000') return c.price >= 500 && c.price <= 2000;
-                if (activeBudget === '2000to5000') return c.price > 2000 && c.price <= 5000;
-                if (activeBudget === 'above5000') return c.price > 5000;
+                if (c.price < priceRange[0]) return false;
+                if (priceRange[1] < 10000 && c.price > priceRange[1]) return false;
                 return true;
             });
         }
@@ -386,7 +382,7 @@ export default function Discover() {
         }
 
         return cards;
-    }, [allCards, activeCategory, searchQ, activeStore, activeBudget, activeSort]);
+    }, [allCards, activeCategory, searchQ, activeStore, priceRange, activeSort]);
 
     const handleSave = async (item, isCurrentlySaved) => {
         if (!user) {
@@ -535,7 +531,19 @@ export default function Discover() {
                     marginBottom: '1rem', marginTop: '0.5rem'
                 }}
             >
-                <div
+                <motion.div
+                    layout
+                    initial={false}
+                    animate={{
+                        width: '100%',
+                        maxWidth: actuallyCollapsed ? '190px' : '900px',
+                        padding: actuallyCollapsed ? '0.55rem 1.2rem' : '1.25rem',
+                        borderRadius: '24px',
+                        boxShadow: actuallyCollapsed
+                            ? '0 4px 20px rgba(0,0,0,0.10)'
+                            : '0 12px 40px rgba(0,0,0,0.12)',
+                    }}
+                    transition={{ type: "spring", bounce: 0.15, duration: 0.5 }}
                     onClick={() => { if (actuallyCollapsed) setForceExpand(true); }}
                     style={{
                         cursor: actuallyCollapsed ? 'pointer' : 'default',
@@ -544,38 +552,34 @@ export default function Discover() {
                         backdropFilter: 'blur(20px)',
                         WebkitBackdropFilter: 'blur(20px)',
                         border: '1px solid rgba(0,0,0, 0.08)',
-                        borderRadius: '24px',
-                        padding: actuallyCollapsed ? '0.55rem 1.2rem' : '1.25rem',
-                        boxShadow: actuallyCollapsed
-                            ? '0 4px 20px rgba(0,0,0,0.10)'
-                            : '0 12px 40px rgba(0,0,0,0.12)',
-                        width: '100%',
-                        maxWidth: actuallyCollapsed ? '190px' : '900px',
-                        maxHeight: actuallyCollapsed ? '50px' : '400px',
-                        transition: [
-                            'max-width 0.4s cubic-bezier(0.25, 0.8, 0.25, 1)',
-                            'max-height 0.4s cubic-bezier(0.25, 0.8, 0.25, 1)',
-                            'padding 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)',
-                            'box-shadow 0.3s ease',
-                        ].join(', '),
-                        willChange: 'max-width, max-height',
-                        overflow: 'hidden',
+                        overflow: actuallyCollapsed ? 'hidden' : 'visible',
                         display: 'flex', flexDirection: 'column',
                         alignItems: actuallyCollapsed ? 'center' : 'stretch',
                     }}>
-                    {displayCollapsed ? (
+                    <AnimatePresence mode="wait" initial={false}>
+                    {actuallyCollapsed ? (
                         // Collapsed State
-                        <div
-                            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', animation: 'disc-fadeIn 0.2s ease both' }}
+                        <motion.div
+                            key="collapsed"
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.1 } }}
+                            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', width: '100%', justifyContent: 'center' }}
                         >
                             <Search size={16} color="var(--text-dim)" />
-                            <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-dim)' }}>
+                            <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-dim)', whiteSpace: 'nowrap' }}>
                                 {searchQ ? `Search: ${searchQ}` : 'Discover...'}
                             </span>
-                        </div>
+                        </motion.div>
                     ) : (
                         // Expanded State
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', animation: 'disc-fadeIn 0.3s ease both' }}>
+                        <motion.div
+                            key="expanded"
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0, transition: { delay: 0.15, duration: 0.2 } }}
+                            exit={{ opacity: 0, y: -10, transition: { duration: 0.1 } }}
+                            style={{ display: 'flex', flexDirection: 'column', gap: '1rem', width: '100%' }}
+                        >
                             {/* Search bar */}
                             <div style={{ position: 'relative', flex: 1 }}>
                                 <Search size={17} color="var(--text-dim)" style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
@@ -607,62 +611,124 @@ export default function Discover() {
 
                             {/* Horizontal Pill Filters */}
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
-                                {/* Sort Row */}
-                                <div className="pill-scroll">
-                                    <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-dim)', alignSelf: 'center', marginRight: '0.4rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Sort</span>
-                                    {[
-                                        { id: 'trending', label: '🌟 Trending' },
-                                        { id: 'newest', label: '🕒 Newest' },
-                                        { id: 'priceAsc', label: '💵 Low to High' },
-                                        { id: 'priceDesc', label: '💎 High to Low' },
-                                    ].map(s => (
-                                        <button
-                                            key={s.id}
-                                            onClick={() => setActiveSort(s.id)}
-                                            style={{
-                                                padding: '0.4rem 0.9rem', borderRadius: '99px', flexShrink: 0,
-                                                border: `1px solid ${activeSort === s.id ? ORANGE : 'var(--border)'}`,
-                                                background: activeSort === s.id ? ORANGE : 'var(--surface)',
-                                                color: activeSort === s.id ? '#fff' : 'var(--text-dim)',
-                                                fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer',
-                                                transition: 'all 0.2s', fontFamily: 'inherit'
-                                            }}
-                                        >
-                                            {s.label}
-                                        </button>
-                                    ))}
+                                {/* Sort Row (Dropdown) */}
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', position: 'relative', zIndex: 10 }}>
+                                    <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.05em', paddingLeft: '0.5rem' }}>Sort By</span>
+                                    <button
+                                        onClick={() => setIsSortOpen(!isSortOpen)}
+                                        style={{
+                                            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                                            padding: '0.75rem 1rem', borderRadius: '12px',
+                                            border: '1.5px solid var(--border)', background: 'var(--surface)',
+                                            color: 'var(--text)', fontSize: '0.85rem', fontWeight: 600,
+                                            cursor: 'pointer', outline: 'none'
+                                        }}
+                                    >
+                                        {
+                                            (() => {
+                                                const options = [
+                                                    { id: 'trending', label: 'Trending', icon: Sparkles },
+                                                    { id: 'newest', label: 'Newest', icon: Clock },
+                                                    { id: 'priceAsc', label: 'Price: Low → High', icon: TrendingUp },
+                                                    { id: 'priceDesc', label: 'Price: High → Low', icon: TrendingDown },
+                                                ];
+                                                const currentOpt = options.find(s => s.id === activeSort);
+                                                const Icon = currentOpt?.icon;
+                                                return (
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                        {Icon && <Icon size={16} />}
+                                                        <span>{currentOpt?.label}</span>
+                                                    </div>
+                                                );
+                                            })()
+                                        }
+                                        <motion.div animate={{ rotate: isSortOpen ? 180 : 0 }}>
+                                            <ChevronDown size={16} color="var(--text-dim)" />
+                                        </motion.div>
+                                    </button>
+
+                                    <AnimatePresence>
+                                        {isSortOpen && (
+                                            <motion.div
+                                                initial={{ opacity: 0, y: -10 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                exit={{ opacity: 0, y: -10 }}
+                                                transition={{ duration: 0.15 }}
+                                                style={{
+                                                    position: 'absolute', top: '100%', left: 0, right: 0,
+                                                    background: 'var(--surface)', border: '1px solid var(--border)',
+                                                    borderRadius: '12px', padding: '0.5rem',
+                                                    boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
+                                                    display: 'flex', flexDirection: 'column', gap: '0.2rem'
+                                                }}
+                                            >
+                                                {[
+                                                    { id: 'trending', label: 'Trending', icon: Sparkles },
+                                                    { id: 'newest', label: 'Newest', icon: Clock },
+                                                    { id: 'priceAsc', label: 'Price: Low → High', icon: TrendingUp },
+                                                    { id: 'priceDesc', label: 'Price: High → Low', icon: TrendingDown },
+                                                ].map((s, idx) => {
+                                                    const Icon = s.icon;
+                                                    return (
+                                                        <button
+                                                            key={s.id}
+                                                            onClick={() => {
+                                                                setActiveSort(s.id);
+                                                                setIsSortOpen(false);
+                                                            }}
+                                                            style={{
+                                                                padding: '0.6rem 0.8rem', borderRadius: '8px',
+                                                                background: activeSort === s.id ? 'rgba(var(--primary-rgb),0.1)' : 'transparent',
+                                                                color: activeSort === s.id ? ORANGE : 'var(--text)',
+                                                                fontSize: '0.85rem', fontWeight: 600,
+                                                                border: 'none', cursor: 'pointer', textAlign: 'left',
+                                                                display: 'flex', alignItems: 'center', justifyContent: 'space-between'
+                                                            }}
+                                                        >
+                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                                <Icon size={16} color={activeSort === s.id ? ORANGE : 'var(--text-muted)'} />
+                                                                {s.label}
+                                                            </div>
+                                                            {activeSort === s.id && <Check size={14} strokeWidth={3} />}
+                                                        </button>
+                                                    );
+                                                })}
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
                                 </div>
 
                                 {/* Budget Row */}
-                                <div className="pill-scroll">
-                                    <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-dim)', alignSelf: 'center', marginRight: '0.4rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Budget</span>
-                                    {[
-                                        { id: 'all', label: 'Any' },
-                                        { id: 'under500', label: 'Under ₹500' },
-                                        { id: '500to2000', label: '₹500 - ₹2,000' },
-                                        { id: '2000to5000', label: '₹2,000 - ₹5,000' },
-                                        { id: 'above5000', label: '₹5,000+' },
-                                    ].map(b => (
-                                        <button
-                                            key={b.id}
-                                            onClick={() => setActiveBudget(b.id)}
-                                            style={{
-                                                padding: '0.4rem 0.9rem', borderRadius: '99px', flexShrink: 0,
-                                                border: `1px solid ${activeBudget === b.id ? ORANGE : 'var(--border)'}`,
-                                                background: activeBudget === b.id ? ORANGE : 'var(--surface)',
-                                                color: activeBudget === b.id ? '#fff' : 'var(--text-dim)',
-                                                fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer',
-                                                transition: 'all 0.2s', fontFamily: 'inherit'
-                                            }}
-                                        >
-                                            {b.label}
-                                        </button>
-                                    ))}
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', padding: '0.5rem 0.5rem' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Price Range</span>
+                                        <span style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--text)' }}>
+                                            ₹{priceRange[0]} — {priceRange[1] === 10000 ? '₹10,000+' : `₹${priceRange[1]}`}
+                                        </span>
+                                    </div>
+                                    <div style={{ padding: '0 0.5rem' }}>
+                                        <Slider
+                                            range
+                                            min={0}
+                                            max={10000}
+                                            step={100}
+                                            value={priceRange}
+                                            onChange={(val) => setPriceRange(val)}
+                                            allowCross={false}
+                                            trackStyle={[{ backgroundColor: ORANGE, height: 6 }]}
+                                            handleStyle={[
+                                                { borderColor: ORANGE, height: 20, width: 20, marginTop: -7, backgroundColor: '#fff', opacity: 1, boxShadow: '0 2px 6px rgba(0,0,0,0.15)' },
+                                                { borderColor: ORANGE, height: 20, width: 20, marginTop: -7, backgroundColor: '#fff', opacity: 1, boxShadow: '0 2px 6px rgba(0,0,0,0.15)' }
+                                            ]}
+                                            railStyle={{ backgroundColor: 'var(--border)', height: 6 }}
+                                        />
+                                    </div>
                                 </div>
                             </div>
-                        </div>
+                        </motion.div>
                     )}
-                </div>
+                    </AnimatePresence>
+                </motion.div>
             </div>
 
             {/* ── Feed Content ── */}
