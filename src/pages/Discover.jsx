@@ -441,7 +441,7 @@ export default function Discover() {
     const actuallyCollapsed = isCollapsed && !forceExpand && filtered.length > 0;
 
     return (
-        <div style={{ minHeight: '100vh', background: 'var(--bg)', paddingBottom: 'calc(var(--bottom-nav) + 1rem)', fontFamily: FONT }}>
+        <div style={{ minHeight: 'calc(100vh + 350px)', background: 'var(--bg)', paddingBottom: 'calc(var(--bottom-nav) + 1rem)', fontFamily: FONT }}>
             <style>{`
                 @keyframes disc-shimmer {
                     0%   { background-position: 200% 0; }
