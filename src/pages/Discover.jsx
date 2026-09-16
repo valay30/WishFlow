@@ -313,9 +313,9 @@ export default function Discover() {
             if (rafId) cancelAnimationFrame(rafId);
         };
     }, []);
-
-    const actuallyCollapsed = isCollapsed && !forceExpand;
     const islandRef = useRef(null);
+
+    const hasActiveFilters = searchQ !== '' || activeCategory !== 'all' || activeSort !== 'trending' || activeStore !== 'all' || priceRange[0] > 0 || priceRange[1] < 10000;
 
     // Delayed content swap is no longer needed since we use framer-motion AnimatePresence
 
@@ -431,6 +431,8 @@ export default function Discover() {
             setTimeout(() => setSaveError(''), 3000);
         }
     };
+
+    const actuallyCollapsed = isCollapsed && !forceExpand && filtered.length > 0;
 
     return (
         <div style={{ minHeight: '100vh', background: 'var(--bg)', paddingBottom: 'calc(var(--bottom-nav) + 1rem)', fontFamily: FONT }}>
@@ -557,176 +559,187 @@ export default function Discover() {
                         alignItems: actuallyCollapsed ? 'center' : 'stretch',
                     }}>
                     <AnimatePresence mode="wait" initial={false}>
-                    {actuallyCollapsed ? (
-                        // Collapsed State
-                        <motion.div
-                            key="collapsed"
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.1 } }}
-                            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', width: '100%', justifyContent: 'center' }}
-                        >
-                            <Search size={16} color="var(--text-dim)" />
-                            <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-dim)', whiteSpace: 'nowrap' }}>
-                                {searchQ ? `Search: ${searchQ}` : 'Discover...'}
-                            </span>
-                        </motion.div>
-                    ) : (
-                        // Expanded State
-                        <motion.div
-                            key="expanded"
-                            initial={{ opacity: 0, y: -10 }}
-                            animate={{ opacity: 1, y: 0, transition: { delay: 0.15, duration: 0.2 } }}
-                            exit={{ opacity: 0, y: -10, transition: { duration: 0.1 } }}
-                            style={{ display: 'flex', flexDirection: 'column', gap: '1rem', width: '100%' }}
-                        >
-                            {/* Search bar */}
-                            <div style={{ position: 'relative', flex: 1 }}>
-                                <Search size={17} color="var(--text-dim)" style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
-                                <input
-                                    id="discover-search"
-                                    value={searchQ}
-                                    onChange={e => setSearchQ(e.target.value)}
-                                    placeholder="Search products…"
-                                    style={{
-                                        width: '100%', boxSizing: 'border-box',
-                                        padding: '0.75rem 2.75rem 0.75rem 2.75rem',
-                                        borderRadius: '14px', border: '1.5px solid var(--border)',
-                                        background: 'rgba(0,0,0,0.03)', color: 'var(--text)',
-                                        fontSize: '0.95rem', fontFamily: 'inherit', outline: 'none',
-                                        transition: 'border-color 0.2s',
-                                    }}
-                                    onFocus={e => e.target.style.borderColor = ORANGE}
-                                    onBlur={e => e.target.style.borderColor = 'var(--border)'}
-                                />
-                                {searchQ && (
-                                    <button
-                                        onClick={() => setSearchQ('')}
-                                        style={{ position: 'absolute', right: '0.85rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-dim)', display: 'flex' }}
-                                    >
-                                        <X size={16} />
-                                    </button>
-                                )}
-                            </div>
-
-                            {/* Horizontal Pill Filters */}
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
-                                {/* Sort Row (Dropdown) */}
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', position: 'relative', zIndex: 10 }}>
-                                    <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.05em', paddingLeft: '0.5rem' }}>Sort By</span>
-                                    <button
-                                        onClick={() => setIsSortOpen(!isSortOpen)}
+                        {actuallyCollapsed ? (
+                            // Collapsed State
+                            <motion.div
+                                key="collapsed"
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.1 } }}
+                                style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', width: '100%', justifyContent: 'center', position: 'relative' }}
+                            >
+                                <Search size={16} color="var(--text-dim)" />
+                                <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-dim)', whiteSpace: 'nowrap' }}>
+                                    {searchQ ? `Search: ${searchQ}` : 'Discover'}
+                                </span>
+                                {hasActiveFilters && (
+                                    <motion.div
+                                        initial={{ scale: 0 }}
+                                        animate={{ scale: 1 }}
                                         style={{
-                                            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                                            padding: '0.75rem 1rem', borderRadius: '12px',
-                                            border: '1.5px solid var(--border)', background: 'var(--surface)',
-                                            color: 'var(--text)', fontSize: '0.85rem', fontWeight: 600,
-                                            cursor: 'pointer', outline: 'none'
+                                            position: 'absolute', right: '4px',
+                                            width: '8px', height: '8px', borderRadius: '50%',
+                                            background: '#fa0000ff', boxShadow: '0 0 8px rgba(213, 26, 26, 0.6)'
                                         }}
-                                    >
-                                        {
-                                            (() => {
-                                                const options = [
-                                                    { id: 'trending', label: 'Trending', icon: Sparkles },
-                                                    { id: 'newest', label: 'Newest', icon: Clock },
-                                                    { id: 'priceAsc', label: 'Price: Low → High', icon: TrendingUp },
-                                                    { id: 'priceDesc', label: 'Price: High → Low', icon: TrendingDown },
-                                                ];
-                                                const currentOpt = options.find(s => s.id === activeSort);
-                                                const Icon = currentOpt?.icon;
-                                                return (
-                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                                        {Icon && <Icon size={16} />}
-                                                        <span>{currentOpt?.label}</span>
-                                                    </div>
-                                                );
-                                            })()
-                                        }
-                                        <motion.div animate={{ rotate: isSortOpen ? 180 : 0 }}>
-                                            <ChevronDown size={16} color="var(--text-dim)" />
-                                        </motion.div>
-                                    </button>
+                                    />
+                                )}
+                            </motion.div>
+                        ) : (
+                            // Expanded State
+                            <motion.div
+                                key="expanded"
+                                initial={{ opacity: 0, y: -10 }}
+                                animate={{ opacity: 1, y: 0, transition: { delay: 0.15, duration: 0.2 } }}
+                                exit={{ opacity: 0, y: -10, transition: { duration: 0.1 } }}
+                                style={{ display: 'flex', flexDirection: 'column', gap: '1rem', width: '100%' }}
+                            >
+                                {/* Search bar */}
+                                <div style={{ position: 'relative', flex: 1 }}>
+                                    <Search size={17} color="var(--text-dim)" style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
+                                    <input
+                                        id="discover-search"
+                                        value={searchQ}
+                                        onChange={e => setSearchQ(e.target.value)}
+                                        placeholder="Search products…"
+                                        style={{
+                                            width: '100%', boxSizing: 'border-box',
+                                            padding: '0.75rem 2.75rem 0.75rem 2.75rem',
+                                            borderRadius: '14px', border: '1.5px solid var(--border)',
+                                            background: 'rgba(0,0,0,0.03)', color: 'var(--text)',
+                                            fontSize: '0.95rem', fontFamily: 'inherit', outline: 'none',
+                                            transition: 'border-color 0.2s',
+                                        }}
+                                        onFocus={e => e.target.style.borderColor = ORANGE}
+                                        onBlur={e => e.target.style.borderColor = 'var(--border)'}
+                                    />
+                                    {searchQ && (
+                                        <button
+                                            onClick={() => setSearchQ('')}
+                                            style={{ position: 'absolute', right: '0.85rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-dim)', display: 'flex' }}
+                                        >
+                                            <X size={16} />
+                                        </button>
+                                    )}
+                                </div>
 
-                                    <AnimatePresence>
-                                        {isSortOpen && (
-                                            <motion.div
-                                                initial={{ opacity: 0, y: -10 }}
-                                                animate={{ opacity: 1, y: 0 }}
-                                                exit={{ opacity: 0, y: -10 }}
-                                                transition={{ duration: 0.15 }}
-                                                style={{
-                                                    position: 'absolute', top: '100%', left: 0, right: 0,
-                                                    background: 'var(--surface)', border: '1px solid var(--border)',
-                                                    borderRadius: '12px', padding: '0.5rem',
-                                                    boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
-                                                    display: 'flex', flexDirection: 'column', gap: '0.2rem'
-                                                }}
-                                            >
-                                                {[
-                                                    { id: 'trending', label: 'Trending', icon: Sparkles },
-                                                    { id: 'newest', label: 'Newest', icon: Clock },
-                                                    { id: 'priceAsc', label: 'Price: Low → High', icon: TrendingUp },
-                                                    { id: 'priceDesc', label: 'Price: High → Low', icon: TrendingDown },
-                                                ].map((s, idx) => {
-                                                    const Icon = s.icon;
+                                {/* Horizontal Pill Filters */}
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+                                    {/* Sort Row (Dropdown) */}
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', position: 'relative', zIndex: 10 }}>
+                                        <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.05em', paddingLeft: '0.5rem' }}>Sort By</span>
+                                        <button
+                                            onClick={() => setIsSortOpen(!isSortOpen)}
+                                            style={{
+                                                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                                                padding: '0.75rem 1rem', borderRadius: '12px',
+                                                border: '1.5px solid var(--border)', background: 'var(--surface)',
+                                                color: 'var(--text)', fontSize: '0.85rem', fontWeight: 600,
+                                                cursor: 'pointer', outline: 'none'
+                                            }}
+                                        >
+                                            {
+                                                (() => {
+                                                    const options = [
+                                                        { id: 'trending', label: 'Trending', icon: Sparkles },
+                                                        { id: 'newest', label: 'Newest', icon: Clock },
+                                                        { id: 'priceAsc', label: 'Price: Low → High', icon: TrendingUp },
+                                                        { id: 'priceDesc', label: 'Price: High → Low', icon: TrendingDown },
+                                                    ];
+                                                    const currentOpt = options.find(s => s.id === activeSort);
+                                                    const Icon = currentOpt?.icon;
                                                     return (
-                                                        <button
-                                                            key={s.id}
-                                                            onClick={() => {
-                                                                setActiveSort(s.id);
-                                                                setIsSortOpen(false);
-                                                            }}
-                                                            style={{
-                                                                padding: '0.6rem 0.8rem', borderRadius: '8px',
-                                                                background: activeSort === s.id ? 'rgba(var(--primary-rgb),0.1)' : 'transparent',
-                                                                color: activeSort === s.id ? ORANGE : 'var(--text)',
-                                                                fontSize: '0.85rem', fontWeight: 600,
-                                                                border: 'none', cursor: 'pointer', textAlign: 'left',
-                                                                display: 'flex', alignItems: 'center', justifyContent: 'space-between'
-                                                            }}
-                                                        >
-                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                                                <Icon size={16} color={activeSort === s.id ? ORANGE : 'var(--text-muted)'} />
-                                                                {s.label}
-                                                            </div>
-                                                            {activeSort === s.id && <Check size={14} strokeWidth={3} />}
-                                                        </button>
+                                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                            {Icon && <Icon size={16} />}
+                                                            <span>{currentOpt?.label}</span>
+                                                        </div>
                                                     );
-                                                })}
+                                                })()
+                                            }
+                                            <motion.div animate={{ rotate: isSortOpen ? 180 : 0 }}>
+                                                <ChevronDown size={16} color="var(--text-dim)" />
                                             </motion.div>
-                                        )}
-                                    </AnimatePresence>
-                                </div>
+                                        </button>
 
-                                {/* Budget Row */}
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', padding: '0.5rem 0.5rem' }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                        <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Price Range</span>
-                                        <span style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--text)' }}>
-                                            ₹{priceRange[0]} — {priceRange[1] === 10000 ? '₹10,000+' : `₹${priceRange[1]}`}
-                                        </span>
+                                        <AnimatePresence>
+                                            {isSortOpen && (
+                                                <motion.div
+                                                    initial={{ opacity: 0, y: -10 }}
+                                                    animate={{ opacity: 1, y: 0 }}
+                                                    exit={{ opacity: 0, y: -10 }}
+                                                    transition={{ duration: 0.15 }}
+                                                    style={{
+                                                        position: 'absolute', top: '100%', left: 0, right: 0,
+                                                        background: 'var(--surface)', border: '1px solid var(--border)',
+                                                        borderRadius: '12px', padding: '0.5rem',
+                                                        boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
+                                                        display: 'flex', flexDirection: 'column', gap: '0.2rem'
+                                                    }}
+                                                >
+                                                    {[
+                                                        { id: 'trending', label: 'Trending', icon: Sparkles },
+                                                        { id: 'newest', label: 'Newest', icon: Clock },
+                                                        { id: 'priceAsc', label: 'Price: Low → High', icon: TrendingUp },
+                                                        { id: 'priceDesc', label: 'Price: High → Low', icon: TrendingDown },
+                                                    ].map((s, idx) => {
+                                                        const Icon = s.icon;
+                                                        return (
+                                                            <button
+                                                                key={s.id}
+                                                                onClick={() => {
+                                                                    setActiveSort(s.id);
+                                                                    setIsSortOpen(false);
+                                                                }}
+                                                                style={{
+                                                                    padding: '0.6rem 0.8rem', borderRadius: '8px',
+                                                                    background: activeSort === s.id ? 'rgba(var(--primary-rgb),0.1)' : 'transparent',
+                                                                    color: activeSort === s.id ? ORANGE : 'var(--text)',
+                                                                    fontSize: '0.85rem', fontWeight: 600,
+                                                                    border: 'none', cursor: 'pointer', textAlign: 'left',
+                                                                    display: 'flex', alignItems: 'center', justifyContent: 'space-between'
+                                                                }}
+                                                            >
+                                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                                    <Icon size={16} color={activeSort === s.id ? ORANGE : 'var(--text-muted)'} />
+                                                                    {s.label}
+                                                                </div>
+                                                                {activeSort === s.id && <Check size={14} strokeWidth={3} />}
+                                                            </button>
+                                                        );
+                                                    })}
+                                                </motion.div>
+                                            )}
+                                        </AnimatePresence>
                                     </div>
-                                    <div style={{ padding: '0 0.5rem' }}>
-                                        <Slider
-                                            range
-                                            min={0}
-                                            max={10000}
-                                            step={100}
-                                            value={priceRange}
-                                            onChange={(val) => setPriceRange(val)}
-                                            allowCross={false}
-                                            trackStyle={[{ backgroundColor: ORANGE, height: 6 }]}
-                                            handleStyle={[
-                                                { borderColor: ORANGE, height: 20, width: 20, marginTop: -7, backgroundColor: '#fff', opacity: 1, boxShadow: '0 2px 6px rgba(0,0,0,0.15)' },
-                                                { borderColor: ORANGE, height: 20, width: 20, marginTop: -7, backgroundColor: '#fff', opacity: 1, boxShadow: '0 2px 6px rgba(0,0,0,0.15)' }
-                                            ]}
-                                            railStyle={{ backgroundColor: 'var(--border)', height: 6 }}
-                                        />
+
+                                    {/* Budget Row */}
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', padding: '0.5rem 0.5rem' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                            <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Price Range</span>
+                                            <span style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--text)' }}>
+                                                ₹{priceRange[0]} — {priceRange[1] === 10000 ? '₹10,000+' : `₹${priceRange[1]}`}
+                                            </span>
+                                        </div>
+                                        <div style={{ padding: '0 0.5rem' }}>
+                                            <Slider
+                                                range
+                                                min={0}
+                                                max={10000}
+                                                step={100}
+                                                value={priceRange}
+                                                onChange={(val) => setPriceRange(val)}
+                                                allowCross={false}
+                                                trackStyle={[{ backgroundColor: ORANGE, height: 6 }]}
+                                                handleStyle={[
+                                                    { borderColor: ORANGE, height: 20, width: 20, marginTop: -7, backgroundColor: '#fff', opacity: 1, boxShadow: '0 2px 6px rgba(0,0,0,0.15)' },
+                                                    { borderColor: ORANGE, height: 20, width: 20, marginTop: -7, backgroundColor: '#fff', opacity: 1, boxShadow: '0 2px 6px rgba(0,0,0,0.15)' }
+                                                ]}
+                                                railStyle={{ backgroundColor: 'var(--border)', height: 6 }}
+                                            />
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        </motion.div>
-                    )}
+                            </motion.div>
+                        )}
                     </AnimatePresence>
                 </motion.div>
             </div>
@@ -754,12 +767,62 @@ export default function Discover() {
                         </p>
                     </div>
                 ) : filtered.length === 0 ? (
-                    /* No results */
-                    <div style={{ textAlign: 'center', padding: '4rem 1rem', animation: 'disc-fadeIn 0.5s ease both' }}>
-                        <Search size={40} color="var(--border)" style={{ marginBottom: '1rem' }} />
-                        <p style={{ fontWeight: 700, color: 'var(--text-muted)', fontSize: '1rem' }}>No products match "{searchQ}"</p>
-                        <button onClick={() => { setSearchQ(''); setActiveCategory('all'); }} style={{ marginTop: '1rem', background: 'none', border: 'none', color: ORANGE, fontWeight: 700, cursor: 'pointer', fontSize: '0.9rem', fontFamily: 'inherit' }}>
-                            Clear filters
+                    /* iOS Style No results */
+                    <div style={{
+                        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                        padding: '4rem 2rem', marginTop: '2rem',
+                        background: 'rgba(255, 255, 255, 0.6)',
+                        backdropFilter: 'blur(20px)',
+                        WebkitBackdropFilter: 'blur(20px)',
+                        borderRadius: '24px',
+                        border: '1px solid rgba(0,0,0,0.05)',
+                        boxShadow: '0 20px 40px rgba(0,0,0,0.04)',
+                        animation: 'disc-fadeIn 0.5s ease both'
+                    }}>
+                        <div style={{
+                            width: '64px', height: '64px', borderRadius: '50%',
+                            background: 'rgba(0,0,0,0.04)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            marginBottom: '1.25rem'
+                        }}>
+                            <Search size={32} color="var(--text-muted)" strokeWidth={2} />
+                        </div>
+                        <h2 style={{
+                            fontSize: '1.25rem',
+                            fontWeight: 700,
+                            margin: '0 0 0.5rem 0',
+                            textAlign: 'center',
+                            letterSpacing: '-0.01em',
+                            color: 'var(--text)'
+                        }}>
+                            No Results Found
+                        </h2>
+                        <p style={{ fontWeight: 500, color: 'var(--text-muted)', fontSize: '0.95rem', marginBottom: '1.75rem', textAlign: 'center', maxWidth: '280px', lineHeight: 1.5 }}>
+                            {searchQ ? `We couldn't find anything matching "${searchQ}".` : "Try adjusting your filters to see more products."}
+                        </p>
+                        <button
+                            onClick={() => {
+                                setSearchQ('');
+                                setActiveCategory('all');
+                                setActiveSort('trending');
+                                setPriceRange([0, 10000]);
+                            }}
+                            style={{
+                                padding: '0.8rem 1.5rem',
+                                background: ORANGE,
+                                color: '#fff',
+                                border: 'none',
+                                borderRadius: '100px',
+                                fontSize: '0.9rem',
+                                fontWeight: 600,
+                                cursor: 'pointer',
+                                transition: 'opacity 0.2s, transform 0.2s',
+                            }}
+                            onMouseOver={e => e.currentTarget.style.opacity = 0.9}
+                            onMouseOut={e => e.currentTarget.style.opacity = 1}
+                            onMouseDown={e => e.currentTarget.style.transform = 'scale(0.96)'}
+                            onMouseUp={e => e.currentTarget.style.transform = 'scale(1)'}
+                        >
+                            Reset Filters
                         </button>
                     </div>
                 ) : (
