@@ -275,6 +275,12 @@ export default function Discover() {
     const [feed, setFeed] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchQ, setSearchQ] = useState('');
+    const [debouncedSearchQ, setDebouncedSearchQ] = useState('');
+
+    useEffect(() => {
+        const timer = setTimeout(() => setDebouncedSearchQ(searchQ), 300);
+        return () => clearTimeout(timer);
+    }, [searchQ]);
     const [activeCategory, setActiveCategory] = useState('all');
     const [activeSort, setActiveSort] = useState('trending');
     const [activeStore, setActiveStore] = useState('all');
@@ -356,8 +362,8 @@ export default function Discover() {
     const filtered = useMemo(() => {
         let cards = [...allCards];
 
-        if (searchQ.trim()) {
-            const q = searchQ.toLowerCase();
+        if (debouncedSearchQ.trim()) {
+            const q = debouncedSearchQ.toLowerCase();
             cards = cards.filter(c => c.name?.toLowerCase().includes(q));
         }
 
@@ -382,7 +388,7 @@ export default function Discover() {
         }
 
         return cards;
-    }, [allCards, activeCategory, searchQ, activeStore, priceRange, activeSort]);
+    }, [allCards, activeCategory, debouncedSearchQ, activeStore, priceRange, activeSort]);
 
     const handleSave = async (item, isCurrentlySaved) => {
         if (!user) {
@@ -797,7 +803,7 @@ export default function Discover() {
                             No Results Found
                         </h2>
                         <p style={{ fontWeight: 500, color: 'var(--text-muted)', fontSize: '0.95rem', marginBottom: '1.75rem', textAlign: 'center', maxWidth: '280px', lineHeight: 1.5 }}>
-                            {searchQ ? `We couldn't find anything matching "${searchQ}".` : "Try adjusting your filters to see more products."}
+                            {debouncedSearchQ ? `We couldn't find anything matching "${debouncedSearchQ}".` : "Try adjusting your filters to see more products."}
                         </p>
                         <button
                             onClick={() => {
