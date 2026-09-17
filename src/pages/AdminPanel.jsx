@@ -3,11 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
 import {
     Crown, Users, ArrowLeft, RefreshCw, Search, Trash2, Package,
-    Filter, Calendar, ChevronLeft, ChevronRight, ChevronDown, XCircle, Menu, X, Plus, Link as LinkIcon, BookOpen, TrendingDown, Play, Clock, Settings, Eye, User, Palette, Rocket, Command, Info, LogOut, Megaphone, Type, AlignLeft, Image as ImageIcon, Send
+    Filter, Calendar, ChevronLeft, ChevronRight, ChevronDown, XCircle, Menu, X, Plus, Link as LinkIcon, BookOpen, TrendingDown, Play, Clock, Settings, Eye, User, Palette, Rocket, Command, Info, LogOut, Megaphone, Type, AlignLeft, Image as ImageIcon, Send, Save
 } from 'lucide-react';
 import { API_URL as API } from '../config';
 import { supabase } from '../db';
 import AlertModal from '../components/AlertModal';
+import PromptModal from '../components/PromptModal';
 import CustomSelect from '../components/CustomSelect';
 import BlogAdminTab from '../components/BlogAdminTab';
 import { useIsland } from '../context/IslandContext';
@@ -70,11 +71,33 @@ export default function AdminPanel() {
     const [broadcastImage, setBroadcastImage] = useState('');
     const [broadcastLoading, setBroadcastLoading] = useState(false);
     const [isBroadcastModalOpen, setIsBroadcastModalOpen] = useState(false);
+    const [isPromptModalOpen, setIsPromptModalOpen] = useState(false);
     const [broadcastTargetUserIds, setBroadcastTargetUserIds] = useState([]);
     const [broadcastUserSearchTerm, setBroadcastUserSearchTerm] = useState('');
     const [isBroadcastFilterOpen, setIsBroadcastFilterOpen] = useState(false);
     const [isUploadingImage, setIsUploadingImage] = useState(false);
+    
+    // Custom Templates & Draft State
+    const [customTemplates, setCustomTemplates] = useState(() => JSON.parse(localStorage.getItem('wishflow_admin_templates')) || []);
+    
+    useEffect(() => {
+        const draft = JSON.parse(localStorage.getItem('wishflow_broadcast_draft'));
+        if (draft) {
+            if (draft.title) setBroadcastTitle(draft.title);
+            if (draft.body) setBroadcastBody(draft.body);
+            if (draft.url) setBroadcastUrl(draft.url);
+            if (draft.image) setBroadcastImage(draft.image);
+        }
+    }, []);
 
+    useEffect(() => {
+        const draft = { title: broadcastTitle, body: broadcastBody, url: broadcastUrl, image: broadcastImage };
+        localStorage.setItem('wishflow_broadcast_draft', JSON.stringify(draft));
+    }, [broadcastTitle, broadcastBody, broadcastUrl, broadcastImage]);
+
+    useEffect(() => {
+        localStorage.setItem('wishflow_admin_templates', JSON.stringify(customTemplates));
+    }, [customTemplates]);
     const handleImageUpload = async (e) => {
         const file = e.target.files[0];
         if (!file) return;
@@ -1228,6 +1251,64 @@ export default function AdminPanel() {
                                 </div>
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                                     <div>
+                                        <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.5rem' }}>
+                                            Quick Templates
+                                        </label>
+                                        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                                            {[
+                                                { label: "Welcome 👋", title: "Welcome to WishFlow! 🎉", body: "Start building your ultimate wishlist today, {{name}}.", url: "/", image: "" },
+                                                { label: "Sale 🛍️", title: "Weekend Sale! 🛍️", body: "Hey {{name}}, check out our exclusive weekend discounts, just for you.", url: "/discover", image: "" },
+                                                { label: "Cart 🛒", title: "Don't forget your items! 🛒", body: "The items in your wishlist are waiting for you!", url: "/profile", image: "" },
+                                                { label: "Update 🚀", title: "New Feature Alert! 🚀", body: "We've just added exciting new tools to help you manage your lists.", url: "/", image: "" },
+                                                { label: "Miss You 🥺", title: "We miss you, {{name}}! 🥺", body: "Come back and see what's trending right now on WishFlow.", url: "/discover", image: "" },
+                                                ...customTemplates
+                                            ].map((tpl, i) => (
+                                                <div key={i} style={{ display: 'inline-flex', alignItems: 'stretch' }}>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            setBroadcastTitle(tpl.title);
+                                                            setBroadcastBody(tpl.body);
+                                                            setBroadcastUrl(tpl.url || '');
+                                                            setBroadcastImage(tpl.image || '');
+                                                        }}
+                                                        style={{
+                                                            padding: '0.4rem 0.75rem', background: '#f8fafc', border: '1px solid #cbd5e1', 
+                                                            borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px',
+                                                            borderTopRightRadius: tpl.isCustom ? '0' : '8px', borderBottomRightRadius: tpl.isCustom ? '0' : '8px',
+                                                            fontSize: '0.75rem', fontWeight: 600, color: '#475569', 
+                                                            cursor: 'pointer', transition: 'all 0.2s', whiteSpace: 'nowrap',
+                                                            borderRight: tpl.isCustom ? 'none' : '1px solid #cbd5e1'
+                                                        }}
+                                                        onMouseEnter={e => { e.currentTarget.style.background = '#f1f5f9'; e.currentTarget.style.borderColor = '#94a3b8'; e.currentTarget.style.color = '#0f172a'; }}
+                                                        onMouseLeave={e => { e.currentTarget.style.background = '#f8fafc'; e.currentTarget.style.borderColor = '#cbd5e1'; e.currentTarget.style.color = '#475569'; }}
+                                                    >
+                                                        {tpl.label}
+                                                    </button>
+                                                    {tpl.isCustom && (
+                                                        <button
+                                                            type="button"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                setCustomTemplates(customTemplates.filter(ct => ct.label !== tpl.label));
+                                                            }}
+                                                            style={{
+                                                                padding: '0 0.4rem', background: '#fef2f2', border: '1px solid #fca5a5', 
+                                                                borderTopRightRadius: '8px', borderBottomRightRadius: '8px', borderLeft: 'none',
+                                                                fontSize: '0.75rem', fontWeight: 600, color: '#ef4444', 
+                                                                cursor: 'pointer', transition: 'all 0.2s', display: 'flex', alignItems: 'center'
+                                                            }}
+                                                            onMouseEnter={e => { e.currentTarget.style.background = '#fee2e2'; }}
+                                                            onMouseLeave={e => { e.currentTarget.style.background = '#fef2f2'; }}
+                                                        >
+                                                            ×
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    <div>
                                         <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.5rem' }}>
                                             <span>Title</span>
                                             <span style={{ fontSize: '0.75rem', fontWeight: 500, color: '#64748b' }}>Use <code style={{ background: '#f1f5f9', padding: '2px 4px', borderRadius: '4px', color: '#db2777' }}>{"{{name}}"}</code> to personalize</span>
@@ -1356,43 +1437,74 @@ export default function AdminPanel() {
                                             )}
                                         </div>
                                     </div>
-                                    <button
-                                        disabled={broadcastLoading || !broadcastTitle || !broadcastBody}
-                                        onClick={() => setIsBroadcastModalOpen(true)}
-                                        style={{
-                                            marginTop: '1rem',
-                                            padding: '1rem 2rem',
-                                            background: (broadcastLoading || !broadcastTitle || !broadcastBody) ? '#e2e8f0' : 'linear-gradient(135deg, #db2777 0%, #be185d 100%)',
-                                            color: (broadcastLoading || !broadcastTitle || !broadcastBody) ? '#94a3b8' : '#fff',
-                                            border: 'none',
-                                            borderRadius: '12px',
-                                            fontWeight: 700,
-                                            fontSize: '1rem',
-                                            cursor: (broadcastLoading || !broadcastTitle || !broadcastBody) ? 'not-allowed' : 'pointer',
-                                            transition: 'all 0.3s ease',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            gap: '0.75rem',
-                                            width: '100%',
-                                            boxShadow: (broadcastLoading || !broadcastTitle || !broadcastBody) ? 'none' : '0 10px 20px -5px rgba(219, 39, 119, 0.4)',
-                                        }}
-                                        onMouseEnter={e => {
-                                            if (!broadcastLoading && broadcastTitle && broadcastBody) {
-                                                e.currentTarget.style.transform = 'translateY(-2px)';
-                                                e.currentTarget.style.boxShadow = '0 15px 25px -5px rgba(219, 39, 119, 0.5)';
-                                            }
-                                        }}
-                                        onMouseLeave={e => {
-                                            if (!broadcastLoading && broadcastTitle && broadcastBody) {
-                                                e.currentTarget.style.transform = 'translateY(0)';
-                                                e.currentTarget.style.boxShadow = '0 10px 20px -5px rgba(219, 39, 119, 0.4)';
-                                            }
-                                        }}
-                                    >
-                                        {broadcastLoading ? <RefreshCw size={20} style={{ animation: 'spin 1s linear infinite' }} /> : <Send size={20} />}
-                                        {broadcastLoading ? 'Sending Broadcast...' : 'Send Broadcast Notification'}
-                                    </button>
+                                    <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem', flexWrap: 'wrap' }}>
+                                        <button
+                                            type="button"
+                                            disabled={!broadcastTitle || !broadcastBody}
+                                            onClick={() => setIsPromptModalOpen(true)}
+                                            style={{
+                                                padding: '1rem 1.5rem',
+                                                background: (!broadcastTitle || !broadcastBody) ? '#f8fafc' : '#fff',
+                                                color: (!broadcastTitle || !broadcastBody) ? '#94a3b8' : '#3b82f6',
+                                                border: (!broadcastTitle || !broadcastBody) ? '1px solid #e2e8f0' : '1px solid #bfdbfe',
+                                                borderRadius: '12px', fontWeight: 700, fontSize: '0.9rem',
+                                                cursor: (!broadcastTitle || !broadcastBody) ? 'not-allowed' : 'pointer',
+                                                transition: 'all 0.2s ease', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
+                                            }}
+                                            onMouseEnter={e => {
+                                                if (broadcastTitle && broadcastBody) {
+                                                    e.currentTarget.style.background = '#eff6ff';
+                                                    e.currentTarget.style.borderColor = '#3b82f6';
+                                                }
+                                            }}
+                                            onMouseLeave={e => {
+                                                if (broadcastTitle && broadcastBody) {
+                                                    e.currentTarget.style.background = '#fff';
+                                                    e.currentTarget.style.borderColor = '#bfdbfe';
+                                                }
+                                            }}
+                                        >
+                                            <Save size={18} />
+                                            Save as Template
+                                        </button>
+                                        <button
+                                            disabled={broadcastLoading || !broadcastTitle || !broadcastBody}
+                                            onClick={() => setIsBroadcastModalOpen(true)}
+                                            style={{
+                                                flex: 1,
+                                                minWidth: '250px',
+                                                padding: '1rem 2rem',
+                                                background: (broadcastLoading || !broadcastTitle || !broadcastBody) ? '#e2e8f0' : 'linear-gradient(135deg, #db2777 0%, #be185d 100%)',
+                                                color: (broadcastLoading || !broadcastTitle || !broadcastBody) ? '#94a3b8' : '#fff',
+                                                border: 'none',
+                                                borderRadius: '12px',
+                                                fontWeight: 700,
+                                                fontSize: '1rem',
+                                                cursor: (broadcastLoading || !broadcastTitle || !broadcastBody) ? 'not-allowed' : 'pointer',
+                                                transition: 'all 0.3s ease',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                gap: '0.75rem',
+                                                boxShadow: (broadcastLoading || !broadcastTitle || !broadcastBody) ? 'none' : '0 10px 20px -5px rgba(219, 39, 119, 0.4)',
+                                            }}
+                                            onMouseEnter={e => {
+                                                if (!broadcastLoading && broadcastTitle && broadcastBody) {
+                                                    e.currentTarget.style.transform = 'translateY(-2px)';
+                                                    e.currentTarget.style.boxShadow = '0 15px 25px -5px rgba(219, 39, 119, 0.5)';
+                                                }
+                                            }}
+                                            onMouseLeave={e => {
+                                                if (!broadcastLoading && broadcastTitle && broadcastBody) {
+                                                    e.currentTarget.style.transform = 'translateY(0)';
+                                                    e.currentTarget.style.boxShadow = '0 10px 20px -5px rgba(219, 39, 119, 0.4)';
+                                                }
+                                            }}
+                                        >
+                                            {broadcastLoading ? <RefreshCw size={20} style={{ animation: 'spin 1s linear infinite' }} /> : <Send size={20} />}
+                                            {broadcastLoading ? 'Sending Broadcast...' : 'Send Broadcast Notification'}
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -2480,6 +2592,23 @@ export default function AdminPanel() {
                 isDestructive={true}
                 onCancel={() => setDeleteTargetUserId(null)}
                 onConfirm={confirmDeleteUser}
+            />
+
+            <PromptModal
+                isOpen={isPromptModalOpen}
+                title="Save Template"
+                message="Enter a short name for this custom template:"
+                placeholder="e.g., Summer Sale"
+                cancelText="Cancel"
+                confirmText="Save"
+                onCancel={() => setIsPromptModalOpen(false)}
+                onConfirm={(label) => {
+                    setIsPromptModalOpen(false);
+                    if (label) {
+                        setCustomTemplates([...customTemplates, { label: label + ' ⭐', title: broadcastTitle, body: broadcastBody, url: broadcastUrl, image: broadcastImage, isCustom: true }]);
+                        showToast('Template saved!');
+                    }
+                }}
             />
 
             {/* Mobile Bottom Navigation */}
