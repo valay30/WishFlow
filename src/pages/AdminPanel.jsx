@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
 import {
     Crown, Users, ArrowLeft, RefreshCw, Search, Trash2, Package,
-    Filter, Calendar, ChevronLeft, ChevronRight, ChevronDown, XCircle, Menu, X, Plus, Link as LinkIcon, BookOpen, TrendingDown, Play, Clock, Settings, Eye, User, Palette, Rocket, Command, Info, LogOut, Megaphone
+    Filter, Calendar, ChevronLeft, ChevronRight, ChevronDown, XCircle, Menu, X, Plus, Link as LinkIcon, BookOpen, TrendingDown, Play, Clock, Settings, Eye, User, Palette, Rocket, Command, Info, LogOut, Megaphone, Type, AlignLeft, Image as ImageIcon, Send
 } from 'lucide-react';
 import { API_URL as API } from '../config';
 import { supabase } from '../db';
@@ -13,6 +13,7 @@ import BlogAdminTab from '../components/BlogAdminTab';
 import { useIsland } from '../context/IslandContext';
 import { useAdminContext } from '../context/AdminContext';
 import CardVisual, { ROAST_THEMES } from '../components/CardVisual';
+import { uploadToImageKit } from '../utils/imagekit';
 
 // Builds auth headers with the live Supabase JWT — called fresh before every request
 const getAuthHeaders = async () => {
@@ -64,6 +65,24 @@ export default function AdminPanel() {
     const [broadcastLoading, setBroadcastLoading] = useState(false);
     const [isBroadcastModalOpen, setIsBroadcastModalOpen] = useState(false);
     const [broadcastTargetUserIds, setBroadcastTargetUserIds] = useState([]);
+    const [broadcastUserSearchTerm, setBroadcastUserSearchTerm] = useState('');
+    const [isBroadcastFilterOpen, setIsBroadcastFilterOpen] = useState(false);
+    const [isUploadingImage, setIsUploadingImage] = useState(false);
+
+    const handleImageUpload = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        if (file.size > 5000000) { alert('Image too large (< 5 MB please).'); return; }
+        setIsUploadingImage(true);
+        try {
+            const uploadedUrl = await uploadToImageKit(file);
+            setBroadcastImage(uploadedUrl);
+        } catch (err) {
+            alert(err.message);
+        } finally {
+            setIsUploadingImage(false);
+        }
+    };
 
     // Profile Menu state
     const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
@@ -217,6 +236,7 @@ export default function AdminPanel() {
                 setBroadcastUrl('');
                 setBroadcastImage('');
                 setBroadcastTargetUserIds([]);
+                setBroadcastUserSearchTerm('');
             } else {
                 showToast(data.error || 'Failed to send broadcast', 'error');
             }
@@ -347,9 +367,9 @@ export default function AdminPanel() {
                                     Themes
                                 </div>
                                 <div
-                                    onClick={() => { 
-                                        setActiveTab('price-alerts'); 
-                                        setIsProfileMenuOpen(false); 
+                                    onClick={() => {
+                                        setActiveTab('price-alerts');
+                                        setIsProfileMenuOpen(false);
                                         setPriceAlertLoading(true);
                                         getAuthHeaders().then(headers => fetch(`${API}/api/admin/price-drop/status`, { headers }))
                                             .then(r => r.json())
@@ -941,20 +961,162 @@ export default function AdminPanel() {
                             <Megaphone size={120} style={{ position: 'absolute', right: '-10px', top: '50%', transform: 'translateY(-50%)', opacity: 0.1 }} />
                         </div>
 
-                        <div style={{ background: '#fff', padding: '2rem', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', border: '1px solid #f1f5f9' }}>
+                        <div style={{ padding: '0' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem' }}>
                                 <div style={{ background: '#f5f3ff', padding: '0.5rem', borderRadius: '8px', color: '#8b5cf6' }}>
                                     <span style={{ fontSize: '1.5rem' }}>📢</span>
                                 </div>
                                 <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 700, color: '#0f172a' }}>Global Broadcast Notification</h3>
                             </div>
-                            <p style={{ margin: '0 0 1.5rem 0', fontSize: '0.9rem', color: '#64748b' }}>
-                                Send a push notification to all users who have subscribed.
-                            </p>
 
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                                 <div>
                                     <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.4rem' }}>Target Users (Optional)</label>
+
+                                    <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'center', marginBottom: '0.85rem', flexWrap: 'wrap' }}>
+                                        {/* Search input */}
+                                        <div style={{ flex: '1 1 200px', position: 'relative' }}>
+                                            <Search size={16} color="#94a3b8" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }} />
+                                            <input
+                                                type="text"
+                                                placeholder="Search users..."
+                                                value={broadcastUserSearchTerm}
+                                                onChange={(e) => setBroadcastUserSearchTerm(e.target.value)}
+                                                style={{
+                                                    width: '100%', boxSizing: 'border-box', padding: '0.65rem 1rem 0.65rem 2.25rem',
+                                                    border: '1px solid #cbd5e1', borderRadius: '8px',
+                                                    outline: 'none', fontFamily: 'inherit', fontSize: '0.85rem',
+                                                    transition: 'border-color 0.2s'
+                                                }}
+                                                onFocus={e => e.target.style.borderColor = '#db2777'}
+                                                onBlur={e => e.target.style.borderColor = '#cbd5e1'}
+                                            />
+                                        </div>
+
+                                        {/* Quick Select Dropdown */}
+                                        <div style={{ position: 'relative', flex: '1 1 auto', minWidth: '140px' }}>
+                                            <button
+                                                type="button"
+                                                onClick={() => setIsBroadcastFilterOpen(prev => !prev)}
+                                                style={{
+                                                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
+                                                    width: '100%', background: broadcastTargetUserIds.length > 0 ? '#db2777' : '#fff',
+                                                    color: broadcastTargetUserIds.length > 0 ? '#fff' : '#475569',
+                                                    border: `1px solid ${broadcastTargetUserIds.length > 0 ? '#db2777' : '#cbd5e1'}`,
+                                                    borderRadius: '8px', padding: '0.65rem 0.95rem',
+                                                    fontSize: '0.85rem', fontWeight: 600, fontFamily: 'inherit',
+                                                    cursor: 'pointer', transition: 'all 0.2s ease',
+                                                    boxShadow: broadcastTargetUserIds.length > 0 ? '0 4px 14px rgba(219, 39, 119, 0.35)' : 'none',
+                                                }}
+                                            >
+                                                <Filter size={14} style={{ color: broadcastTargetUserIds.length > 0 ? '#fff' : '#64748b' }} />
+                                                <span>Quick Select</span>
+                                                <ChevronDown
+                                                    size={14}
+                                                    style={{
+                                                        marginLeft: 'auto',
+                                                        color: broadcastTargetUserIds.length > 0 ? '#fff' : '#94a3b8',
+                                                        transform: isBroadcastFilterOpen ? 'rotate(180deg)' : 'none',
+                                                        transition: 'transform 0.2s ease'
+                                                    }}
+                                                />
+                                            </button>
+
+                                            {isBroadcastFilterOpen && (
+                                                <div
+                                                    onClick={() => setIsBroadcastFilterOpen(false)}
+                                                    style={{ position: 'fixed', inset: 0, zIndex: 1999 }}
+                                                />
+                                            )}
+
+                                            {isBroadcastFilterOpen && (
+                                                <div style={{
+                                                    position: 'absolute', top: 'calc(100% + 8px)', right: 0, zIndex: 2000,
+                                                    background: '#fff', borderRadius: '12px',
+                                                    boxShadow: '0 10px 30px rgba(0,0,0,0.1)', border: '1px solid #e2e8f0',
+                                                    padding: '0.5rem', display: 'flex', flexDirection: 'column', minWidth: '180px'
+                                                }}>
+                                                    <button
+                                                        type="button"
+                                                        onClick={(e) => {
+                                                            e.preventDefault();
+                                                            const premiumIds = users.filter(u => u.isPremium).map(u => u.id);
+                                                            setBroadcastTargetUserIds(premiumIds);
+                                                            setIsBroadcastFilterOpen(false);
+                                                        }}
+                                                        style={{
+                                                            padding: '0.65rem 1rem', background: 'transparent', border: 'none',
+                                                            textAlign: 'left', fontSize: '0.85rem', fontWeight: 600, color: '#334155',
+                                                            cursor: 'pointer', borderRadius: '8px', transition: 'background 0.2s', fontFamily: 'inherit'
+                                                        }}
+                                                        onMouseEnter={e => e.currentTarget.style.background = '#f1f5f9'}
+                                                        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                                                    >
+                                                        ⭐ Premium Users
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={(e) => {
+                                                            e.preventDefault();
+                                                            const freeIds = users.filter(u => !u.isPremium).map(u => u.id);
+                                                            setBroadcastTargetUserIds(freeIds);
+                                                            setIsBroadcastFilterOpen(false);
+                                                        }}
+                                                        style={{
+                                                            padding: '0.65rem 1rem', background: 'transparent', border: 'none',
+                                                            textAlign: 'left', fontSize: '0.85rem', fontWeight: 600, color: '#334155',
+                                                            cursor: 'pointer', borderRadius: '8px', transition: 'background 0.2s', fontFamily: 'inherit'
+                                                        }}
+                                                        onMouseEnter={e => e.currentTarget.style.background = '#f1f5f9'}
+                                                        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                                                    >
+                                                        🆓 Free Users
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={(e) => {
+                                                            e.preventDefault();
+                                                            const zeroItemIds = users.filter(u => !u.itemCount || u.itemCount === 0).map(u => u.id);
+                                                            setBroadcastTargetUserIds(zeroItemIds);
+                                                            setIsBroadcastFilterOpen(false);
+                                                        }}
+                                                        style={{
+                                                            padding: '0.65rem 1rem', background: 'transparent', border: 'none',
+                                                            textAlign: 'left', fontSize: '0.85rem', fontWeight: 600, color: '#334155',
+                                                            cursor: 'pointer', borderRadius: '8px', transition: 'background 0.2s', fontFamily: 'inherit'
+                                                        }}
+                                                        onMouseEnter={e => e.currentTarget.style.background = '#f1f5f9'}
+                                                        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                                                    >
+                                                        🎯 0 Items (Inactive)
+                                                    </button>
+
+                                                    {broadcastTargetUserIds.length > 0 && (
+                                                        <>
+                                                            <div style={{ height: '1px', background: '#e2e8f0', margin: '0.35rem 0' }} />
+                                                            <button
+                                                                type="button"
+                                                                onClick={(e) => {
+                                                                    e.preventDefault();
+                                                                    setBroadcastTargetUserIds([]);
+                                                                    setIsBroadcastFilterOpen(false);
+                                                                }}
+                                                                style={{
+                                                                    padding: '0.65rem 1rem', background: 'transparent', border: 'none',
+                                                                    textAlign: 'left', fontSize: '0.85rem', fontWeight: 700, color: '#db2777',
+                                                                    cursor: 'pointer', borderRadius: '8px', transition: 'background 0.2s', fontFamily: 'inherit'
+                                                                }}
+                                                                onMouseEnter={e => e.currentTarget.style.background = '#fdf2f8'}
+                                                                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                                                            >
+                                                                Clear Selection
+                                                            </button>
+                                                        </>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
                                     <div className="custom-scrollbar" style={{ maxHeight: '280px', overflowY: 'auto', paddingRight: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
                                         <style>{`
                                             .custom-scrollbar::-webkit-scrollbar { width: 6px; }
@@ -964,61 +1126,67 @@ export default function AdminPanel() {
                                         `}</style>
 
                                         {/* All Users Option */}
-                                        <label style={{ 
-                                            display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.75rem 1rem', cursor: 'pointer',
-                                            background: broadcastTargetUserIds.length === 0 ? '#fdf2f8' : '#fff',
-                                            border: broadcastTargetUserIds.length === 0 ? '2px solid #db2777' : '1px solid #e2e8f0',
-                                            borderRadius: '12px', transition: 'all 0.2s ease',
-                                            boxShadow: broadcastTargetUserIds.length === 0 ? '0 4px 12px rgba(219, 39, 119, 0.1)' : '0 1px 2px rgba(0,0,0,0.02)'
-                                        }}
-                                        onMouseEnter={e => { if (broadcastTargetUserIds.length !== 0) e.currentTarget.style.borderColor = '#cbd5e1'; }}
-                                        onMouseLeave={e => { if (broadcastTargetUserIds.length !== 0) e.currentTarget.style.borderColor = '#e2e8f0'; }}
-                                        >
-                                            <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                                                <input 
-                                                    type="checkbox" 
-                                                    checked={broadcastTargetUserIds.length === 0}
-                                                    onChange={() => setBroadcastTargetUserIds([])}
-                                                    style={{ opacity: 0, position: 'absolute', width: 0, height: 0 }}
-                                                />
-                                                <div style={{ 
-                                                    width: '20px', height: '20px', borderRadius: '6px', 
-                                                    border: broadcastTargetUserIds.length === 0 ? 'none' : '2px solid #cbd5e1',
-                                                    background: broadcastTargetUserIds.length === 0 ? '#db2777' : '#fff',
-                                                    display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s'
-                                                }}>
-                                                    {broadcastTargetUserIds.length === 0 && <span style={{ color: '#fff', fontSize: '12px', fontWeight: 'bold' }}>✓</span>}
+                                        {(!broadcastUserSearchTerm.trim()) && (
+                                            <label style={{
+                                                display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.75rem 1rem', cursor: 'pointer',
+                                                background: broadcastTargetUserIds.length === 0 ? '#fdf2f8' : '#fff',
+                                                border: broadcastTargetUserIds.length === 0 ? '2px solid #db2777' : '1px solid #e2e8f0',
+                                                borderRadius: '12px', transition: 'all 0.2s ease',
+                                                boxShadow: broadcastTargetUserIds.length === 0 ? '0 4px 12px rgba(219, 39, 119, 0.1)' : '0 1px 2px rgba(0,0,0,0.02)'
+                                            }}
+                                                onMouseEnter={e => { if (broadcastTargetUserIds.length !== 0) e.currentTarget.style.borderColor = '#cbd5e1'; }}
+                                                onMouseLeave={e => { if (broadcastTargetUserIds.length !== 0) e.currentTarget.style.borderColor = '#e2e8f0'; }}
+                                            >
+                                                <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={broadcastTargetUserIds.length === 0}
+                                                        onChange={() => setBroadcastTargetUserIds([])}
+                                                        style={{ opacity: 0, position: 'absolute', width: 0, height: 0 }}
+                                                    />
+                                                    <div style={{
+                                                        width: '20px', height: '20px', borderRadius: '6px',
+                                                        border: broadcastTargetUserIds.length === 0 ? 'none' : '2px solid #cbd5e1',
+                                                        background: broadcastTargetUserIds.length === 0 ? '#db2777' : '#fff',
+                                                        display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s'
+                                                    }}>
+                                                        {broadcastTargetUserIds.length === 0 && <span style={{ color: '#fff', fontSize: '12px', fontWeight: 'bold' }}>✓</span>}
+                                                    </div>
                                                 </div>
-                                            </div>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
-                                                <div style={{ width: '38px', height: '38px', borderRadius: '50%', background: broadcastTargetUserIds.length === 0 ? '#db2777' : '#f1f5f9', color: broadcastTargetUserIds.length === 0 ? '#fff' : '#64748b', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem', transition: 'all 0.2s' }}>
-                                                    <Users size={18} strokeWidth={2.5} />
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
+                                                    <div style={{ width: '38px', height: '38px', borderRadius: '50%', background: broadcastTargetUserIds.length === 0 ? '#db2777' : '#f1f5f9', color: broadcastTargetUserIds.length === 0 ? '#fff' : '#64748b', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem', transition: 'all 0.2s' }}>
+                                                        <Users size={18} strokeWidth={2.5} />
+                                                    </div>
+                                                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                                        <span style={{ fontWeight: 700, color: broadcastTargetUserIds.length === 0 ? '#9d174d' : '#334155', fontSize: '0.95rem' }}>All Users (Global Broadcast)</span>
+                                                        <span style={{ color: broadcastTargetUserIds.length === 0 ? '#be185d' : '#94a3b8', fontSize: '0.75rem', fontWeight: 500 }}>Send to everyone subscribed</span>
+                                                    </div>
                                                 </div>
-                                                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                                    <span style={{ fontWeight: 700, color: broadcastTargetUserIds.length === 0 ? '#9d174d' : '#334155', fontSize: '0.95rem' }}>All Users (Global Broadcast)</span>
-                                                    <span style={{ color: broadcastTargetUserIds.length === 0 ? '#be185d' : '#94a3b8', fontSize: '0.75rem', fontWeight: 500 }}>Send to everyone subscribed</span>
-                                                </div>
-                                            </div>
-                                        </label>
+                                            </label>
+                                        )}
 
                                         {/* Individual Users */}
-                                        {users.map(u => {
+                                        {users.filter(u => {
+                                            if (!broadcastUserSearchTerm.trim()) return true;
+                                            const search = broadcastUserSearchTerm.toLowerCase();
+                                            return (u.name?.toLowerCase() || '').includes(search) || (u.email?.toLowerCase() || '').includes(search);
+                                        }).map(u => {
                                             const isSelected = broadcastTargetUserIds.includes(u.id);
                                             const avatarColor = getAvatarColor(u.name || u.email);
                                             return (
-                                                <label key={u.id} style={{ 
+                                                <label key={u.id} style={{
                                                     display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.75rem 1rem', cursor: 'pointer',
                                                     background: isSelected ? '#f8fafc' : '#fff',
                                                     border: isSelected ? '2px solid #3b82f6' : '1px solid #e2e8f0',
                                                     borderRadius: '12px', transition: 'all 0.2s ease',
                                                     boxShadow: isSelected ? '0 4px 12px rgba(59, 130, 246, 0.1)' : '0 1px 2px rgba(0,0,0,0.02)'
                                                 }}
-                                                onMouseEnter={e => { if (!isSelected) e.currentTarget.style.borderColor = '#cbd5e1'; }}
-                                                onMouseLeave={e => { if (!isSelected) e.currentTarget.style.borderColor = '#e2e8f0'; }}
+                                                    onMouseEnter={e => { if (!isSelected) e.currentTarget.style.borderColor = '#cbd5e1'; }}
+                                                    onMouseLeave={e => { if (!isSelected) e.currentTarget.style.borderColor = '#e2e8f0'; }}
                                                 >
                                                     <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                                                        <input 
-                                                            type="checkbox" 
+                                                        <input
+                                                            type="checkbox"
                                                             checked={isSelected}
                                                             onChange={(e) => {
                                                                 if (e.target.checked) {
@@ -1029,8 +1197,8 @@ export default function AdminPanel() {
                                                             }}
                                                             style={{ opacity: 0, position: 'absolute', width: 0, height: 0 }}
                                                         />
-                                                        <div style={{ 
-                                                            width: '20px', height: '20px', borderRadius: '6px', 
+                                                        <div style={{
+                                                            width: '20px', height: '20px', borderRadius: '6px',
                                                             border: isSelected ? 'none' : '2px solid #cbd5e1',
                                                             background: isSelected ? '#3b82f6' : '#fff',
                                                             display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s'
@@ -1052,70 +1220,174 @@ export default function AdminPanel() {
                                         })}
                                     </div>
                                 </div>
-                                <div>
-                                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.4rem' }}>Title</label>
-                                    <input
-                                        type="text"
-                                        value={broadcastTitle}
-                                        onChange={(e) => setBroadcastTitle(e.target.value)}
-                                        placeholder="e.g., Huge Summer Sale!"
-                                        style={{ width: '100%', padding: '0.75rem 1rem', border: '1px solid #cbd5e1', borderRadius: '8px', outline: 'none', fontFamily: 'inherit' }}
-                                    />
-                                </div>
-                                <div>
-                                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.4rem' }}>Body</label>
-                                    <textarea
-                                        value={broadcastBody}
-                                        onChange={(e) => setBroadcastBody(e.target.value)}
-                                        placeholder="e.g., Check out these new discounts on your wishlist items."
-                                        rows={2}
-                                        style={{ width: '100%', padding: '0.75rem 1rem', border: '1px solid #cbd5e1', borderRadius: '8px', outline: 'none', fontFamily: 'inherit', resize: 'vertical' }}
-                                    />
-                                </div>
-                                <div style={{ display: 'flex', gap: '1rem' }}>
-                                    <div style={{ flex: 1 }}>
-                                        <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.4rem' }}>Target URL (Optional)</label>
-                                        <input
-                                            type="text"
-                                            value={broadcastUrl}
-                                            onChange={(e) => setBroadcastUrl(e.target.value)}
-                                            placeholder="e.g., /discover"
-                                            style={{ width: '100%', padding: '0.75rem 1rem', border: '1px solid #cbd5e1', borderRadius: '8px', outline: 'none', fontFamily: 'inherit' }}
-                                        />
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                                    <div>
+                                        <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.5rem' }}>
+                                            <span>Title</span>
+                                            <span style={{ fontSize: '0.75rem', fontWeight: 500, color: '#64748b' }}>Use <code style={{ background: '#f1f5f9', padding: '2px 4px', borderRadius: '4px', color: '#db2777' }}>{"{{name}}"}</code> to personalize</span>
+                                        </label>
+                                        <div style={{ position: 'relative' }}>
+                                            <Type size={18} color="#94a3b8" style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)' }} />
+                                            <input
+                                                type="text"
+                                                value={broadcastTitle}
+                                                onChange={(e) => setBroadcastTitle(e.target.value)}
+                                                placeholder="e.g., Huge Summer Sale!"
+                                                style={{ 
+                                                    width: '100%', boxSizing: 'border-box', padding: '0.85rem 1rem 0.85rem 2.75rem', 
+                                                    border: '1px solid #cbd5e1', borderRadius: '12px', outline: 'none', 
+                                                    fontFamily: 'inherit', fontSize: '0.9rem', backgroundColor: '#f8fafc',
+                                                    transition: 'all 0.2s', color: '#0f172a'
+                                                }}
+                                                onFocus={e => { e.target.style.borderColor = '#db2777'; e.target.style.backgroundColor = '#fff'; e.target.style.boxShadow = '0 0 0 3px rgba(219,39,119,0.1)'; }}
+                                                onBlur={e => { e.target.style.borderColor = '#cbd5e1'; e.target.style.backgroundColor = '#f8fafc'; e.target.style.boxShadow = 'none'; }}
+                                            />
+                                        </div>
                                     </div>
-                                    <div style={{ flex: 1 }}>
-                                        <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.4rem' }}>Image URL (Optional)</label>
-                                        <input
-                                            type="text"
-                                            value={broadcastImage}
-                                            onChange={(e) => setBroadcastImage(e.target.value)}
-                                            placeholder="e.g., https://example.com/banner.png"
-                                            style={{ width: '100%', padding: '0.75rem 1rem', border: '1px solid #cbd5e1', borderRadius: '8px', outline: 'none', fontFamily: 'inherit' }}
-                                        />
+                                    <div>
+                                        <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.5rem' }}>
+                                            <span>Body</span>
+                                            <span style={{ fontSize: '0.75rem', fontWeight: 500, color: '#64748b' }}>Use <code style={{ background: '#f1f5f9', padding: '2px 4px', borderRadius: '4px', color: '#db2777' }}>{"{{name}}"}</code> to personalize</span>
+                                        </label>
+                                        <div style={{ position: 'relative' }}>
+                                            <AlignLeft size={18} color="#94a3b8" style={{ position: 'absolute', left: '14px', top: '15px' }} />
+                                            <textarea
+                                                value={broadcastBody}
+                                                onChange={(e) => setBroadcastBody(e.target.value)}
+                                                placeholder="e.g., Check out these new discounts on your wishlist items."
+                                                rows={3}
+                                                style={{ 
+                                                    width: '100%', boxSizing: 'border-box', padding: '0.85rem 1rem 0.85rem 2.75rem', 
+                                                    border: '1px solid #cbd5e1', borderRadius: '12px', outline: 'none', 
+                                                    fontFamily: 'inherit', fontSize: '0.9rem', backgroundColor: '#f8fafc',
+                                                    transition: 'all 0.2s', resize: 'vertical', color: '#0f172a', lineHeight: '1.4'
+                                                }}
+                                                onFocus={e => { e.target.style.borderColor = '#db2777'; e.target.style.backgroundColor = '#fff'; e.target.style.boxShadow = '0 0 0 3px rgba(219,39,119,0.1)'; }}
+                                                onBlur={e => { e.target.style.borderColor = '#cbd5e1'; e.target.style.backgroundColor = '#f8fafc'; e.target.style.boxShadow = 'none'; }}
+                                            />
+                                        </div>
                                     </div>
+                                    <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+                                        <div style={{ flex: '1 1 200px' }}>
+                                            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.5rem' }}>Target URL (Optional)</label>
+                                            <div style={{ position: 'relative' }}>
+                                                <LinkIcon size={18} color="#94a3b8" style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)' }} />
+                                                <input
+                                                    type="text"
+                                                    value={broadcastUrl}
+                                                    onChange={(e) => setBroadcastUrl(e.target.value)}
+                                                    placeholder="e.g., /discover"
+                                                    style={{ 
+                                                        width: '100%', boxSizing: 'border-box', padding: '0.85rem 1rem 0.85rem 2.75rem', 
+                                                        border: '1px solid #cbd5e1', borderRadius: '12px', outline: 'none', 
+                                                        fontFamily: 'inherit', fontSize: '0.9rem', backgroundColor: '#f8fafc',
+                                                        transition: 'all 0.2s', color: '#0f172a'
+                                                    }}
+                                                    onFocus={e => { e.target.style.borderColor = '#db2777'; e.target.style.backgroundColor = '#fff'; e.target.style.boxShadow = '0 0 0 3px rgba(219,39,119,0.1)'; }}
+                                                    onBlur={e => { e.target.style.borderColor = '#cbd5e1'; e.target.style.backgroundColor = '#f8fafc'; e.target.style.boxShadow = 'none'; }}
+                                                />
+                                            </div>
+                                        </div>
+                                        <div style={{ flex: '1 1 200px' }}>
+                                            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.5rem' }}>Image URL (Optional)</label>
+                                            {broadcastImage ? (
+                                                <div style={{
+                                                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                                                    padding: '0.5rem', border: '1px solid #cbd5e1', borderRadius: '12px',
+                                                    backgroundColor: '#f8fafc', height: '48px', boxSizing: 'border-box'
+                                                }}>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', overflow: 'hidden' }}>
+                                                        <div style={{ width: '32px', height: '32px', borderRadius: '8px', overflow: 'hidden', flexShrink: 0, backgroundColor: '#e2e8f0' }}>
+                                                            <img src={broadcastImage} alt="Attached" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => { e.target.style.display = 'none'; }} />
+                                                        </div>
+                                                        <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Image Attached</span>
+                                                    </div>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setBroadcastImage('')}
+                                                        style={{
+                                                            background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer',
+                                                            display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0.25rem',
+                                                            borderRadius: '6px', transition: 'all 0.2s'
+                                                        }}
+                                                        onMouseEnter={e => { e.currentTarget.style.backgroundColor = '#fef2f2'; }}
+                                                        onMouseLeave={e => { e.currentTarget.style.backgroundColor = 'transparent'; }}
+                                                        title="Remove Image"
+                                                    >
+                                                        <X size={16} />
+                                                    </button>
+                                                </div>
+                                            ) : (
+                                                <div style={{ position: 'relative' }}>
+                                                    <ImageIcon size={18} color="#94a3b8" style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)' }} />
+                                                    <input
+                                                        type="text"
+                                                        value={broadcastImage}
+                                                        onChange={(e) => setBroadcastImage(e.target.value)}
+                                                        placeholder="e.g., https://example.com/banner.png"
+                                                        style={{ 
+                                                            width: '100%', boxSizing: 'border-box', padding: '0.85rem 5.5rem 0.85rem 2.75rem', 
+                                                            border: '1px solid #cbd5e1', borderRadius: '12px', outline: 'none', 
+                                                            fontFamily: 'inherit', fontSize: '0.9rem', backgroundColor: '#f8fafc',
+                                                            transition: 'all 0.2s', color: '#0f172a', height: '48px'
+                                                        }}
+                                                        onFocus={e => { e.target.style.borderColor = '#db2777'; e.target.style.backgroundColor = '#fff'; e.target.style.boxShadow = '0 0 0 3px rgba(219,39,119,0.1)'; }}
+                                                        onBlur={e => { e.target.style.borderColor = '#cbd5e1'; e.target.style.backgroundColor = '#f8fafc'; e.target.style.boxShadow = 'none'; }}
+                                                    />
+                                                    <label style={{ 
+                                                        position: 'absolute', right: '6px', top: '50%', transform: 'translateY(-50%)', 
+                                                        cursor: isUploadingImage ? 'not-allowed' : 'pointer', background: '#e2e8f0', color: '#475569', 
+                                                        padding: '0.35rem 0.65rem', borderRadius: '8px', fontSize: '0.75rem', 
+                                                        fontWeight: 600, transition: 'all 0.2s', display: 'flex', alignItems: 'center'
+                                                    }}
+                                                    onMouseEnter={e => { if(!isUploadingImage) e.currentTarget.style.background = '#cbd5e1'; }}
+                                                    onMouseLeave={e => { if(!isUploadingImage) e.currentTarget.style.background = '#e2e8f0'; }}
+                                                    >
+                                                        {isUploadingImage ? <RefreshCw size={14} style={{ animation: 'spin 1s linear infinite' }} /> : 'Upload'}
+                                                        <input type="file" accept="image/*" disabled={isUploadingImage} style={{ display: 'none' }} onChange={handleImageUpload} />
+                                                    </label>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                    <button
+                                        disabled={broadcastLoading || !broadcastTitle || !broadcastBody}
+                                        onClick={() => setIsBroadcastModalOpen(true)}
+                                        style={{
+                                            marginTop: '1rem',
+                                            padding: '1rem 2rem',
+                                            background: (broadcastLoading || !broadcastTitle || !broadcastBody) ? '#e2e8f0' : 'linear-gradient(135deg, #db2777 0%, #be185d 100%)',
+                                            color: (broadcastLoading || !broadcastTitle || !broadcastBody) ? '#94a3b8' : '#fff',
+                                            border: 'none',
+                                            borderRadius: '12px',
+                                            fontWeight: 700,
+                                            fontSize: '1rem',
+                                            cursor: (broadcastLoading || !broadcastTitle || !broadcastBody) ? 'not-allowed' : 'pointer',
+                                            transition: 'all 0.3s ease',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            gap: '0.75rem',
+                                            width: '100%',
+                                            boxShadow: (broadcastLoading || !broadcastTitle || !broadcastBody) ? 'none' : '0 10px 20px -5px rgba(219, 39, 119, 0.4)',
+                                        }}
+                                        onMouseEnter={e => {
+                                            if (!broadcastLoading && broadcastTitle && broadcastBody) {
+                                                e.currentTarget.style.transform = 'translateY(-2px)';
+                                                e.currentTarget.style.boxShadow = '0 15px 25px -5px rgba(219, 39, 119, 0.5)';
+                                            }
+                                        }}
+                                        onMouseLeave={e => {
+                                            if (!broadcastLoading && broadcastTitle && broadcastBody) {
+                                                e.currentTarget.style.transform = 'translateY(0)';
+                                                e.currentTarget.style.boxShadow = '0 10px 20px -5px rgba(219, 39, 119, 0.4)';
+                                            }
+                                        }}
+                                    >
+                                        {broadcastLoading ? <RefreshCw size={20} style={{ animation: 'spin 1s linear infinite' }} /> : <Send size={20} />}
+                                        {broadcastLoading ? 'Sending Broadcast...' : 'Send Broadcast Notification'}
+                                    </button>
                                 </div>
-                                <button
-                                    disabled={broadcastLoading || !broadcastTitle || !broadcastBody}
-                                    onClick={() => setIsBroadcastModalOpen(true)}
-                                    style={{
-                                        marginTop: '0.5rem',
-                                        alignSelf: 'flex-start',
-                                        padding: '0.75rem 1.5rem',
-                                        background: (broadcastLoading || !broadcastTitle || !broadcastBody) ? '#cbd5e1' : '#db2777',
-                                        color: '#fff',
-                                        border: 'none',
-                                        borderRadius: '8px',
-                                        fontWeight: 600,
-                                        cursor: (broadcastLoading || !broadcastTitle || !broadcastBody) ? 'not-allowed' : 'pointer',
-                                        transition: 'background 0.2s',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: '0.5rem'
-                                    }}
-                                >
-                                    {broadcastLoading ? <RefreshCw size={18} style={{ animation: 'spin 1s linear infinite' }} /> : <Play size={18} fill="currentColor" />}
-                                    {broadcastLoading ? 'Sending...' : 'Send Broadcast'}
-                                </button>
                             </div>
                         </div>
                     </div>

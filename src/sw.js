@@ -61,12 +61,14 @@ self.addEventListener('push', (event) => {
   let title = 'New Notification';
   let body = '';
   let url = '/';
+  let image = null;
 
   try {
     const data = event.data.json();
     title = data.title || title;
     body = data.body || '';
     url = data.url || url;
+    image = data.image || null;
   } catch (err) {
     // Fallback to text for dev-tools testing
     body = event.data.text();
@@ -78,6 +80,10 @@ self.addEventListener('push', (event) => {
     badge: '/badge.png',
     data: { url },
   };
+  
+  if (image) {
+    options.image = image;
+  }
 
   event.waitUntil(self.registration.showNotification(title, options));
 });

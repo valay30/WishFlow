@@ -386,12 +386,34 @@ export const broadcastNotification = async (req, res) => {
             return res.status(200).json({ success: true, sentCount: 0, message: 'No subscriptions found' });
         }
 
-        const payload = JSON.stringify({
-            title,
-            body,
-            url: url || '/',
-            image: image || undefined
-        });
+        // Check if personalization is needed
+        const needsPersonalization = title.includes('{{name}}') || body.includes('{{name}}');
+        let userMap = {};
+        
+        if (needsPersonalization) {
+            try {
+                const response = await fetch(
+                    `${process.env.SUPABASE_URL}/auth/v1/admin/users?per_page=1000`,
+                    {
+                        headers: {
+                            'apikey': process.env.SUPABASE_SERVICE_ROLE_KEY,
+                            'Authorization': `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,
+                            'Content-Type': 'application/json',
+                        }
+                    }
+                );
+                const bodyJson = await response.json();
+                const users = bodyJson.users || bodyJson || [];
+                users.forEach(u => {
+                    // Grab just the first name or fallback to email prefix
+                    let fullName = u.user_metadata?.name || u.email?.split('@')[0] || 'User';
+                    let firstName = fullName.split(' ')[0];
+                    userMap[u.id] = firstName;
+                });
+            } catch (err) {
+                console.error("Failed to fetch users for personalization", err);
+            }
+        }
 
         let sentCount = 0;
         let failedCount = 0;
@@ -404,6 +426,22 @@ export const broadcastNotification = async (req, res) => {
                     auth: sub.keys_auth
                 }
             };
+            
+            let personalizedTitle = title;
+            let personalizedBody = body;
+            
+            if (needsPersonalization) {
+                const userName = userMap[sub.user_id] || 'User';
+                personalizedTitle = title.replace(/\{\{name\}\}/g, userName);
+                personalizedBody = body.replace(/\{\{name\}\}/g, userName);
+            }
+
+            const payload = JSON.stringify({
+                title: personalizedTitle,
+                body: personalizedBody,
+                url: url || '/',
+                image: image || undefined
+            });
 
             try {
                 await webpush.sendNotification(pushSubscription, payload);
