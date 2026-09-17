@@ -491,7 +491,11 @@ export const db = {
           .order('created_at', { ascending: false })
           .then(({ data, error }) => {
             __fetchingItems = null;
-            if (!error) __itemCache = data || [];
+            if (error) {
+              console.error("Items fetch error:", error);
+              return [];
+            }
+            __itemCache = data || [];
             return __itemCache;
           });
       }
