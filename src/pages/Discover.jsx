@@ -438,7 +438,7 @@ export default function Discover() {
         }
     };
 
-    const actuallyCollapsed = isCollapsed && !forceExpand && filtered.length > 0;
+    const actuallyCollapsed = isCollapsed && !forceExpand;
 
     return (
         <div style={{ minHeight: 'calc(100vh + 350px)', background: 'var(--bg)', paddingBottom: 'calc(var(--bottom-nav) + 1rem)', fontFamily: FONT }}>
@@ -599,70 +599,59 @@ export default function Discover() {
                                 exit={{ opacity: 0, y: -10, transition: { duration: 0.1 } }}
                                 style={{ display: 'flex', flexDirection: 'column', gap: '1rem', width: '100%' }}
                             >
-                                {/* Search bar */}
-                                <div style={{ position: 'relative', flex: 1 }}>
-                                    <Search size={17} color="var(--text-dim)" style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
-                                    <input
-                                        id="discover-search"
-                                        value={searchQ}
-                                        onChange={e => setSearchQ(e.target.value)}
-                                        placeholder="Search products…"
-                                        style={{
-                                            width: '100%', boxSizing: 'border-box',
-                                            padding: '0.75rem 2.75rem 0.75rem 2.75rem',
-                                            borderRadius: '14px', border: '1.5px solid var(--border)',
-                                            background: 'rgba(0,0,0,0.03)', color: 'var(--text)',
-                                            fontSize: '0.95rem', fontFamily: 'inherit', outline: 'none',
-                                            transition: 'border-color 0.2s',
-                                        }}
-                                        onFocus={e => e.target.style.borderColor = ORANGE}
-                                        onBlur={e => e.target.style.borderColor = 'var(--border)'}
-                                    />
-                                    {searchQ && (
-                                        <button
-                                            onClick={() => setSearchQ('')}
-                                            style={{ position: 'absolute', right: '0.85rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-dim)', display: 'flex' }}
-                                        >
-                                            <X size={16} />
-                                        </button>
-                                    )}
-                                </div>
+                                {/* Search & Sort Row */}
+                                <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'center' }}>
+                                    {/* Search bar */}
+                                    <div style={{ position: 'relative', flex: 1 }}>
+                                        <Search size={17} color="var(--text-dim)" style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
+                                        <input
+                                            id="discover-search"
+                                            value={searchQ}
+                                            onChange={e => setSearchQ(e.target.value)}
+                                            placeholder="Search products…"
+                                            style={{
+                                                width: '100%', boxSizing: 'border-box',
+                                                padding: '0.75rem 2.75rem 0.75rem 2.75rem',
+                                                borderRadius: '14px', border: '1.5px solid var(--border)',
+                                                background: 'rgba(0,0,0,0.03)', color: 'var(--text)',
+                                                fontSize: '0.95rem', fontFamily: 'inherit', outline: 'none',
+                                                transition: 'border-color 0.2s',
+                                            }}
+                                            onFocus={e => e.target.style.borderColor = ORANGE}
+                                            onBlur={e => e.target.style.borderColor = 'var(--border)'}
+                                        />
+                                        {searchQ && (
+                                            <button
+                                                onClick={() => setSearchQ('')}
+                                                style={{ position: 'absolute', right: '0.85rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-dim)', display: 'flex' }}
+                                            >
+                                                <X size={16} />
+                                            </button>
+                                        )}
+                                    </div>
 
-                                {/* Horizontal Pill Filters */}
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
-                                    {/* Sort Row (Dropdown) */}
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', position: 'relative', zIndex: 10 }}>
-                                        <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.05em', paddingLeft: '0.5rem' }}>Sort By</span>
+                                    {/* Sort Dropdown */}
+                                    <div style={{ position: 'relative', flexShrink: 0, zIndex: 10 }}>
                                         <button
                                             onClick={() => setIsSortOpen(!isSortOpen)}
                                             style={{
-                                                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                                                padding: '0.75rem 1rem', borderRadius: '12px',
-                                                border: '1.5px solid var(--border)', background: 'var(--surface)',
-                                                color: 'var(--text)', fontSize: '0.85rem', fontWeight: 600,
-                                                cursor: 'pointer', outline: 'none'
+                                                display: 'flex', alignItems: 'center', gap: '0.35rem',
+                                                background: activeSort !== 'trending' ? ORANGE : 'var(--surface)',
+                                                color: activeSort !== 'trending' ? '#fff' : 'var(--text)',
+                                                border: `1.5px solid ${activeSort !== 'trending' ? ORANGE : 'var(--border)'}`,
+                                                borderRadius: '14px',
+                                                padding: '0.75rem 0.95rem',
+                                                fontSize: '0.85rem', fontWeight: 700,
+                                                fontFamily: 'inherit', cursor: 'pointer', outline: 'none',
+                                                transition: 'all 0.2s ease',
+                                                boxShadow: activeSort !== 'trending' ? '0 4px 14px rgba(var(--primary-rgb),0.35)' : 'none',
+                                                whiteSpace: 'nowrap'
                                             }}
                                         >
-                                            {
-                                                (() => {
-                                                    const options = [
-                                                        { id: 'trending', label: 'Trending', icon: Sparkles },
-                                                        { id: 'newest', label: 'Newest', icon: Clock },
-                                                        { id: 'priceAsc', label: 'Price: Low → High', icon: TrendingUp },
-                                                        { id: 'priceDesc', label: 'Price: High → Low', icon: TrendingDown },
-                                                    ];
-                                                    const currentOpt = options.find(s => s.id === activeSort);
-                                                    const Icon = currentOpt?.icon;
-                                                    return (
-                                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                                            {Icon && <Icon size={16} />}
-                                                            <span>{currentOpt?.label}</span>
-                                                        </div>
-                                                    );
-                                                })()
-                                            }
+                                            <SlidersHorizontal size={14} style={{ color: activeSort !== 'trending' ? '#fff' : ORANGE }} />
+                                            <span>Sort</span>
                                             <motion.div animate={{ rotate: isSortOpen ? 180 : 0 }}>
-                                                <ChevronDown size={16} color="var(--text-dim)" />
+                                                <ChevronDown size={13} style={{ color: activeSort !== 'trending' ? '#fff' : 'var(--text-dim)' }} />
                                             </motion.div>
                                         </button>
 
@@ -674,11 +663,12 @@ export default function Discover() {
                                                     exit={{ opacity: 0, y: -10 }}
                                                     transition={{ duration: 0.15 }}
                                                     style={{
-                                                        position: 'absolute', top: '100%', left: 0, right: 0,
+                                                        position: 'absolute', top: 'calc(100% + 8px)', right: 0,
                                                         background: 'var(--surface)', border: '1px solid var(--border)',
                                                         borderRadius: '12px', padding: '0.5rem',
                                                         boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
-                                                        display: 'flex', flexDirection: 'column', gap: '0.2rem'
+                                                        display: 'flex', flexDirection: 'column', gap: '0.2rem',
+                                                        minWidth: '210px'
                                                     }}
                                                 >
                                                     {[
@@ -701,7 +691,8 @@ export default function Discover() {
                                                                     color: activeSort === s.id ? ORANGE : 'var(--text)',
                                                                     fontSize: '0.85rem', fontWeight: 600,
                                                                     border: 'none', cursor: 'pointer', textAlign: 'left',
-                                                                    display: 'flex', alignItems: 'center', justifyContent: 'space-between'
+                                                                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                                                                    whiteSpace: 'nowrap'
                                                                 }}
                                                             >
                                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -716,6 +707,10 @@ export default function Discover() {
                                             )}
                                         </AnimatePresence>
                                     </div>
+                                </div>
+
+                                {/* Horizontal Pill Filters */}
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
 
                                     {/* Budget Row */}
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', padding: '0.5rem 0.5rem' }}>

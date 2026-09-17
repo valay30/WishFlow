@@ -364,16 +364,19 @@ export const updateGlobalSetting = async (req, res) => {
 };
 
 export const broadcastNotification = async (req, res) => {
-    const { title, body, url, image } = req.body;
+    const { title, body, url, image, targetUserId } = req.body;
 
     if (!title || !body) {
         return res.status(400).json({ error: 'Title and body are required' });
     }
 
     try {
-        const { data: subscriptions, error } = await supabase
-            .from('push_subscriptions')
-            .select('*');
+        let query = supabase.from('push_subscriptions').select('*');
+        if (targetUserId) {
+            query = query.eq('user_id', targetUserId);
+        }
+        
+        const { data: subscriptions, error } = await query;
 
         if (error) throw error;
 

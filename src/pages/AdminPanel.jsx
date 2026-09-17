@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
 import {
     Crown, Users, ArrowLeft, RefreshCw, Search, Trash2, Package,
-    Filter, Calendar, ChevronLeft, ChevronRight, ChevronDown, XCircle, Menu, X, Plus, Link as LinkIcon, BookOpen, TrendingDown, Play, Clock, Settings, Eye
+    Filter, Calendar, ChevronLeft, ChevronRight, ChevronDown, XCircle, Menu, X, Plus, Link as LinkIcon, BookOpen, TrendingDown, Play, Clock, Settings, Eye, User, Palette, Rocket, Command, Info, LogOut, Megaphone
 } from 'lucide-react';
 import { API_URL as API } from '../config';
 import { supabase } from '../db';
@@ -63,6 +63,10 @@ export default function AdminPanel() {
     const [broadcastImage, setBroadcastImage] = useState('');
     const [broadcastLoading, setBroadcastLoading] = useState(false);
     const [isBroadcastModalOpen, setIsBroadcastModalOpen] = useState(false);
+    const [broadcastTargetUserId, setBroadcastTargetUserId] = useState('');
+
+    // Profile Menu state
+    const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
 
     // Fetch global feature flags on mount
     useEffect(() => {
@@ -197,11 +201,12 @@ export default function AdminPanel() {
             const res = await fetch(`${API}/api/admin/broadcast-notification`, {
                 method: 'POST',
                 headers,
-                body: JSON.stringify({ 
-                    title: broadcastTitle, 
-                    body: broadcastBody, 
-                    url: broadcastUrl, 
-                    image: broadcastImage 
+                body: JSON.stringify({
+                    title: broadcastTitle,
+                    body: broadcastBody,
+                    url: broadcastUrl,
+                    image: broadcastImage,
+                    targetUserId: broadcastTargetUserId || undefined
                 })
             });
             const data = await res.json();
@@ -211,6 +216,7 @@ export default function AdminPanel() {
                 setBroadcastBody('');
                 setBroadcastUrl('');
                 setBroadcastImage('');
+                setBroadcastTargetUserId('');
             } else {
                 showToast(data.error || 'Failed to send broadcast', 'error');
             }
@@ -283,11 +289,97 @@ export default function AdminPanel() {
                     <ChevronLeft size={22} strokeWidth={2.5} />
                 </button>
                 <span style={{ fontSize: '1.1rem', fontWeight: 800, color: '#111' }}>WishFlow Admin</span>
-                <div
-                    onClick={() => setActiveTab('global-settings')}
-                    style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#6d28d9', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '0.8rem', cursor: 'pointer', border: activeTab === 'global-settings' ? '2px solid #c7d2fe' : '2px solid transparent', transition: 'border 0.2s' }}
-                >
-                    {getInitials(user?.name, user?.email)}
+                <div style={{ position: 'relative' }}>
+                    <div
+                        onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
+                        style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#6d28d9', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '0.8rem', cursor: 'pointer', border: isProfileMenuOpen ? '2px solid #c7d2fe' : '2px solid transparent', transition: 'border 0.2s' }}
+                    >
+                        {getInitials(user?.name, user?.email)}
+                    </div>
+
+                    {isProfileMenuOpen && (
+                        <>
+                            <div
+                                style={{ position: 'fixed', inset: 0, zIndex: 99 }}
+                                onClick={() => setIsProfileMenuOpen(false)}
+                            />
+                            <div style={{
+                                position: 'absolute',
+                                top: '100%',
+                                right: 0,
+                                marginTop: '0.75rem',
+                                width: '240px',
+                                background: '#fff',
+                                borderRadius: '16px',
+                                padding: '0.5rem',
+                                zIndex: 100,
+                                boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05)',
+                                border: '1px solid #e2e8f0',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: '2px'
+                            }}>
+                                <div
+                                    onClick={() => { setActiveTab('global-settings'); setIsProfileMenuOpen(false); }}
+                                    style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem 1rem', color: '#1e293b', cursor: 'pointer', borderRadius: '10px', fontSize: '0.95rem', fontWeight: 500, transition: 'background 0.2s' }}
+                                    onMouseEnter={e => e.currentTarget.style.background = '#f1f5f9'}
+                                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                                >
+                                    <Settings size={18} color="#64748b" />
+                                    Global Settings
+                                </div>
+                                <div
+                                    onClick={() => { setActiveTab('broadcast'); setIsProfileMenuOpen(false); }}
+                                    style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem 1rem', color: '#1e293b', cursor: 'pointer', borderRadius: '10px', fontSize: '0.95rem', fontWeight: 500, transition: 'background 0.2s' }}
+                                    onMouseEnter={e => e.currentTarget.style.background = '#f1f5f9'}
+                                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                                >
+                                    <Megaphone size={18} color="#64748b" />
+                                    Broadcast
+                                </div>
+                                <div
+                                    onClick={() => { setActiveTab('themes'); setIsProfileMenuOpen(false); }}
+                                    style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem 1rem', color: '#1e293b', cursor: 'pointer', borderRadius: '10px', fontSize: '0.95rem', fontWeight: 500, transition: 'background 0.2s' }}
+                                    onMouseEnter={e => e.currentTarget.style.background = '#f1f5f9'}
+                                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                                >
+                                    <Palette size={18} color="#64748b" />
+                                    Themes
+                                </div>
+                                <div
+                                    onClick={() => { 
+                                        setActiveTab('price-alerts'); 
+                                        setIsProfileMenuOpen(false); 
+                                        setPriceAlertLoading(true);
+                                        getAuthHeaders().then(headers => fetch(`${API}/api/admin/price-drop/status`, { headers }))
+                                            .then(r => r.json())
+                                            .then(d => {
+                                                setPriceAlertStatus(d);
+                                                if (d.cronExpression) {
+                                                    const parts = d.cronExpression.split(' ');
+                                                    if (parts.length >= 2) {
+                                                        const utcH = parseInt(parts[1]) || 19;
+                                                        const utcM = parseInt(parts[0]) || 30;
+                                                        const istM = (utcM + 30) % 60;
+                                                        const istH = (utcH + 5 + (utcM + 30 >= 60 ? 1 : 0)) % 24;
+                                                        setScheduleHour(istH);
+                                                        setScheduleMinute(istM);
+                                                    }
+                                                }
+                                            })
+                                            .catch(() => { })
+                                            .finally(() => setPriceAlertLoading(false));
+                                    }}
+                                    style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem 1rem', color: '#1e293b', cursor: 'pointer', borderRadius: '10px', fontSize: '0.95rem', fontWeight: 500, transition: 'background 0.2s' }}
+                                    onMouseEnter={e => e.currentTarget.style.background = '#f1f5f9'}
+                                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                                >
+                                    <TrendingDown size={18} color="#64748b" />
+                                    Price Alerts
+                                </div>
+                            </div>
+                        </>
+                    )}
                 </div>
             </div>
 
@@ -389,6 +481,26 @@ export default function AdminPanel() {
                     >
                         <Settings size={20} /> Global Settings
                     </button>
+                    <button
+                        onClick={() => {
+                            setActiveTab('broadcast');
+                            setSearch('');
+                            setIsSidebarOpen(false);
+                        }}
+                        style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.875rem 1rem', background: activeTab === 'broadcast' ? '#fce7f3' : 'transparent', color: activeTab === 'broadcast' ? '#db2777' : '#64748b', borderRadius: '12px', border: 'none', cursor: 'pointer', fontWeight: activeTab === 'broadcast' ? 700 : 600, fontSize: '0.95rem', transition: 'all 0.2s' }}
+                    >
+                        <Megaphone size={20} /> Broadcast
+                    </button>
+                    <button
+                        onClick={() => {
+                            setActiveTab('themes');
+                            setSearch('');
+                            setIsSidebarOpen(false);
+                        }}
+                        style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.875rem 1rem', background: activeTab === 'themes' ? '#f3e8ff' : 'transparent', color: activeTab === 'themes' ? '#9333ea' : '#64748b', borderRadius: '12px', border: 'none', cursor: 'pointer', fontWeight: activeTab === 'themes' ? 700 : 600, fontSize: '0.95rem', transition: 'all 0.2s' }}
+                    >
+                        <Palette size={20} /> Themes
+                    </button>
                 </div>
 
                 {/* Back Button + User Profile */}
@@ -421,7 +533,7 @@ export default function AdminPanel() {
 
 
                 {/* Header — only shown for users/items tabs */}
-                {activeTab !== 'blog' && activeTab !== 'price-alerts' && activeTab !== 'global-settings' && (
+                {activeTab !== 'blog' && activeTab !== 'price-alerts' && activeTab !== 'global-settings' && activeTab !== 'broadcast' && activeTab !== 'themes' && (
                     <div className="admin-desktop-header" style={{ marginBottom: '2.5rem' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
                             <h1 style={{ margin: 0, fontSize: '2.25rem', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.02em' }}>
@@ -656,6 +768,275 @@ export default function AdminPanel() {
                 )}
 
 
+                {/* Themes tab content */}
+                {activeTab === 'themes' && (
+                    <div style={{ width: '100%' }}>
+                        <div style={{
+                            background: 'linear-gradient(135deg, #9333ea 0%, #7e22ce 100%)',
+                            borderRadius: '16px', padding: '2.5rem 2rem', marginBottom: '2rem',
+                            color: '#fff', position: 'relative', overflow: 'hidden',
+                            boxShadow: '0 10px 25px -5px rgba(147, 51, 234, 0.4)'
+                        }}>
+                            <div style={{ position: 'relative', zIndex: 1 }}>
+                                <h2 style={{ margin: '0 0 0.5rem 0', fontSize: '1.5rem', fontWeight: 800, color: '#fff' }}>Roastcard Themes</h2>
+                            </div>
+                            <Palette size={120} style={{ position: 'absolute', right: '-10px', top: '50%', transform: 'translateY(-50%)', opacity: 0.1 }} />
+                        </div>
+
+                        <div style={{ background: '#fff', padding: '2rem', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', border: '1px solid #f1f5f9' }}>
+
+
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: '1rem' }}>
+                                {ROAST_THEMES.map(theme => {
+                                    const isSelected = roastEnabledThemes.includes(theme.id);
+                                    const isLightText = theme.textColor === '#ffffff';
+                                    return (
+                                        <div
+                                            key={theme.id}
+                                            onClick={async () => {
+                                                const newThemes = isSelected ? roastEnabledThemes.filter(id => id !== theme.id) : [...roastEnabledThemes, theme.id];
+                                                setRoastEnabledThemes(newThemes);
+                                                try {
+                                                    const headers = await getAuthHeaders();
+                                                    await fetch(`${API}/api/admin/setting/update`, {
+                                                        method: 'PATCH',
+                                                        headers,
+                                                        body: JSON.stringify({ key: 'roast_enabled_themes', value: JSON.stringify(newThemes) })
+                                                    });
+                                                } catch (e) {
+                                                    showToast('Failed to save theme selection', 'error');
+                                                }
+                                            }}
+                                            style={{
+                                                padding: '1.25rem 0.75rem 0.85rem 0.75rem',
+                                                borderRadius: '16px',
+                                                border: isSelected ? '2.5px solid #4f46e5' : '2px solid #e2e8f0',
+                                                background: theme.bg || '#fff',
+                                                cursor: 'pointer',
+                                                display: 'flex',
+                                                flexDirection: 'column',
+                                                alignItems: 'center',
+                                                justifyContent: 'space-between',
+                                                minHeight: '115px',
+                                                transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                                                opacity: isSelected ? 1 : 0.65,
+                                                position: 'relative',
+                                                boxShadow: isSelected ? '0 8px 20px -4px rgba(79, 70, 229, 0.25)' : '0 2px 6px rgba(0,0,0,0.04)',
+                                                transform: isSelected ? 'translateY(-2px)' : 'none'
+                                            }}
+                                        >
+                                            {/* Selected Checkmark Badge */}
+                                            {isSelected && (
+                                                <div style={{
+                                                    position: 'absolute',
+                                                    top: '-8px',
+                                                    right: '-8px',
+                                                    background: '#4f46e5',
+                                                    color: '#fff',
+                                                    borderRadius: '50%',
+                                                    width: '22px',
+                                                    height: '22px',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    boxShadow: '0 2px 6px rgba(79, 70, 229, 0.4)',
+                                                    fontSize: '12px',
+                                                    fontWeight: 800
+                                                }}>
+                                                    ✓
+                                                </div>
+                                            )}
+
+                                            {/* Theme Name */}
+                                            <span style={{
+                                                fontSize: '0.95rem',
+                                                fontWeight: 700,
+                                                color: theme.textColor || '#111',
+                                                letterSpacing: '0.01em',
+                                                textShadow: isLightText ? '0 1px 2px rgba(0,0,0,0.35)' : 'none',
+                                                textAlign: 'center'
+                                            }}>
+                                                {theme.id.charAt(0).toUpperCase() + theme.id.slice(1)}
+                                            </span>
+
+                                            {/* Preview Pill Button */}
+                                            <button
+                                                type="button"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setPreviewTheme(theme);
+                                                }}
+                                                style={{
+                                                    marginTop: '0.75rem',
+                                                    display: 'inline-flex',
+                                                    alignItems: 'center',
+                                                    gap: '5px',
+                                                    padding: '0.35rem 0.75rem',
+                                                    borderRadius: '999px',
+                                                    background: isLightText ? 'rgba(255, 255, 255, 0.22)' : 'rgba(0, 0, 0, 0.07)',
+                                                    color: theme.textColor || '#334155',
+                                                    border: isLightText ? '1px solid rgba(255, 255, 255, 0.35)' : '1px solid rgba(0, 0, 0, 0.1)',
+                                                    backdropFilter: 'blur(4px)',
+                                                    fontSize: '0.75rem',
+                                                    fontWeight: 600,
+                                                    cursor: 'pointer',
+                                                    transition: 'all 0.15s ease',
+                                                    textShadow: 'none'
+                                                }}
+                                                onMouseEnter={e => {
+                                                    e.currentTarget.style.transform = 'scale(1.05)';
+                                                    e.currentTarget.style.background = isLightText ? 'rgba(255, 255, 255, 0.35)' : 'rgba(0, 0, 0, 0.14)';
+                                                }}
+                                                onMouseLeave={e => {
+                                                    e.currentTarget.style.transform = 'scale(1)';
+                                                    e.currentTarget.style.background = isLightText ? 'rgba(255, 255, 255, 0.22)' : 'rgba(0, 0, 0, 0.07)';
+                                                }}
+                                                title={`Preview ${theme.id} design`}
+                                            >
+                                                <Eye size={13} strokeWidth={2.2} />
+                                                <span>Preview</span>
+                                            </button>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+
+                            {previewTheme && (
+                                <div onClick={() => setPreviewTheme(null)} style={{ position: "fixed", inset: 0, zIndex: 99999, background: "rgba(0,0,0,0.75)", backdropFilter: "blur(12px)", display: "flex", flexDirection: "column", alignItems: "center", padding: "2rem 1rem", overflowY: "auto" }}>
+                                    <div onClick={(e) => e.stopPropagation()} style={{ margin: "auto", display: "flex", flexDirection: "column", alignItems: "center", gap: "1.25rem", width: "100%", maxWidth: "380px" }}>
+                                        <div style={{ position: "relative", width: "100%", borderRadius: "30px", boxShadow: "0 32px 80px rgba(0,0,0,0.5)" }}>
+                                            <CardVisual
+                                                phase="ready"
+                                                roastText="Oh look, another person buying an aesthetic water bottle they'll use twice. Your wishlist screams 'I want to be a Pinterest board' but your budget says 'maybe next month'. Please, save your money for something you actually need."
+                                                dateStr={new Date().toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}
+                                                showButton={true}
+                                                downloading={false}
+                                                isCapture={false}
+                                                tearing={false}
+                                                theme={previewTheme}
+                                            />
+                                        </div>
+                                        <div style={{ display: "flex", gap: "0.75rem", width: "100%", marginTop: "1.5rem" }}>
+                                            <button onClick={() => setPreviewTheme(null)} style={{ flex: 1, padding: "0.9rem 1.25rem", background: "rgba(255,255,255,0.12)", color: "#fff", border: "1px solid rgba(255,255,255,0.2)", borderRadius: "16px", fontWeight: 700, fontSize: "0.95rem", cursor: "pointer", fontFamily: "inherit", backdropFilter: "blur(4px)" }}>Close Preview</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                )}
+
+                {/* Broadcast tab content */}
+                {activeTab === 'broadcast' && (
+                    <div style={{ width: '100%' }}>
+                        <div style={{
+                            background: 'linear-gradient(135deg, #db2777 0%, #be185d 100%)',
+                            borderRadius: '16px', padding: '2.5rem 2rem', marginBottom: '2rem',
+                            color: '#fff', position: 'relative', overflow: 'hidden',
+                            boxShadow: '0 10px 25px -5px rgba(219, 39, 119, 0.4)'
+                        }}>
+                            <div style={{ position: 'relative', zIndex: 1 }}>
+                                <h2 style={{ margin: '0 0 0.5rem 0', fontSize: '1.5rem', fontWeight: 800, color: '#fff' }}>Broadcast Notification</h2>
+                            </div>
+                            <Megaphone size={120} style={{ position: 'absolute', right: '-10px', top: '50%', transform: 'translateY(-50%)', opacity: 0.1 }} />
+                        </div>
+
+                        <div style={{ background: '#fff', padding: '2rem', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', border: '1px solid #f1f5f9' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem' }}>
+                                <div style={{ background: '#f5f3ff', padding: '0.5rem', borderRadius: '8px', color: '#8b5cf6' }}>
+                                    <span style={{ fontSize: '1.5rem' }}>📢</span>
+                                </div>
+                                <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 700, color: '#0f172a' }}>Global Broadcast Notification</h3>
+                            </div>
+                            <p style={{ margin: '0 0 1.5rem 0', fontSize: '0.9rem', color: '#64748b' }}>
+                                Send a push notification to all users who have subscribed.
+                            </p>
+
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                                <div>
+                                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.4rem' }}>Target User (Optional)</label>
+                                    <select
+                                        value={broadcastTargetUserId}
+                                        onChange={(e) => setBroadcastTargetUserId(e.target.value)}
+                                        style={{ width: '100%', padding: '0.75rem 1rem', border: '1px solid #cbd5e1', borderRadius: '8px', outline: 'none', fontFamily: 'inherit', background: '#fff' }}
+                                    >
+                                        <option value="">All Users (Global Broadcast)</option>
+                                        {users.map(u => (
+                                            <option key={u.id} value={u.id}>
+                                                {u.name ? `${u.name} (${u.email})` : (u.email || u.id)}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.4rem' }}>Title</label>
+                                    <input
+                                        type="text"
+                                        value={broadcastTitle}
+                                        onChange={(e) => setBroadcastTitle(e.target.value)}
+                                        placeholder="e.g., Huge Summer Sale!"
+                                        style={{ width: '100%', padding: '0.75rem 1rem', border: '1px solid #cbd5e1', borderRadius: '8px', outline: 'none', fontFamily: 'inherit' }}
+                                    />
+                                </div>
+                                <div>
+                                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.4rem' }}>Body</label>
+                                    <textarea
+                                        value={broadcastBody}
+                                        onChange={(e) => setBroadcastBody(e.target.value)}
+                                        placeholder="e.g., Check out these new discounts on your wishlist items."
+                                        rows={2}
+                                        style={{ width: '100%', padding: '0.75rem 1rem', border: '1px solid #cbd5e1', borderRadius: '8px', outline: 'none', fontFamily: 'inherit', resize: 'vertical' }}
+                                    />
+                                </div>
+                                <div style={{ display: 'flex', gap: '1rem' }}>
+                                    <div style={{ flex: 1 }}>
+                                        <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.4rem' }}>Target URL (Optional)</label>
+                                        <input
+                                            type="text"
+                                            value={broadcastUrl}
+                                            onChange={(e) => setBroadcastUrl(e.target.value)}
+                                            placeholder="e.g., /discover"
+                                            style={{ width: '100%', padding: '0.75rem 1rem', border: '1px solid #cbd5e1', borderRadius: '8px', outline: 'none', fontFamily: 'inherit' }}
+                                        />
+                                    </div>
+                                    <div style={{ flex: 1 }}>
+                                        <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.4rem' }}>Image URL (Optional)</label>
+                                        <input
+                                            type="text"
+                                            value={broadcastImage}
+                                            onChange={(e) => setBroadcastImage(e.target.value)}
+                                            placeholder="e.g., https://example.com/banner.png"
+                                            style={{ width: '100%', padding: '0.75rem 1rem', border: '1px solid #cbd5e1', borderRadius: '8px', outline: 'none', fontFamily: 'inherit' }}
+                                        />
+                                    </div>
+                                </div>
+                                <button
+                                    disabled={broadcastLoading || !broadcastTitle || !broadcastBody}
+                                    onClick={() => setIsBroadcastModalOpen(true)}
+                                    style={{
+                                        marginTop: '0.5rem',
+                                        alignSelf: 'flex-start',
+                                        padding: '0.75rem 1.5rem',
+                                        background: (broadcastLoading || !broadcastTitle || !broadcastBody) ? '#cbd5e1' : '#db2777',
+                                        color: '#fff',
+                                        border: 'none',
+                                        borderRadius: '8px',
+                                        fontWeight: 600,
+                                        cursor: (broadcastLoading || !broadcastTitle || !broadcastBody) ? 'not-allowed' : 'pointer',
+                                        transition: 'background 0.2s',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '0.5rem'
+                                    }}
+                                >
+                                    {broadcastLoading ? <RefreshCw size={18} style={{ animation: 'spin 1s linear infinite' }} /> : <Play size={18} fill="currentColor" />}
+                                    {broadcastLoading ? 'Sending...' : 'Send Broadcast'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 {/* Global Settings tab content */}
                 {activeTab === 'global-settings' && (
                     <div style={{ width: '100%' }}>
@@ -772,146 +1153,6 @@ export default function AdminPanel() {
                                         </button>
                                     </div>
                                 </div>
-                                <div style={{ marginTop: '2rem', borderTop: '1px solid #f1f5f9', paddingTop: '1.5rem' }}>
-                                    <h4 style={{ margin: '0 0 1rem', fontSize: '1rem', fontWeight: 700, color: '#0f172a' }}>Available Themes</h4>
-                                    <p style={{ margin: '0 0 1.5rem', fontSize: '0.875rem', color: '#64748b' }}>Select which designs can appear when a user clicks Roast Me. If multiple are selected, one will be chosen randomly.</p>
-                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: '1rem' }}>
-                                        {ROAST_THEMES.map(theme => {
-                                            const isSelected = roastEnabledThemes.includes(theme.id);
-                                            const isLightText = theme.textColor === '#ffffff';
-                                            return (
-                                                <div 
-                                                    key={theme.id}
-                                                    onClick={async () => {
-                                                        const newThemes = isSelected ? roastEnabledThemes.filter(id => id !== theme.id) : [...roastEnabledThemes, theme.id];
-                                                        setRoastEnabledThemes(newThemes);
-                                                        try {
-                                                            const headers = await getAuthHeaders();
-                                                            await fetch(`${API}/api/admin/setting/update`, {
-                                                                method: 'PATCH',
-                                                                headers,
-                                                                body: JSON.stringify({ key: 'roast_enabled_themes', value: JSON.stringify(newThemes) })
-                                                            });
-                                                        } catch (e) {
-                                                            showToast('Failed to save theme selection', 'error');
-                                                        }
-                                                    }}
-                                                    style={{
-                                                        padding: '1.25rem 0.75rem 0.85rem 0.75rem',
-                                                        borderRadius: '16px',
-                                                        border: isSelected ? '2.5px solid #4f46e5' : '2px solid #e2e8f0',
-                                                        background: theme.bg || '#fff',
-                                                        cursor: 'pointer',
-                                                        display: 'flex',
-                                                        flexDirection: 'column',
-                                                        alignItems: 'center',
-                                                        justifyContent: 'space-between',
-                                                        minHeight: '115px',
-                                                        transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                                                        opacity: isSelected ? 1 : 0.65,
-                                                        position: 'relative',
-                                                        boxShadow: isSelected ? '0 8px 20px -4px rgba(79, 70, 229, 0.25)' : '0 2px 6px rgba(0,0,0,0.04)',
-                                                        transform: isSelected ? 'translateY(-2px)' : 'none'
-                                                    }}
-                                                >
-                                                    {/* Selected Checkmark Badge */}
-                                                    {isSelected && (
-                                                        <div style={{
-                                                            position: 'absolute',
-                                                            top: '-8px',
-                                                            right: '-8px',
-                                                            background: '#4f46e5',
-                                                            color: '#fff',
-                                                            borderRadius: '50%',
-                                                            width: '22px',
-                                                            height: '22px',
-                                                            display: 'flex',
-                                                            alignItems: 'center',
-                                                            justifyContent: 'center',
-                                                            boxShadow: '0 2px 6px rgba(79, 70, 229, 0.4)',
-                                                            fontSize: '12px',
-                                                            fontWeight: 800
-                                                        }}>
-                                                            ✓
-                                                        </div>
-                                                    )}
-
-                                                    {/* Theme Name */}
-                                                    <span style={{
-                                                        fontSize: '0.95rem',
-                                                        fontWeight: 700,
-                                                        color: theme.textColor || '#111',
-                                                        letterSpacing: '0.01em',
-                                                        textShadow: isLightText ? '0 1px 2px rgba(0,0,0,0.35)' : 'none',
-                                                        textAlign: 'center'
-                                                    }}>
-                                                        {theme.id.charAt(0).toUpperCase() + theme.id.slice(1)}
-                                                    </span>
-
-                                                    {/* Preview Pill Button */}
-                                                    <button 
-                                                        type="button"
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            setPreviewTheme(theme);
-                                                        }}
-                                                        style={{
-                                                            marginTop: '0.75rem',
-                                                            display: 'inline-flex',
-                                                            alignItems: 'center',
-                                                            gap: '5px',
-                                                            padding: '0.35rem 0.75rem',
-                                                            borderRadius: '999px',
-                                                            background: isLightText ? 'rgba(255, 255, 255, 0.22)' : 'rgba(0, 0, 0, 0.07)',
-                                                            color: theme.textColor || '#334155',
-                                                            border: isLightText ? '1px solid rgba(255, 255, 255, 0.35)' : '1px solid rgba(0, 0, 0, 0.1)',
-                                                            backdropFilter: 'blur(4px)',
-                                                            fontSize: '0.75rem',
-                                                            fontWeight: 600,
-                                                            cursor: 'pointer',
-                                                            transition: 'all 0.15s ease',
-                                                            textShadow: 'none'
-                                                        }}
-                                                        onMouseEnter={e => {
-                                                            e.currentTarget.style.transform = 'scale(1.05)';
-                                                            e.currentTarget.style.background = isLightText ? 'rgba(255, 255, 255, 0.35)' : 'rgba(0, 0, 0, 0.14)';
-                                                        }}
-                                                        onMouseLeave={e => {
-                                                            e.currentTarget.style.transform = 'scale(1)';
-                                                            e.currentTarget.style.background = isLightText ? 'rgba(255, 255, 255, 0.22)' : 'rgba(0, 0, 0, 0.07)';
-                                                        }}
-                                                        title={`Preview ${theme.id} design`}
-                                                    >
-                                                        <Eye size={13} strokeWidth={2.2} />
-                                                        <span>Preview</span>
-                                                    </button>
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
-                                    
-                                    {previewTheme && (
-                                        <div onClick={() => setPreviewTheme(null)} style={{ position: "fixed", inset: 0, zIndex: 99999, background: "rgba(0,0,0,0.75)", backdropFilter: "blur(12px)", display: "flex", flexDirection: "column", alignItems: "center", padding: "2rem 1rem", overflowY: "auto" }}>
-                                            <div onClick={(e) => e.stopPropagation()} style={{ margin: "auto", display: "flex", flexDirection: "column", alignItems: "center", gap: "1.25rem", width: "100%", maxWidth: "380px" }}>
-                                                <div style={{ position: "relative", width: "100%", borderRadius: "30px", boxShadow: "0 32px 80px rgba(0,0,0,0.5)" }}>
-                                                    <CardVisual 
-                                                        phase="ready" 
-                                                        roastText="Oh look, another person buying an aesthetic water bottle they'll use twice. Your wishlist screams 'I want to be a Pinterest board' but your budget says 'maybe next month'. Please, save your money for something you actually need." 
-                                                        dateStr={new Date().toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })} 
-                                                        showButton={true} 
-                                                        downloading={false} 
-                                                        isCapture={false} 
-                                                        tearing={false} 
-                                                        theme={previewTheme} 
-                                                    />
-                                                </div>
-                                                <div style={{ display: "flex", gap: "0.75rem", width: "100%", marginTop: "1.5rem" }}>
-                                                    <button onClick={() => setPreviewTheme(null)} style={{ flex: 1, padding: "0.9rem 1.25rem", background: "rgba(255,255,255,0.12)", color: "#fff", border: "1px solid rgba(255,255,255,0.2)", borderRadius: "16px", fontWeight: 700, fontSize: "0.95rem", cursor: "pointer", fontFamily: "inherit", backdropFilter: "blur(4px)" }}>Close Preview</button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
                             </div>
 
                             {/* Profile Refresh Feature Toggle */}
@@ -964,93 +1205,14 @@ export default function AdminPanel() {
                                     </div>
                                 </div>
                             </div>
-                            
-                            {/* Broadcast Notification Feature */}
-                            <div style={{ background: '#fff', padding: '2rem', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', border: '1px solid #f1f5f9' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem' }}>
-                                    <div style={{ background: '#f5f3ff', padding: '0.5rem', borderRadius: '8px', color: '#8b5cf6' }}>
-                                        <span style={{ fontSize: '1.5rem' }}>📢</span>
-                                    </div>
-                                    <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 700, color: '#0f172a' }}>Global Broadcast Notification</h3>
-                                </div>
-                                <p style={{ margin: '0 0 1.5rem 0', fontSize: '0.9rem', color: '#64748b' }}>
-                                    Send a push notification to all users who have subscribed.
-                                </p>
-                                
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                                    <div>
-                                        <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.4rem' }}>Title</label>
-                                        <input 
-                                            type="text"
-                                            value={broadcastTitle}
-                                            onChange={(e) => setBroadcastTitle(e.target.value)}
-                                            placeholder="e.g., Huge Summer Sale!"
-                                            style={{ width: '100%', padding: '0.75rem 1rem', border: '1px solid #cbd5e1', borderRadius: '8px', outline: 'none', fontFamily: 'inherit' }}
-                                        />
-                                    </div>
-                                    <div>
-                                        <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.4rem' }}>Body</label>
-                                        <textarea 
-                                            value={broadcastBody}
-                                            onChange={(e) => setBroadcastBody(e.target.value)}
-                                            placeholder="e.g., Check out these new discounts on your wishlist items."
-                                            rows={2}
-                                            style={{ width: '100%', padding: '0.75rem 1rem', border: '1px solid #cbd5e1', borderRadius: '8px', outline: 'none', fontFamily: 'inherit', resize: 'vertical' }}
-                                        />
-                                    </div>
-                                    <div style={{ display: 'flex', gap: '1rem' }}>
-                                        <div style={{ flex: 1 }}>
-                                            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.4rem' }}>Target URL (Optional)</label>
-                                            <input 
-                                                type="text"
-                                                value={broadcastUrl}
-                                                onChange={(e) => setBroadcastUrl(e.target.value)}
-                                                placeholder="e.g., /discover"
-                                                style={{ width: '100%', padding: '0.75rem 1rem', border: '1px solid #cbd5e1', borderRadius: '8px', outline: 'none', fontFamily: 'inherit' }}
-                                            />
-                                        </div>
-                                        <div style={{ flex: 1 }}>
-                                            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.4rem' }}>Image URL (Optional)</label>
-                                            <input 
-                                                type="text"
-                                                value={broadcastImage}
-                                                onChange={(e) => setBroadcastImage(e.target.value)}
-                                                placeholder="e.g., https://example.com/banner.png"
-                                                style={{ width: '100%', padding: '0.75rem 1rem', border: '1px solid #cbd5e1', borderRadius: '8px', outline: 'none', fontFamily: 'inherit' }}
-                                            />
-                                        </div>
-                                    </div>
-                                    <button
-                                        disabled={broadcastLoading || !broadcastTitle || !broadcastBody}
-                                        onClick={() => setIsBroadcastModalOpen(true)}
-                                        style={{
-                                            marginTop: '0.5rem',
-                                            alignSelf: 'flex-start',
-                                            padding: '0.75rem 1.5rem',
-                                            background: (broadcastLoading || !broadcastTitle || !broadcastBody) ? '#cbd5e1' : '#4f46e5',
-                                            color: '#fff',
-                                            border: 'none',
-                                            borderRadius: '8px',
-                                            fontWeight: 600,
-                                            cursor: (broadcastLoading || !broadcastTitle || !broadcastBody) ? 'not-allowed' : 'pointer',
-                                            transition: 'background 0.2s',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: '0.5rem'
-                                        }}
-                                    >
-                                        {broadcastLoading ? <RefreshCw size={18} style={{ animation: 'spin 1s linear infinite' }} /> : <Play size={18} fill="currentColor" />}
-                                        {broadcastLoading ? 'Sending...' : 'Send Broadcast'}
-                                    </button>
-                                </div>
-                            </div>
+
                         </div>
                     </div>
                 )}
 
 
                 {/* Search & Filter — only for users/items tabs */}
-                {activeTab !== 'blog' && activeTab !== 'price-alerts' && activeTab !== 'global-settings' && (
+                {activeTab !== 'blog' && activeTab !== 'price-alerts' && activeTab !== 'global-settings' && activeTab !== 'broadcast' && activeTab !== 'themes' && (
                     <div className="admin-filter-bar" style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem' }}>
                         <div className="admin-search-container" style={{ position: 'relative', flex: 1 }}>
                             <Search className="admin-search-icon" size={18} style={{ position: 'absolute', left: '1.25rem', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
@@ -1098,7 +1260,7 @@ export default function AdminPanel() {
                     </div>
                 )}
 
-                {activeTab !== 'blog' && activeTab !== 'price-alerts' && activeTab !== 'global-settings' && (
+                {activeTab !== 'blog' && activeTab !== 'price-alerts' && activeTab !== 'global-settings' && activeTab !== 'broadcast' && activeTab !== 'themes' && (
                     <>
                         {activeTab === 'users' ? (
                             <>
@@ -1971,35 +2133,6 @@ export default function AdminPanel() {
                         <button onClick={() => setActiveTab('blog')} style={{ background: 'transparent', border: 'none', color: activeTab === 'blog' ? '#fff' : 'rgba(255,255,255,0.6)', cursor: 'pointer', display: 'flex', padding: '0.5rem' }}>
                             <BookOpen size={22} strokeWidth={activeTab === 'blog' ? 2.5 : 2} />
                         </button>
-                        <button
-                            onClick={() => {
-                                setActiveTab('price-alerts');
-                                setPriceAlertLoading(true);
-                                fetch(`${API}/api/admin/price-drop/status`, { headers })
-                                    .then(r => r.json())
-                                    .then(d => {
-                                        setPriceAlertStatus(d);
-                                        if (d.cronExpression) {
-                                            const parts = d.cronExpression.split(' ');
-                                            if (parts.length >= 2) {
-                                                const utcH = parseInt(parts[1]) || 19;
-                                                const utcM = parseInt(parts[0]) || 30;
-                                                const istM = (utcM + 30) % 60;
-                                                const istH = (utcH + 5 + (utcM + 30 >= 60 ? 1 : 0)) % 24;
-                                                setScheduleHour(istH);
-                                                setScheduleMinute(istM);
-                                            }
-                                        }
-                                    })
-                                    .catch(() => { })
-                                    .finally(() => setPriceAlertLoading(false));
-                            }}
-                            style={{ background: 'transparent', border: 'none', color: activeTab === 'price-alerts' ? '#fbbf24' : 'rgba(255,255,255,0.6)', cursor: 'pointer', display: 'flex', padding: '0.5rem' }}
-                            title="Price Alerts"
-                        >
-                            <TrendingDown size={22} strokeWidth={activeTab === 'price-alerts' ? 2.5 : 2} />
-                        </button>
-
                     </div>
 
                     <button onClick={refreshData} disabled={loadingUsers || loadingItems} style={{ width: '56px', height: '56px', borderRadius: '50%', background: '#1d4ed8', color: '#fff', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 10px 25px -5px rgba(29, 78, 216, 0.5)' }}>
