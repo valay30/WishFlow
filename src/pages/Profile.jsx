@@ -82,7 +82,8 @@ export default function Profile() {
     const { showIsland } = useIsland();
 
     const showToast = (message, type = 'success') => {
-        showIsland({ title: type === 'success' ? 'Success' : 'Error', subtitle: message, type });
+        const title = type === 'success' ? 'Success' : (type === 'info' ? 'Notice' : 'Error');
+        showIsland({ title, subtitle: message, type });
     };
 
     const [isProfileLoading, setIsProfileLoading] = useState(true);
@@ -508,11 +509,13 @@ export default function Profile() {
                                                     <p style={{ margin: '0.1rem 0 0', fontSize: '0.82rem', color: 'var(--text-dim)' }}>Receive updates on your devices</p>
                                                 </div>
                                                 
-                                                <div style={{
-                                                    width: '44px', height: '24px', borderRadius: '12px',
-                                                    background: notificationPermission === 'granted' ? ORANGE : 'var(--surface-3)',
-                                                    position: 'relative', cursor: 'pointer',
-                                                    transition: 'background 0.3s'
+                                                <button style={{
+                                                    padding: '0.5rem 1rem', borderRadius: '10px',
+                                                    background: notificationPermission === 'granted' ? 'rgba(16, 185, 129, 0.1)' : 'var(--primary)',
+                                                    color: notificationPermission === 'granted' ? '#10b981' : '#fff',
+                                                    fontWeight: 800, fontSize: '0.8rem', border: 'none',
+                                                    cursor: notificationPermission === 'granted' ? 'default' : 'pointer',
+                                                    transition: 'all 0.2s', fontFamily: 'inherit'
                                                 }} onClick={async () => {
                                                     if (notificationPermission !== 'granted') {
                                                         const success = await subscribeToPushNotifications(user?.id);
@@ -527,13 +530,8 @@ export default function Profile() {
                                                         showToast('To disable notifications, change your browser site settings.', 'info');
                                                     }
                                                 }}>
-                                                    <div style={{
-                                                        width: '20px', height: '20px', borderRadius: '50%',
-                                                        background: 'var(--surface)', position: 'absolute', top: '2px',
-                                                        left: notificationPermission === 'granted' ? '22px' : '2px', transition: 'left 0.3s',
-                                                        boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-                                                    }} />
-                                                </div>
+                                                    {notificationPermission === 'granted' ? 'Enabled' : 'Enable'}
+                                                </button>
                                             </div>
                                         </div>
 
