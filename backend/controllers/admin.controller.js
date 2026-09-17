@@ -364,7 +364,7 @@ export const updateGlobalSetting = async (req, res) => {
 };
 
 export const broadcastNotification = async (req, res) => {
-    const { title, body, url, image, targetUserId } = req.body;
+    const { title, body, url, image, targetUserId, targetUserIds } = req.body;
 
     if (!title || !body) {
         return res.status(400).json({ error: 'Title and body are required' });
@@ -372,7 +372,9 @@ export const broadcastNotification = async (req, res) => {
 
     try {
         let query = supabase.from('push_subscriptions').select('*');
-        if (targetUserId) {
+        if (targetUserIds && Array.isArray(targetUserIds) && targetUserIds.length > 0) {
+            query = query.in('user_id', targetUserIds);
+        } else if (targetUserId) {
             query = query.eq('user_id', targetUserId);
         }
         

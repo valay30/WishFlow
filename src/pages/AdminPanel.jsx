@@ -63,7 +63,7 @@ export default function AdminPanel() {
     const [broadcastImage, setBroadcastImage] = useState('');
     const [broadcastLoading, setBroadcastLoading] = useState(false);
     const [isBroadcastModalOpen, setIsBroadcastModalOpen] = useState(false);
-    const [broadcastTargetUserId, setBroadcastTargetUserId] = useState('');
+    const [broadcastTargetUserIds, setBroadcastTargetUserIds] = useState([]);
 
     // Profile Menu state
     const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
@@ -206,7 +206,7 @@ export default function AdminPanel() {
                     body: broadcastBody,
                     url: broadcastUrl,
                     image: broadcastImage,
-                    targetUserId: broadcastTargetUserId || undefined
+                    targetUserIds: broadcastTargetUserIds.length > 0 ? broadcastTargetUserIds : undefined
                 })
             });
             const data = await res.json();
@@ -216,7 +216,7 @@ export default function AdminPanel() {
                 setBroadcastBody('');
                 setBroadcastUrl('');
                 setBroadcastImage('');
-                setBroadcastTargetUserId('');
+                setBroadcastTargetUserIds([]);
             } else {
                 showToast(data.error || 'Failed to send broadcast', 'error');
             }
@@ -954,19 +954,103 @@ export default function AdminPanel() {
 
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                                 <div>
-                                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.4rem' }}>Target User (Optional)</label>
-                                    <select
-                                        value={broadcastTargetUserId}
-                                        onChange={(e) => setBroadcastTargetUserId(e.target.value)}
-                                        style={{ width: '100%', padding: '0.75rem 1rem', border: '1px solid #cbd5e1', borderRadius: '8px', outline: 'none', fontFamily: 'inherit', background: '#fff' }}
-                                    >
-                                        <option value="">All Users (Global Broadcast)</option>
-                                        {users.map(u => (
-                                            <option key={u.id} value={u.id}>
-                                                {u.name ? `${u.name} (${u.email})` : (u.email || u.id)}
-                                            </option>
-                                        ))}
-                                    </select>
+                                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.4rem' }}>Target Users (Optional)</label>
+                                    <div className="custom-scrollbar" style={{ maxHeight: '280px', overflowY: 'auto', paddingRight: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+                                        <style>{`
+                                            .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+                                            .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 8px; }
+                                            .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 8px; }
+                                            .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+                                        `}</style>
+
+                                        {/* All Users Option */}
+                                        <label style={{ 
+                                            display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.75rem 1rem', cursor: 'pointer',
+                                            background: broadcastTargetUserIds.length === 0 ? '#fdf2f8' : '#fff',
+                                            border: broadcastTargetUserIds.length === 0 ? '2px solid #db2777' : '1px solid #e2e8f0',
+                                            borderRadius: '12px', transition: 'all 0.2s ease',
+                                            boxShadow: broadcastTargetUserIds.length === 0 ? '0 4px 12px rgba(219, 39, 119, 0.1)' : '0 1px 2px rgba(0,0,0,0.02)'
+                                        }}
+                                        onMouseEnter={e => { if (broadcastTargetUserIds.length !== 0) e.currentTarget.style.borderColor = '#cbd5e1'; }}
+                                        onMouseLeave={e => { if (broadcastTargetUserIds.length !== 0) e.currentTarget.style.borderColor = '#e2e8f0'; }}
+                                        >
+                                            <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                                                <input 
+                                                    type="checkbox" 
+                                                    checked={broadcastTargetUserIds.length === 0}
+                                                    onChange={() => setBroadcastTargetUserIds([])}
+                                                    style={{ opacity: 0, position: 'absolute', width: 0, height: 0 }}
+                                                />
+                                                <div style={{ 
+                                                    width: '20px', height: '20px', borderRadius: '6px', 
+                                                    border: broadcastTargetUserIds.length === 0 ? 'none' : '2px solid #cbd5e1',
+                                                    background: broadcastTargetUserIds.length === 0 ? '#db2777' : '#fff',
+                                                    display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s'
+                                                }}>
+                                                    {broadcastTargetUserIds.length === 0 && <span style={{ color: '#fff', fontSize: '12px', fontWeight: 'bold' }}>✓</span>}
+                                                </div>
+                                            </div>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
+                                                <div style={{ width: '38px', height: '38px', borderRadius: '50%', background: broadcastTargetUserIds.length === 0 ? '#db2777' : '#f1f5f9', color: broadcastTargetUserIds.length === 0 ? '#fff' : '#64748b', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem', transition: 'all 0.2s' }}>
+                                                    <Users size={18} strokeWidth={2.5} />
+                                                </div>
+                                                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                                    <span style={{ fontWeight: 700, color: broadcastTargetUserIds.length === 0 ? '#9d174d' : '#334155', fontSize: '0.95rem' }}>All Users (Global Broadcast)</span>
+                                                    <span style={{ color: broadcastTargetUserIds.length === 0 ? '#be185d' : '#94a3b8', fontSize: '0.75rem', fontWeight: 500 }}>Send to everyone subscribed</span>
+                                                </div>
+                                            </div>
+                                        </label>
+
+                                        {/* Individual Users */}
+                                        {users.map(u => {
+                                            const isSelected = broadcastTargetUserIds.includes(u.id);
+                                            const avatarColor = getAvatarColor(u.name || u.email);
+                                            return (
+                                                <label key={u.id} style={{ 
+                                                    display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.75rem 1rem', cursor: 'pointer',
+                                                    background: isSelected ? '#f8fafc' : '#fff',
+                                                    border: isSelected ? '2px solid #3b82f6' : '1px solid #e2e8f0',
+                                                    borderRadius: '12px', transition: 'all 0.2s ease',
+                                                    boxShadow: isSelected ? '0 4px 12px rgba(59, 130, 246, 0.1)' : '0 1px 2px rgba(0,0,0,0.02)'
+                                                }}
+                                                onMouseEnter={e => { if (!isSelected) e.currentTarget.style.borderColor = '#cbd5e1'; }}
+                                                onMouseLeave={e => { if (!isSelected) e.currentTarget.style.borderColor = '#e2e8f0'; }}
+                                                >
+                                                    <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                                                        <input 
+                                                            type="checkbox" 
+                                                            checked={isSelected}
+                                                            onChange={(e) => {
+                                                                if (e.target.checked) {
+                                                                    setBroadcastTargetUserIds([...broadcastTargetUserIds, u.id]);
+                                                                } else {
+                                                                    setBroadcastTargetUserIds(broadcastTargetUserIds.filter(id => id !== u.id));
+                                                                }
+                                                            }}
+                                                            style={{ opacity: 0, position: 'absolute', width: 0, height: 0 }}
+                                                        />
+                                                        <div style={{ 
+                                                            width: '20px', height: '20px', borderRadius: '6px', 
+                                                            border: isSelected ? 'none' : '2px solid #cbd5e1',
+                                                            background: isSelected ? '#3b82f6' : '#fff',
+                                                            display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s'
+                                                        }}>
+                                                            {isSelected && <span style={{ color: '#fff', fontSize: '12px', fontWeight: 'bold' }}>✓</span>}
+                                                        </div>
+                                                    </div>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
+                                                        <div style={{ width: '38px', height: '38px', borderRadius: '50%', background: avatarColor.bg, color: avatarColor.text, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.85rem', fontWeight: 800 }}>
+                                                            {getInitials(u.name, u.email)}
+                                                        </div>
+                                                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                                            <span style={{ fontWeight: 600, color: isSelected ? '#1e3a8a' : '#0f172a', fontSize: '0.9rem' }}>{u.name || 'Anonymous'}</span>
+                                                            <span style={{ color: '#64748b', fontSize: '0.75rem', fontWeight: 500 }}>{u.email}</span>
+                                                        </div>
+                                                    </div>
+                                                </label>
+                                            );
+                                        })}
+                                    </div>
                                 </div>
                                 <div>
                                     <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.4rem' }}>Title</label>

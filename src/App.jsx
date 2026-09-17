@@ -17,28 +17,28 @@ import CustomCursor from './components/CustomCursor';
 
 // ── Lazy-loaded page chunks ──────────────────────────────────────────────────
 // Each page is split into its own chunk and only downloaded when first visited.
-const AuthPage         = lazy(() => import('./pages/AuthPage'));
-const Home             = lazy(() => import('./pages/Home'));
-const AddProduct       = lazy(() => import('./pages/AddProduct'));
-const Categories       = lazy(() => import('./pages/Categories'));
-const ProductDetails   = lazy(() => import('./pages/ProductDetails'));
-const Profile          = lazy(() => import('./pages/Profile'));
-const Archive          = lazy(() => import('./pages/Archive'));
-const AdminPanel       = lazy(() => import('./pages/AdminPanel'));
-const Collections      = lazy(() => import('./pages/Collections'));
-const LandingPage      = lazy(() => import('./pages/LandingPage'));
-const Privacy          = lazy(() => import('./pages/Privacy'));
-const Terms            = lazy(() => import('./pages/Terms'));
-const Refund           = lazy(() => import('./pages/Refund'));
-const About            = lazy(() => import('./pages/About'));
-const Contact          = lazy(() => import('./pages/Contact'));
+const AuthPage = lazy(() => import('./pages/AuthPage'));
+const Home = lazy(() => import('./pages/Home'));
+const AddProduct = lazy(() => import('./pages/AddProduct'));
+const Categories = lazy(() => import('./pages/Categories'));
+const ProductDetails = lazy(() => import('./pages/ProductDetails'));
+const Profile = lazy(() => import('./pages/Profile'));
+const Archive = lazy(() => import('./pages/Archive'));
+const AdminPanel = lazy(() => import('./pages/AdminPanel'));
+const Collections = lazy(() => import('./pages/Collections'));
+const LandingPage = lazy(() => import('./pages/LandingPage'));
+const Privacy = lazy(() => import('./pages/Privacy'));
+const Terms = lazy(() => import('./pages/Terms'));
+const Refund = lazy(() => import('./pages/Refund'));
+const About = lazy(() => import('./pages/About'));
+const Contact = lazy(() => import('./pages/Contact'));
 const SharedCollection = lazy(() => import('./pages/SharedCollection'));
-const SharedItem       = lazy(() => import('./pages/SharedItem'));
-const ShareTargetPage  = lazy(() => import('./pages/ShareTargetPage'));
-const Discover         = lazy(() => import('./pages/Discover'));
-const Blog             = lazy(() => import('./pages/Blog'));
-const BlogPost         = lazy(() => import('./pages/BlogPost'));
-const RoastPreview     = lazy(() => import('./pages/RoastPreview'));
+const SharedItem = lazy(() => import('./pages/SharedItem'));
+const ShareTargetPage = lazy(() => import('./pages/ShareTargetPage'));
+const Discover = lazy(() => import('./pages/Discover'));
+const Blog = lazy(() => import('./pages/Blog'));
+const BlogPost = lazy(() => import('./pages/BlogPost'));
+const RoastPreview = lazy(() => import('./pages/RoastPreview'));
 // ────────────────────────────────────────────────────────────────────────────
 
 /** Minimal full-screen spinner shown while a lazy page chunk is loading */
@@ -165,18 +165,18 @@ function AppRoutes() {
           <Route path="/auth" element={
             (user && !recoveryMode)
               ? (() => {
-                  const hasUpgradeIntent = sessionStorage.getItem('upgradeIntent') === '1';
-                  if (hasUpgradeIntent) {
-                    sessionStorage.removeItem('upgradeIntent');
-                    return <Navigate to="/profile?upgrade=true" replace />;
-                  }
-                  const postLoginRedirect = sessionStorage.getItem('postLoginRedirect');
-                  if (postLoginRedirect) {
-                    sessionStorage.removeItem('postLoginRedirect');
-                    return <Navigate to={postLoginRedirect} replace />;
-                  }
-                  return <Navigate to="/home" replace />;
-                })()
+                const hasUpgradeIntent = sessionStorage.getItem('upgradeIntent') === '1';
+                if (hasUpgradeIntent) {
+                  sessionStorage.removeItem('upgradeIntent');
+                  return <Navigate to="/profile?upgrade=true" replace />;
+                }
+                const postLoginRedirect = sessionStorage.getItem('postLoginRedirect');
+                if (postLoginRedirect) {
+                  sessionStorage.removeItem('postLoginRedirect');
+                  return <Navigate to={postLoginRedirect} replace />;
+                }
+                return <Navigate to="/home" replace />;
+              })()
               : <AuthPage />
           } />
           <Route path="/privacy" element={<Privacy />} />

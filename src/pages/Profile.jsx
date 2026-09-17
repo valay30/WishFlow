@@ -86,6 +86,13 @@ export default function Profile() {
     };
 
     const [isProfileLoading, setIsProfileLoading] = useState(true);
+    const [notificationPermission, setNotificationPermission] = useState('default');
+
+    useEffect(() => {
+        if (typeof Notification !== 'undefined') {
+            setNotificationPermission(Notification.permission);
+        }
+    }, []);
 
     useEffect(() => {
         if (user?.username) {
@@ -381,7 +388,6 @@ export default function Profile() {
                             ...(user?.isAdmin ? [{ icon: ShieldCheck, label: 'Admin Panel', id: 'admin' }] : []),
                             { icon: ListIcon, label: 'Categories Lists', id: 'lists', hideOnDesktop: true },
                             { icon: FolderHeart, label: 'My Collections', id: 'collections', hideOnDesktop: true },
-                            { icon: Bell, label: 'Enable Notifications', id: 'notifications' },
                             { icon: Settings, label: 'General Settings', id: 'general' },
                         ].map((item, i) => (
                             <div key={item.id} className={item.hideOnDesktop ? 'hide-on-desktop' : ''} style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem', animation: `fadeInUp 0.4s ease-out ${i * 0.05}s backwards` }}>
@@ -391,13 +397,6 @@ export default function Profile() {
                                         if (item.id === 'lists') navigate('/categories');
                                         if (item.id === 'collections') navigate('/collections');
                                         if (item.id === 'general') setShowGeneral(!showGeneral);
-                                        if (item.id === 'notifications') {
-                                            const success = await subscribeToPushNotifications(user?.id);
-                                            showToast(
-                                                success ? 'Notifications enabled successfully!' : 'Could not enable notifications. Check permissions.',
-                                                success ? 'success' : 'error'
-                                            );
-                                        }
                                     }}
                                     style={{
                                         display: 'flex', alignItems: 'center', gap: '1.25rem',
@@ -490,6 +489,50 @@ export default function Profile() {
                                                             { value: 'CAD', label: 'C$ CAD' },
                                                         ]}
                                                     />
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Push Notifications */}
+                                        <div style={{ borderTop: `1px solid ${BORDER}`, paddingTop: '1rem' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                                <div>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                        <p style={{ margin: 0, fontWeight: 800, fontSize: '0.95rem', color: 'var(--text)' }}>Push Notifications</p>
+                                                        {notificationPermission === 'granted' && (
+                                                            <span style={{ display: 'inline-flex', alignItems: 'center', background: 'rgba(16, 185, 129, 0.1)', color: '#10b981', fontSize: '0.65rem', fontWeight: 800, padding: '0.15rem 0.45rem', borderRadius: '99px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                                                Enabled
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    <p style={{ margin: '0.1rem 0 0', fontSize: '0.82rem', color: 'var(--text-dim)' }}>Receive updates on your devices</p>
+                                                </div>
+                                                
+                                                <div style={{
+                                                    width: '44px', height: '24px', borderRadius: '12px',
+                                                    background: notificationPermission === 'granted' ? ORANGE : 'var(--surface-3)',
+                                                    position: 'relative', cursor: 'pointer',
+                                                    transition: 'background 0.3s'
+                                                }} onClick={async () => {
+                                                    if (notificationPermission !== 'granted') {
+                                                        const success = await subscribeToPushNotifications(user?.id);
+                                                        showToast(
+                                                            success ? 'Notifications enabled successfully!' : 'Could not enable notifications. Check permissions.',
+                                                            success ? 'success' : 'error'
+                                                        );
+                                                        if (typeof Notification !== 'undefined') {
+                                                            setNotificationPermission(Notification.permission);
+                                                        }
+                                                    } else {
+                                                        showToast('To disable notifications, change your browser site settings.', 'info');
+                                                    }
+                                                }}>
+                                                    <div style={{
+                                                        width: '20px', height: '20px', borderRadius: '50%',
+                                                        background: 'var(--surface)', position: 'absolute', top: '2px',
+                                                        left: notificationPermission === 'granted' ? '22px' : '2px', transition: 'left 0.3s',
+                                                        boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                                                    }} />
                                                 </div>
                                             </div>
                                         </div>
