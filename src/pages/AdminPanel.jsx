@@ -15,9 +15,15 @@ import { useAdminContext } from '../context/AdminContext';
 import CardVisual, { ROAST_THEMES } from '../components/CardVisual';
 import { uploadToImageKit } from '../utils/imagekit';
 
-// Builds auth headers with the live Supabase JWT — called fresh before every request
 const getAuthHeaders = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
+    let { data: { session } } = await supabase.auth.getSession();
+    
+    // Proactively refresh the token if it's expired or about to expire (within 1 min)
+    if (session?.expires_at && Date.now() > (session.expires_at * 1000) - 60000) {
+        const { data } = await supabase.auth.refreshSession();
+        session = data?.session || session;
+    }
+
     return {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${session?.access_token ?? ''}`,
