@@ -10,7 +10,7 @@ import BottomNav from './BottomNav';
 export default function Layout({ children }) {
     const { user, logout } = useAuth();
     const navigate = useNavigate();
-    const handleLogout = () => { logout(); navigate('/auth'); };
+    const handleLogout = async () => { await logout(); navigate('/auth'); };
 
     return (
         <div className="app-shell">

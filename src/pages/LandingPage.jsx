@@ -27,7 +27,7 @@ const FEATURES = [
         Icon: Bookmark,
         label: 'Save Anything, Instantly',
         desc: 'Save any product from any website that you want to purchase in future',
-        longDesc: 'Simply paste a product URL from any shopping website. WishFlow automatically fetches the product name, image, and price for you. No more juggling browser tabs or losing track of things you want to buy.',
+        longDesc: 'Simply paste a product URL from any shopping website. WishFlow automatically fetches the product name, image, and price for you.',
         cardGrad: '#fff',
         glow: 'rgba(232,92,44,0.1)',
     },
@@ -36,7 +36,7 @@ const FEATURES = [
         Icon: FolderHeart,
         label: 'Collections for Every Occasion',
         desc: 'Organize your wishlist products for any events/occasions',
-        longDesc: 'Create separate collections for birthdays, weddings, festivals, and more. Keep your wishlist perfectly organized so you always know what you want and when you want it. Add items from multiple stores into a single themed collection.',
+        longDesc: 'Create collections for birthdays, weddings, festivals, and more. Keep your wishlist organized so you always know what you want. Add items from different stores organized in one place.',
         cardGrad: '#fff',
         glow: 'rgba(232,92,44,0.12)',
     },
@@ -45,7 +45,7 @@ const FEATURES = [
         Icon: Share2,
         label: 'Share with Friends & Family',
         desc: 'Share with friends & family and make gifting meaningful',
-        longDesc: 'Share your wishlist collections with a single link. No app download required for your friends or family to view it. Make birthdays and festivals stress free by letting your loved ones know exactly what you want.',
+        longDesc: 'Share your wishlist with one simple link. No app download required for your friends or family to view it. Make birthdays and festivals stress free by letting your loved ones know exactly what you want.',
         cardGrad: '#fff',
         glow: 'rgba(232,92,44,0.15)',
     },
@@ -550,6 +550,48 @@ export default function LandingPage() {
         setDragDelta(0); touchStartX.current = null; resetAuto();
     };
 
+    // --- Why Wishflow Carousel State ---
+    const [wfActive, setWfActive] = useState(0);
+    const [wfDrag, setWfDrag] = useState(0);
+    const [wfDragging, setWfDragging] = useState(false);
+    const wfTouchStartX = useRef(null);
+    const wfTouchStartY = useRef(null);
+    const wfCarouselRef = useRef(null);
+    const wfAutoRef = useRef(null);
+
+    const startWfAuto = useCallback(() => {
+        wfAutoRef.current = setInterval(() => setWfActive(prev => (prev + 1) % FEATURES.length), 3800);
+    }, []);
+    useEffect(() => { startWfAuto(); return () => clearInterval(wfAutoRef.current); }, [startWfAuto]);
+    const resetWfAuto = () => { clearInterval(wfAutoRef.current); startWfAuto(); };
+
+    const onWfTouchStart = (e) => {
+        wfTouchStartX.current = e.touches[0].clientX;
+        wfTouchStartY.current = e.touches[0].clientY;
+        setWfDragging(true); setWfDrag(0);
+        clearInterval(wfAutoRef.current);
+    };
+    const wfTouchMoveHandler = useCallback((e) => {
+        if (wfTouchStartX.current === null) return;
+        const dx = e.touches[0].clientX - wfTouchStartX.current;
+        const dy = e.touches[0].clientY - wfTouchStartY.current;
+        if (Math.abs(dy) > Math.abs(dx) + 5) return;
+        e.preventDefault();
+        setWfDrag(dx);
+    }, []);
+    useEffect(() => {
+        const el = wfCarouselRef.current;
+        if (!el) return;
+        el.addEventListener('touchmove', wfTouchMoveHandler, { passive: false });
+        return () => el.removeEventListener('touchmove', wfTouchMoveHandler);
+    }, [wfTouchMoveHandler]);
+    const onWfTouchEnd = () => {
+        setWfDragging(false);
+        if (wfDrag < -52) setWfActive(a => Math.min(a + 1, FEATURES.length - 1));
+        else if (wfDrag > 52) setWfActive(a => Math.max(a - 1, 0));
+        setWfDrag(0); wfTouchStartX.current = null; resetWfAuto();
+    };
+
     const handleMouseMove = (e) => {
         if (isMobile) return;
         const x = (e.clientX / window.innerWidth) * 2 - 1;
@@ -657,6 +699,14 @@ export default function LandingPage() {
                     paddingBottom: isMobile ? '3rem' : '5rem',
                     position: 'relative', overflow: 'hidden',
                 }}>
+                {/* SVG Grid Background */}
+                <div style={{
+                    position: 'absolute', inset: 0, zIndex: 0, pointerEvents: 'none',
+                    backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h40v40H0V0zm1 1h38v38H1V1z' fill='%23000000' fill-opacity='0.03' fill-rule='evenodd'/%3E%3C/svg%3E")`,
+                    maskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 70%)',
+                    WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 70%)'
+                }} />
+
                 {/* Ambient glows */}
                 {FEATURES.map((s, i) => (
                     <motion.div key={i}
@@ -689,8 +739,7 @@ export default function LandingPage() {
                     </h1>
                     <div style={{ fontWeight: 900, fontSize: isMobile ? '2.2rem' : 'clamp(2.6rem, 4.5vw, 3.6rem)', lineHeight: 1.1, letterSpacing: '-0.02em', marginBottom: '1.25rem' }}>
                         <span style={{ color: '#111' }}>your </span>
-                        <span style={{ color: '#E85C2C' }}>wishlist assistant</span>
-                        {/* <span style={{ color: '#FF9A5A' }}>assistant</span> */}
+                        <span style={{ background: 'linear-gradient(135deg, #E85C2C 0%, #FF9A5A 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>wishlist assistant</span>
                     </div>
                     <p style={{ color: '#666', fontSize: isMobile ? '1rem' : '1.15rem', maxWidth: '540px', margin: '0 auto 1.75rem', lineHeight: 1.6 }}>
                         Save products from any website, organize them into beautiful collections, and share your wishlist with friends & family — all for free.
@@ -736,6 +785,32 @@ export default function LandingPage() {
                             Explore Discover Feed
                         </button>
                     )}
+
+                    {/* Social Proof */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.6 }}
+                        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', marginTop: '2rem' }}
+                    >
+                        <div style={{ display: 'flex' }}>
+                            {[
+                                "https://i.pravatar.cc/100?img=1",
+                                "https://i.pravatar.cc/100?img=2",
+                                "https://i.pravatar.cc/100?img=3",
+                                "https://i.pravatar.cc/100?img=4",
+                                "https://i.pravatar.cc/100?img=5"
+                            ].map((src, i) => (
+                                <img key={i} src={src} alt="User" style={{ width: '32px', height: '32px', borderRadius: '50%', border: '2px solid #fff', marginLeft: i === 0 ? 0 : '-12px', zIndex: 5 - i }} />
+                            ))}
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                            <div style={{ display: 'flex', gap: '2px' }}>
+                                {[1, 2, 3, 4, 5].map(i => <Star key={i} size={12} color="#F59E0B" fill="#F59E0B" />)}
+                            </div>
+                            <span style={{ fontSize: '0.85rem', color: '#666', fontWeight: 600, fontFamily: FONT }}>Loved by 10,00+ users</span>
+                        </div>
+                    </motion.div>
                 </div>
 
                 {/* Floating Mockup */}
@@ -814,74 +889,7 @@ export default function LandingPage() {
                     </motion.div>
                 </motion.div>
 
-                {/* Mobile: Carousel / Desktop: 3 cards row */}
-                {isMobile ? (
-                    <div
-                        ref={carouselRef}
-                        onTouchStart={onTouchStart}
-                        onTouchEnd={onTouchEnd}
-                        style={{ width: '100%', position: 'relative', height: `${cardH}px`, flexShrink: 0, userSelect: 'none', touchAction: 'pan-y', zIndex: 2 }}
-                    >
-                        {FEATURES.map((s, i) => {
-                            const offset = i - activeSlide;
-                            const tx = offset * (cardW + GAP) + dragDelta;
-                            const isActive = i === activeSlide;
-                            return (
-                                <div key={s.id} style={{ position: 'absolute', left: `calc(50% - ${cardW / 2}px)`, top: '50%', width: `${cardW}px`, height: `${cardH}px`, transform: `translate(${tx}px, -50%)`, transition: dragging ? 'none' : 'transform 0.42s cubic-bezier(.25,.8,.25,1)', zIndex: isActive ? 2 : 1 }}>
-                                    <div style={{ width: '100%', height: '100%', background: '#fff', borderRadius: '24px', border: isActive ? '2px solid #E85C2C' : '1px solid #f0f0f0', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '2rem', position: 'relative', overflow: 'hidden', transform: `scale(${isActive ? 1 : 0.87})`, opacity: isActive ? 1 : 0.4, transition: 'transform 0.38s ease, opacity 0.38s ease, border 0.38s ease, box-shadow 0.38s ease', boxShadow: isActive ? '0 25px 60px rgba(232,92,44,0.15)' : '0 12px 30px rgba(0,0,0,0.05)' }}>
-                                        <div style={{ position: 'absolute', inset: 0, backgroundImage: NOISE_URI, opacity: 0.1, mixBlendMode: 'screen', pointerEvents: 'none' }} />
-                                        <div style={{ width: '100px', height: '100px', borderRadius: '50%', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1.25rem', zIndex: 1 }}>
-                                            <div style={{ width: '70px', height: '70px', borderRadius: '50%', background: '#FFF5F2', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                                <s.Icon size={30} color="#E85C2C" strokeWidth={2} />
-                                            </div>
-                                        </div>
-                                        <h3 style={{ fontFamily: FONT, fontWeight: 800, fontSize: '1.5rem', color: '#111', margin: '0 0 0.75rem', textAlign: 'center', zIndex: 1 }}>{s.label}</h3>
-                                        <div style={{ width: '50px', height: '1.5px', background: 'rgba(232,92,44,0.3)', borderRadius: '2px', marginBottom: '0.75rem', zIndex: 1 }} />
-                                        <p style={{ fontFamily: FONT, fontSize: '0.95rem', color: '#666', margin: 0, lineHeight: 1.55, textAlign: 'center', zIndex: 1 }}>{s.desc}</p>
-                                    </div>
-                                </div>
-                            );
-                        })}
-                    </div>
-                ) : (
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '2rem', width: '100%', maxWidth: '960px', height: 'clamp(300px, 42vh, 440px)', position: 'relative', zIndex: 2, padding: '0 2rem', boxSizing: 'border-box', animation: 'lp-fadeIn 0.5s ease 0.1s both' }}>
-                        {FEATURES.map(s => (
-                            <div
-                                key={s.id}
-                                style={{ background: '#fff', borderRadius: '24px', border: '1px solid #f0f0f0', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden', boxShadow: '0 24px 64px rgba(0,0,0,0.06)', transition: 'transform 0.3s ease, border 0.3s ease, box-shadow 0.3s ease' }}
-                                onMouseEnter={e => {
-                                    e.currentTarget.style.border = '2px solid #E85C2C';
-                                    e.currentTarget.style.boxShadow = '0 25px 60px rgba(232,92,44,0.15)';
-                                    e.currentTarget.style.transform = 'translateY(-4px)';
-                                }}
-                                onMouseLeave={e => {
-                                    e.currentTarget.style.border = '1px solid #f0f0f0';
-                                    e.currentTarget.style.boxShadow = '0 24px 64px rgba(0,0,0,0.06)';
-                                    e.currentTarget.style.transform = 'translateY(0)';
-                                }}
-                            >
-                                <div style={{ position: 'absolute', inset: 0, backgroundImage: NOISE_URI, opacity: 0.08, mixBlendMode: 'screen', pointerEvents: 'none' }} />
-                                <div style={{ width: '110px', height: '110px', borderRadius: '50%', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1rem', zIndex: 1 }}>
-                                    <div style={{ width: '72px', height: '72px', borderRadius: '50%', background: '#FFF5F2', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                        <s.Icon size={28} color="#E85C2C" strokeWidth={2} />
-                                    </div>
-                                </div>
-                                <h3 style={{ fontFamily: FONT, fontWeight: 800, fontSize: 'clamp(1rem, 1.5vw, 1.3rem)', color: '#111', margin: '0 0 0.5rem', textAlign: 'center', zIndex: 1, padding: '0 1rem' }}>{s.label}</h3>
-                                <div style={{ width: '36px', height: '1.5px', background: 'rgba(232,92,44,0.3)', borderRadius: '2px', marginBottom: '0.5rem', zIndex: 1 }} />
-                                <p style={{ fontFamily: FONT, fontSize: 'clamp(0.78rem, 1vw, 0.88rem)', color: '#666', margin: 0, lineHeight: 1.6, textAlign: 'center', maxWidth: '210px', zIndex: 1, padding: '0 1rem' }}>{s.desc}</p>
-                            </div>
-                        ))}
-                    </div>
-                )}
 
-                {/* Dots (mobile only) */}
-                {isMobile && (
-                    <div style={{ display: 'flex', gap: '0.4rem', zIndex: 2, marginTop: '1rem', marginBottom: '1.5rem' }}>
-                        {FEATURES.map((_, i) => (
-                            <button key={i} onClick={() => { setActiveSlide(i); resetAuto(); }} aria-label={`Go to slide ${i + 1}`} aria-current={i === activeSlide ? 'true' : undefined} style={{ width: i === activeSlide ? '1.75rem' : '0.45rem', height: '0.45rem', borderRadius: '99px', background: i === activeSlide ? '#E85C2C' : 'rgba(0,0,0,0.1)', border: 'none', cursor: 'pointer', transition: 'all 0.3s ease', padding: 0 }} />
-                        ))}
-                    </div>
-                )}
 
 
             </section>
@@ -922,20 +930,55 @@ export default function LandingPage() {
                     </p>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: '1.5rem' }}>
-                    {FEATURES.map(f => (
-                        <div key={f.id} style={{ background: '#fff', border: '1px solid #f0f0f0', borderRadius: '20px', padding: '2rem', transition: 'border-color 0.2s ease' }}
-                            onMouseEnter={e => e.currentTarget.style.borderColor = 'rgba(232,92,44,0.3)'}
-                            onMouseLeave={e => e.currentTarget.style.borderColor = '#f0f0f0'}
+                {isMobile ? (
+                    <>
+                        <div
+                            ref={wfCarouselRef}
+                            onTouchStart={onWfTouchStart}
+                            onTouchEnd={onWfTouchEnd}
+                            style={{ width: '100%', position: 'relative', height: '400px', flexShrink: 0, userSelect: 'none', touchAction: 'pan-y', zIndex: 2 }}
                         >
-                            <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: '#FFF5F2', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1.25rem' }}>
-                                <f.Icon size={22} color="#E85C2C" strokeWidth={2} />
-                            </div>
-                            <h3 style={{ fontFamily: FONT, fontWeight: 800, fontSize: '1.1rem', color: '#111', margin: '0 0 0.75rem' }}>{f.label}</h3>
-                            <p style={{ fontFamily: FONT, fontSize: '0.92rem', color: '#666', margin: 0, lineHeight: 1.7 }}>{f.longDesc}</p>
+                            {FEATURES.map((f, i) => {
+                                const offset = i - wfActive;
+                                const tx = offset * (cardW + GAP) + wfDrag;
+                                const isActive = i === wfActive;
+                                return (
+                                    <div key={f.id} style={{ position: 'absolute', left: `calc(50% - ${cardW / 2}px)`, top: '50%', width: `${cardW}px`, height: '400px', transform: `translate(${tx}px, -50%)`, transition: wfDragging ? 'none' : 'transform 0.42s cubic-bezier(.25,.8,.25,1)', zIndex: isActive ? 2 : 1 }}>
+                                        <div style={{ width: '100%', height: '100%', background: '#fff', borderRadius: '24px', padding: '2.5rem 1.25rem', display: 'flex', flexDirection: 'column', alignItems: 'center', transition: 'transform 0.38s ease, opacity 0.38s ease, border 0.38s ease, box-shadow 0.38s ease', transform: `scale(${isActive ? 1 : 0.87})`, opacity: isActive ? 1 : 0.4, border: isActive ? '2px solid #E85C2C' : '1px solid #f0f0f0', boxShadow: isActive ? '0 25px 60px rgba(232,92,44,0.15)' : '0 12px 30px rgba(0,0,0,0.05)' }}>
+                                            <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: '#FFF5F2', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1.25rem' }}>
+                                                <f.Icon size={28} color="#E85C2C" strokeWidth={2} />
+                                            </div>
+                                            <h3 style={{ fontFamily: FONT, fontWeight: 800, fontSize: '1.15rem', color: '#111', margin: '0 0 0.75rem', textAlign: 'center' }}>{f.label}</h3>
+                                            <div style={{ width: '30px', height: '2px', background: 'rgba(232,92,44,0.3)', borderRadius: '2px', marginBottom: '0.75rem' }} />
+                                            <p style={{ fontFamily: FONT, fontSize: '0.95rem', color: '#666', margin: 0, lineHeight: 1.6, textAlign: 'center' }}>{f.longDesc}</p>
+                                        </div>
+                                    </div>
+                                );
+                            })}
                         </div>
-                    ))}
-                </div>
+                        <div style={{ display: 'flex', justifyContent: 'center', gap: '0.4rem', zIndex: 2, marginTop: '1.5rem' }}>
+                            {FEATURES.map((_, i) => (
+                                <button key={i} onClick={() => { setWfActive(i); resetWfAuto(); }} aria-label={`Go to slide ${i + 1}`} aria-current={i === wfActive ? 'true' : undefined} style={{ width: i === wfActive ? '1.75rem' : '0.45rem', height: '0.45rem', borderRadius: '99px', background: i === wfActive ? '#E85C2C' : 'rgba(0,0,0,0.1)', border: 'none', cursor: 'pointer', transition: 'all 0.3s ease', padding: 0 }} />
+                            ))}
+                        </div>
+                    </>
+                ) : (
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem' }}>
+                        {FEATURES.map(f => (
+                            <div key={f.id} style={{ background: '#fff', border: '1px solid #f0f0f0', borderRadius: '20px', padding: '2.5rem 2rem', transition: 'all 0.2s ease', display: 'flex', flexDirection: 'column', alignItems: 'center' }}
+                                onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(232,92,44,0.3)'; e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 12px 32px rgba(232,92,44,0.08)'; }}
+                                onMouseLeave={e => { e.currentTarget.style.borderColor = '#f0f0f0'; e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}
+                            >
+                                <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: '#FFF5F2', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1.25rem' }}>
+                                    <f.Icon size={28} color="#E85C2C" strokeWidth={2} />
+                                </div>
+                                <h3 style={{ fontFamily: FONT, fontWeight: 800, fontSize: '1.2rem', color: '#111', margin: '0 0 0.75rem', textAlign: 'center' }}>{f.label}</h3>
+                                <div style={{ width: '30px', height: '2px', background: 'rgba(232,92,44,0.3)', borderRadius: '2px', marginBottom: '0.75rem' }} />
+                                <p style={{ fontFamily: FONT, fontSize: '0.92rem', color: '#666', margin: 0, lineHeight: 1.7, textAlign: 'center' }}>{f.longDesc}</p>
+                            </div>
+                        ))}
+                    </div>
+                )}
             </section>
 
             {/* ── HOW IT WORKS ── */}
@@ -1289,7 +1332,7 @@ export default function LandingPage() {
                             Ready to build your <span style={{ background: 'linear-gradient(135deg, #E85C2C 0%, #FF3D3D 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>dream wishlist?</span>
                         </h2>
                         <p style={{ color: '#555', fontSize: '1.1rem', margin: '0 auto 2.5rem', lineHeight: 1.7, maxWidth: '500px' }}>
-                            Join thousands of smart shoppers who use WishFlow to save, organize, and track products they love.
+                            Join thousands of smart users who use WishFlow to save, organize, and track products they love.
                         </p>
 
                         <div style={{ position: 'relative', display: 'inline-block', margin: '0 auto' }}>
