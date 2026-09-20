@@ -10,12 +10,16 @@ import AddProductModal from '../components/AddProductModal';
 import { useIsland } from '../context/IslandContext';
 import ItemCard from '../components/ItemCard';
 import SkeletonCard from '../components/SkeletonCard';
+import PullToRefresh from '../components/PullToRefresh';
+import IOSActionSheet from '../components/IOSActionSheet';
+import ElasticScroll from '../components/ElasticScroll';
 import confetti from 'canvas-confetti';
 import AlertModal from '../components/AlertModal';
 import { API_URL } from '../config';
 import { loadRazorpay } from '../utils/loadRazorpay';
 import GroupNameModal from '../components/GroupNameModal';
 import Masonry from 'react-masonry-css';
+import { motion } from 'framer-motion';
 
 const ORANGE = 'var(--primary)';
 const SURFACE = 'var(--surface)';
@@ -138,18 +142,18 @@ export default function Home() {
         saveGroups();
     }, [groups, user?.id, groupsLoaded]);
 
+    const load = useCallback(async () => {
+        setIsLoading(true);
+        const [fetchedItems, fetchedCats] = await Promise.all([
+            db.items.getAll(),
+            db.categories.getAll(),
+        ]);
+        setItems(fetchedItems);
+        setCats(fetchedCats);
+        setIsLoading(false);
+    }, []);
+
     useEffect(() => {
-        const load = async () => {
-            setIsLoading(true);
-            const [fetchedItems, fetchedCats] = await Promise.all([
-                db.items.getAll(),
-                db.categories.getAll(),
-            ]);
-            setItems(fetchedItems);
-            setCats(fetchedCats);
-            setIsLoading(false);
-        };
-        
         load();
 
         const handleItemsUpdated = () => {
@@ -158,7 +162,7 @@ export default function Home() {
         window.addEventListener('items-updated', handleItemsUpdated);
 
         return () => window.removeEventListener('items-updated', handleItemsUpdated);
-    }, []);
+    }, [load]);
 
     useEffect(() => {
         if (searchParams.get('celebrate') === 'true') {
@@ -169,7 +173,7 @@ export default function Home() {
             const frame = () => {
                 const sidebarWidth = window.innerWidth > 768 ? 260 : 0;
                 const leftOriginX = sidebarWidth / window.innerWidth;
-                
+
                 confetti({
                     particleCount: 4,
                     angle: 60,
@@ -442,573 +446,598 @@ export default function Home() {
             {shouldShowAddModal && <AddProductModal categories={categories} onAdd={handleAdd} onClose={closeModal} shareUrl={shareUrl} />}
 
             {/* ══════════ MOBILE: hero + sheet layout ══════════ */}
-            <div className="d-mobile-layout">
-                {/* ORANGE HERO */}
-                <div className="home-hero">
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem' }}>
-                        <div style={{ minWidth: 0 }}>
-                            <p style={{ color: 'rgba(255,255,255,0.7)', fontWeight: 600, fontSize: '0.9rem', marginBottom: '0.2rem' }}>Hi there 👋</p>
-                            <h1 style={{ fontSize: '1.6rem', fontWeight: 900, color: '#fff', lineHeight: 1.15, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{firstName}'s WishFlow</h1>
-                        </div>
-                        {/* Avatar with tier indicator */}
-                        <div
-                            onClick={() => navigate('/profile')}
-                            style={{ position: 'relative', flexShrink: 0, cursor: 'pointer' }}
-                        >
-                            <div style={{
-                                width: '48px', height: '48px', borderRadius: '50%',
-                                background: user?.isPremium
-                                    ? 'linear-gradient(135deg, #d97706, #f59e0b)'
-                                    : 'rgba(255,255,255,0.15)',
-                                border: user?.isPremium
-                                    ? '2.5px solid rgba(251,191,36,0.6)'
-                                    : '2.5px solid rgba(255,255,255,0.2)',
-                                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                color: '#fff', fontWeight: 900, fontSize: '1.1rem',
-                                boxShadow: user?.isPremium ? '0 4px 16px rgba(217,119,6,0.5)' : 'none',
-                                transition: 'all 0.2s',
-                            }}>
-                                {user?.name?.[0]?.toUpperCase() || '?'}
+            <PullToRefresh onRefresh={load}>
+                <div className="d-mobile-layout">
+                    {/* ORANGE HERO */}
+                    <div className="home-hero">
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem' }}>
+                            <div style={{ minWidth: 0 }}>
+                                <p style={{ color: 'rgba(255,255,255,0.7)', fontWeight: 600, fontSize: '0.9rem', marginBottom: '0.2rem' }}>Hi there 👋</p>
+                                <h1 style={{ fontSize: '1.6rem', fontWeight: 900, color: '#fff', lineHeight: 1.15, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{firstName}'s WishFlow</h1>
                             </div>
-                        </div>
-                    </div>
-
-                    {/* Stats row */}
-                    <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1.25rem' }}>
-                        {[
-                            { label: 'Items', val: items.filter(i => !i.is_purchased).length },
-                            { label: 'Categories', val: categories.length },
-                            { label: 'Total', val: new Intl.NumberFormat(undefined, { style: 'currency', currency: currency || 'INR', maximumFractionDigits: 0 }).format(items.filter(i => !i.is_purchased).reduce((s, i) => s + (i.price || 0), 0)) },
-                        ].map(s => (
-                            <div key={s.label} style={{ flex: 1, minWidth: 0, background: 'rgba(255,255,255,0.15)', borderRadius: '14px', padding: '0.65rem 0.65rem' }}>
-                                <p style={{ fontWeight: 900, fontSize: '1rem', color: '#fff', lineHeight: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.val}</p>
-                                <p style={{ fontSize: '0.68rem', color: 'rgba(255,255,255,0.7)', marginTop: '0.2rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.label}</p>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-
-                {/* DARK SHEET */}
-                <div className="home-sheet">
-                    {/* ── Category chips (horizontal scroll) ── */}
-                    <div style={{
-                        display: 'flex', gap: '0.65rem',
-                        overflowX: 'auto', paddingBottom: '0.75rem',
-                        marginBottom: '1.25rem',
-                        scrollbarWidth: 'none', msOverflowStyle: 'none',
-                    }}>
-                        {catCards.map(cat => {
-                            const isActive = cat.id === null ? selectedCategory === null : selectedCategory === cat.id;
-                            return (
-                                <button
-                                    key={cat.id ?? 'all'}
-                                    onClick={() => selectCat(cat.id)}
-                                    style={{
-                                        flexShrink: 0,
-                                        display: 'flex', alignItems: 'center', gap: '0.55rem',
-                                        padding: '0.65rem 1.25rem',
-                                        borderRadius: '99px',
-                                        border: isActive ? 'none' : `1px solid rgba(0,0,0,0.04)`,
-                                        background: isActive ? ORANGE : '#FFFFFF',
-                                        color: isActive ? '#fff' : '#4B5563',
-                                        fontWeight: 800,
-                                        fontSize: '0.9rem',
-                                        fontFamily: 'inherit',
-                                        cursor: 'pointer',
-                                        transition: 'all 0.18s ease',
-                                        whiteSpace: 'nowrap',
-                                        boxShadow: isActive ? '0 4px 14px rgba(var(--primary-rgb),0.4)' : '0 1px 4px rgba(0,0,0,0.03)',
-                                    }}
-                                >
-                                    {cat.id !== null && <GetCategoryIcon name={cat.name} size={16} color={isActive ? '#fff' : ORANGE} />}
-                                    {cat.name}
-                                </button>
-                            );
-                        })}
-                    </div>
-
-                    {/* ── Search bar + Inline Filter/Sort ── */}
-                    <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'center', marginBottom: '1.25rem' }}>
-                        <div style={{ flex: 1, position: 'relative' }}>
-                            <Search size={17} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-dim)', pointerEvents: 'none' }} />
-                            <input
-                                type="text"
-                                placeholder="Search products..."
-                                value={search}
-                                onChange={e => setSearch(e.target.value)}
-                                style={{ width: '100%', padding: search ? '0.85rem 2.4rem 0.85rem 2.75rem' : '0.85rem 1rem 0.85rem 2.75rem', background: SURFACE, border: `1.5px solid ${BORDER}`, borderRadius: '99px', color: 'var(--text)', fontFamily: 'inherit', fontSize: '0.95rem', outline: 'none', transition: 'border-color 0.2s', boxSizing: 'border-box' }}
-                                onFocus={e => e.target.style.borderColor = ORANGE}
-                                onBlur={e => e.target.style.borderColor = BORDER}
-                            />
-                            {search && (
-                                <button onClick={() => setSearch('')} style={{ position: 'absolute', right: '0.85rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'var(--text-dim)', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
-                                    <X size={16} />
-                                </button>
-                            )}
-                        </div>
-
-                        {/* Custom Dropdown Sort Menu — Inspired by modern UI card design */}
-                        <div style={{ position: 'relative', flexShrink: 0 }}>
-                            {/* Visual Trigger Button */}
-                            <button
-                                type="button"
-                                onClick={() => setIsSortOpen(prev => !prev)}
-                                style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '0.35rem',
-                                    background: sortBy !== 'default' ? ORANGE : SURFACE,
-                                    color: sortBy !== 'default' ? '#fff' : 'var(--text)',
-                                    border: `1.5px solid ${sortBy !== 'default' ? ORANGE : BORDER}`,
-                                    borderRadius: '99px',
-                                    padding: '0.75rem 0.95rem',
-                                    fontSize: '0.85rem',
-                                    fontWeight: 700,
-                                    fontFamily: 'inherit',
-                                    cursor: 'pointer',
-                                    transition: 'all 0.2s ease',
-                                    boxShadow: sortBy !== 'default' ? '0 4px 14px rgba(var(--primary-rgb),0.35)' : 'none',
-                                    whiteSpace: 'nowrap',
-                                }}
+                            {/* Avatar with tier indicator */}
+                            <div
+                                onClick={() => navigate('/profile')}
+                                style={{ position: 'relative', flexShrink: 0, cursor: 'pointer' }}
                             >
-                                <SlidersHorizontal size={14} style={{ color: sortBy !== 'default' ? '#fff' : ORANGE }} />
-                                <span>Sort</span>
-                                <ChevronDown
-                                    size={13}
-                                    style={{
-                                        color: sortBy !== 'default' ? '#fff' : 'var(--text-dim)',
-                                        transform: isSortOpen ? 'rotate(180deg)' : 'none',
-                                        transition: 'transform 0.2s ease'
-                                    }}
-                                />
-                            </button>
-
-                            {/* Outside click backdrop */}
-                            {isSortOpen && (
-                                <div
-                                    onClick={() => setIsSortOpen(false)}
-                                    style={{ position: 'fixed', inset: 0, zIndex: 1999 }}
-                                />
-                            )}
-
-                            {/* Floating Dropdown Card */}
-                            {isSortOpen && (
                                 <div style={{
-                                    position: 'absolute',
-                                    top: 'calc(100% + 8px)',
-                                    right: 0,
-                                    zIndex: 2000,
-                                    minWidth: '210px',
-                                    background: 'var(--surface)',
-                                    border: `1px solid ${BORDER}`,
-                                    borderRadius: '20px',
-                                    padding: '0.45rem',
-                                    boxShadow: '0 12px 36px rgba(0,0,0,0.18)',
-                                    animation: 'fadeIn 0.15s ease-out',
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    gap: '0.2rem',
+                                    width: '48px', height: '48px', borderRadius: '50%',
+                                    background: user?.isPremium
+                                        ? 'linear-gradient(135deg, #d97706, #f59e0b)'
+                                        : 'rgba(255,255,255,0.15)',
+                                    border: user?.isPremium
+                                        ? '2.5px solid rgba(251,191,36,0.6)'
+                                        : '2.5px solid rgba(255,255,255,0.2)',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    color: '#fff', fontWeight: 900, fontSize: '1.1rem',
+                                    boxShadow: user?.isPremium ? '0 4px 16px rgba(217,119,6,0.5)' : 'none',
+                                    transition: 'all 0.2s',
                                 }}>
-                                    {[
-                                        { id: 'default', label: 'Default', icon: RotateCcw },
-                                        { id: 'price_asc', label: 'Price: Low → High', icon: TrendingUp },
-                                        { id: 'price_desc', label: 'Price: High → Low', icon: TrendingDown },
-                                        { id: 'name_asc', label: 'Name: A → Z', icon: SortAsc },
-                                        { id: 'name_desc', label: 'Name: Z → A', icon: SortDesc },
-                                    ].map((opt, idx) => {
-                                        if (opt.id === 'divider') {
-                                            return <div key={'div-' + idx} style={{ height: '1px', background: 'var(--border)', margin: '0.3rem 0.5rem', opacity: 0.7 }} />;
-                                        }
-                                        const IconComponent = opt.icon;
-                                        const isActive = sortBy === opt.id;
+                                    {user?.name?.[0]?.toUpperCase() || '?'}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Stats row */}
+                        <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1.25rem' }}>
+                            {[
+                                { label: 'Items', val: items.filter(i => !i.is_purchased).length },
+                                { label: 'Categories', val: categories.length },
+                                { label: 'Total', val: new Intl.NumberFormat(undefined, { style: 'currency', currency: currency || 'INR', maximumFractionDigits: 0 }).format(items.filter(i => !i.is_purchased).reduce((s, i) => s + (i.price || 0), 0)) },
+                            ].map(s => (
+                                <div key={s.label} style={{ flex: 1, minWidth: 0, background: 'rgba(255,255,255,0.15)', borderRadius: '14px', padding: '0.65rem 0.65rem' }}>
+                                    <p style={{ fontWeight: 900, fontSize: '1rem', color: '#fff', lineHeight: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.val}</p>
+                                    <p style={{ fontSize: '0.68rem', color: 'rgba(255,255,255,0.7)', marginTop: '0.2rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.label}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* DARK SHEET */}
+                    <div className="home-sheet">
+                        {/* ── Category Segmented Control ── */}
+                        <div style={{
+                            background: darkMode ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)',
+                            borderRadius: '14px',
+                            padding: '4px',
+                            marginBottom: '1.25rem',
+                            width: '100%',
+                            boxSizing: 'border-box'
+                        }}>
+                            <ElasticScroll gap="2px" style={{ minWidth: '100%' }}>
+                                    {catCards.map(cat => {
+                                        const isActive = cat.id === null ? selectedCategory === null : selectedCategory === cat.id;
                                         return (
                                             <button
-                                                key={opt.id}
-                                                type="button"
-                                                onClick={() => { setSortBy(opt.id); setIsSortOpen(false); }}
+                                                key={cat.id ?? 'all'}
+                                                onClick={(e) => {
+                                                    selectCat(cat.id);
+                                                    e.currentTarget.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+                                                }}
                                                 style={{
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    justify: 'space-between',
-                                                    gap: '0.75rem',
-                                                    width: '100%',
-                                                    padding: '0.65rem 0.85rem',
-                                                    borderRadius: '14px',
+                                                    position: 'relative',
+                                                    flexShrink: 0,
+                                                    flex: 1,
+                                                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.45rem',
+                                                    padding: '0.5rem 1.15rem',
+                                                    borderRadius: '10px',
                                                     border: 'none',
-                                                    background: isActive ? 'rgba(var(--primary-rgb),0.12)' : 'transparent',
-                                                    color: isActive ? ORANGE : 'var(--text)',
-                                                    fontWeight: isActive ? 700 : 500,
-                                                    fontSize: '0.86rem',
+                                                    background: 'transparent',
+                                                    color: isActive ? (darkMode ? '#fff' : '#000') : 'var(--text-dim)',
+                                                    fontWeight: isActive ? 800 : 600,
+                                                    fontSize: '0.85rem',
                                                     fontFamily: 'inherit',
                                                     cursor: 'pointer',
-                                                    textAlign: 'left',
-                                                    transition: 'all 0.15s ease',
-                                                }}
-                                                onMouseEnter={e => {
-                                                    if (!isActive) e.currentTarget.style.background = 'var(--surface-2)';
-                                                }}
-                                                onMouseLeave={e => {
-                                                    if (!isActive) e.currentTarget.style.background = 'transparent';
+                                                    transition: 'color 0.2s ease',
+                                                    whiteSpace: 'nowrap',
+                                                    zIndex: 1
                                                 }}
                                             >
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-                                                    <IconComponent size={15} color={isActive ? ORANGE : 'var(--text-muted)'} />
-                                                    <span>{opt.label}</span>
-                                                </div>
+                                                {isActive && (
+                                                    <motion.div
+                                                        layoutId="activeCategoryTab"
+                                                        style={{
+                                                            position: 'absolute',
+                                                            inset: 0,
+                                                            background: darkMode ? '#333' : '#fff',
+                                                            borderRadius: '10px',
+                                                            boxShadow: darkMode ? '0 2px 10px rgba(0,0,0,0.5)' : '0 2px 8px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04)',
+                                                            zIndex: -1
+                                                        }}
+                                                        transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+                                                    />
+                                                )}
+                                                {cat.id !== null && <GetCategoryIcon name={cat.name} size={15} color={isActive ? (darkMode ? '#fff' : '#000') : 'var(--text-dim)'} style={{ position: 'relative', zIndex: 1 }} />}
+                                                <span style={{ position: 'relative', zIndex: 1 }}>{cat.name}</span>
                                             </button>
                                         );
                                     })}
-                                </div>
-                            )}
+                            </ElasticScroll>
                         </div>
-                    </div>
 
-                    {/* ── Items list header ── */}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.85rem' }}>
-                        <h2 style={{ fontWeight: 800, fontSize: '1.05rem', color: 'var(--text)' }}>
-                            {selectedCategory ? categories.find(c => c.id === selectedCategory)?.name : 'All Items'}
-                        </h2>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                            <span style={{ fontSize: '0.8rem', color: 'var(--text-dim)' }}>{filtered.length} item{filtered.length !== 1 ? 's' : ''}</span>
-                        </div>
-                    </div>
-
-
-                    {isLoading ? (
-                        <div className={viewMode === 'card' ? "category-grid" : "list-view-container"} style={viewMode === 'list' ? { display: 'flex', flexDirection: 'column', gap: '0.75rem' } : {}}>
-                            {Array.from({ length: 6 }).map((_, i) => (
-                                <SkeletonCard key={i} mode={viewMode} />
-                            ))}
-                        </div>
-                    ) : (filtered.length > 0 || groups.some(g => g.itemIds.length > 0)) ? (
-                        /* ── Single unified grid: folder cards first, then ungrouped items ── */
-                        <GridWrapper {...gridProps}>
-                            {/* FOLDER CARDS — one per group, inline in the grid */}
-                            {(viewMode === 'card' || viewMode === 'masonry') && groups.map(group => {
-                                const groupItems = group.itemIds
-                                    .map(id => items.find(i => i.id === id))
-                                    .filter(Boolean)
-                                    .filter(i => !i.is_purchased);
-
-                                if (groupItems.length === 0) return null;
-
-                                const previews = groupItems.slice(0, 3);
-
-                                return (
-                                    <div
-                                        key={group.id}
-                                        onClick={() => setOpenGroupId(group.id)}
-                                        style={{
-                                            background: SURFACE,
-                                            border: `1.5px solid ${BORDER}`,
-                                            borderRadius: '24px',
-                                            cursor: 'pointer',
-                                            display: 'flex',
-                                            flexDirection: 'column',
-                                            transition: 'all 0.22s cubic-bezier(0.4,0,0.2,1)',
-                                            overflow: 'hidden',
-                                            position: 'relative',
-                                            boxShadow: 'none',
-                                            transform: 'none',
-                                        }}
-                                        onMouseEnter={e => {
-                                            e.currentTarget.style.borderColor = ORANGE;
-                                            e.currentTarget.style.boxShadow = `0 8px 28px rgba(var(--primary-rgb),0.15)`;
-                                            e.currentTarget.style.transform = 'translateY(-4px)';
-                                        }}
-                                        onMouseLeave={e => {
-                                            e.currentTarget.style.borderColor = BORDER;
-                                            e.currentTarget.style.boxShadow = 'none';
-                                            e.currentTarget.style.transform = 'translateY(0)';
-                                        }}
-                                    >
-                                        <div style={{ padding: '0.8rem 0.8rem 0.4rem', position: 'relative' }}>
-                                            <div style={{
-                                                background: 'var(--surface-2)',
-                                                borderRadius: '16px',
-                                                aspectRatio: '1 / 1',
-                                                overflow: 'hidden',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
-                                                width: '100%',
-                                                boxShadow: '0 6px 16px rgba(0, 0, 0, 0.08)',
-                                                border: '1px solid var(--border)',
-                                                position: 'relative'
-                                            }}>
-                                                {/* Folder 3D Object */}
-                                                <div style={{ width: '85%', aspectRatio: '1.1', position: 'relative', transform: 'translateY(5%)' }}>
-                                                    {/* Back body of folder */}
-                                                    <div style={{
-                                                        position: 'absolute',
-                                                        bottom: '8%', left: 0, right: 0,
-                                                        height: '75%',
-                                                        background: darkMode ? '#1a1a1a' : (FOLDER_THEMES[colorTheme]?.back || FOLDER_THEMES.blue.back),
-                                                        borderRadius: '10px',
-                                                        boxShadow: darkMode ? 'inset 0 -10px 20px rgba(0,0,0,0.4)' : 'inset 0 -10px 20px rgba(0,0,0,0.05)',
-                                                    }} />
-
-                                                    {/* Documents */}
-                                                    {previews.map((item, idx) => {
-                                                        const configs = [
-                                                            { left: '12%', rotate: '-12deg', bottom: '25%', width: '35%', height: '58%', zIndex: 1 },
-                                                            { left: '32%', rotate: '0deg', bottom: '30%', width: '35%', height: '62%', zIndex: 3 },
-                                                            { left: '52%', rotate: '12deg', bottom: '24%', width: '35%', height: '58%', zIndex: 2 },
-                                                        ];
-                                                        const c = configs[idx] || configs[1];
-                                                        return (
-                                                            <div key={item.id} style={{
-                                                                position: 'absolute',
-                                                                left: c.left, bottom: c.bottom,
-                                                                width: c.width, height: c.height,
-                                                                borderRadius: '6px',
-                                                                background: darkMode ? '#e5e5e5' : '#ffffff',
-                                                                boxShadow: darkMode ? '0 4px 12px rgba(0,0,0,0.4)' : '0 4px 12px rgba(0,0,0,0.12)',
-                                                                transform: `rotate(${c.rotate})`,
-                                                                transformOrigin: 'bottom center',
-                                                                zIndex: c.zIndex,
-                                                                padding: '10px 8px',
-                                                                display: 'flex', flexDirection: 'column', gap: '5px',
-                                                                overflow: 'hidden'
-                                                            }}>
-                                                                <div style={{ height: '4px', background: darkMode ? 'rgba(0, 0, 0, 0.2)' : 'rgba(107, 179, 240, 0.4)', borderRadius: '2px', width: '85%' }} />
-                                                                <div style={{ height: '3px', background: darkMode ? 'rgba(0, 0, 0, 0.15)' : 'rgba(107, 179, 240, 0.25)', borderRadius: '2px', width: '60%' }} />
-                                                                <div style={{ height: '3px', background: darkMode ? 'rgba(0, 0, 0, 0.15)' : 'rgba(107, 179, 240, 0.25)', borderRadius: '2px', width: '75%' }} />
-                                                                <div style={{ height: '3px', background: darkMode ? 'rgba(0, 0, 0, 0.1)' : 'rgba(107, 179, 240, 0.2)', borderRadius: '2px', width: '50%' }} />
-                                                            </div>
-                                                        );
-                                                    })}
-
-                                                    {/* Front flap mask URL */}
-                                                    <div style={{
-                                                        position: 'absolute',
-                                                        bottom: '8%', left: 0, right: 0, height: '60%',
-                                                        background: darkMode ? 'linear-gradient(135deg, rgba(80, 80, 80, 0.65), rgba(40, 40, 40, 0.8))' : (FOLDER_THEMES[colorTheme]?.front || FOLDER_THEMES.blue.front),
-                                                        backdropFilter: 'blur(10px)',
-                                                        WebkitBackdropFilter: 'blur(10px)',
-                                                        maskImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 100 65' preserveAspectRatio='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M5 0h30q5 0 8 4l3 5q3 4 8 4h41q5 0 5 5v42q0 5-5 5H5q-5 0-5-5V5q0-5 5-5z' fill='black'/%3E%3C/svg%3E")`,
-                                                        WebkitMaskImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 100 65' preserveAspectRatio='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M5 0h30q5 0 8 4l3 5q3 4 8 4h41q5 0 5 5v42q0 5-5 5H5q-5 0-5-5V5q0-5 5-5z' fill='black'/%3E%3C/svg%3E")`,
-                                                        maskSize: '100% 100%',
-                                                        WebkitMaskSize: '100% 100%',
-                                                        zIndex: 5,
-                                                        boxShadow: darkMode ? 'inset 0 1px 1px rgba(255,255,255,0.15)' : 'inset 0 1px 1px rgba(255,255,255,0.6)',
-                                                    }}>
-                                                        {/* Top highlight */}
-                                                        <div style={{
-                                                            position: 'absolute', top: 0, left: 0, right: 0, height: '1.5px',
-                                                            background: darkMode ? 'linear-gradient(90deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.05) 100%)' : (FOLDER_THEMES[colorTheme]?.highlight || FOLDER_THEMES.blue.highlight),
-                                                        }} />
-                                                    </div>
-
-
-                                                </div>
-
-                                                {/* Delete button placed top right of the image box, identical to ItemCard */}
-                                                <button
-                                                    onClick={e => deleteGroup(group.id, e)}
-                                                    title="Dissolve group"
-                                                    style={{
-                                                        position: 'absolute', top: '0.5rem', right: '0.5rem',
-                                                        width: '28px', height: '28px', borderRadius: '50%',
-                                                        background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(8px)',
-                                                        color: '#fff', border: '1px solid rgba(255,255,255,0.2)',
-                                                        cursor: 'pointer', zIndex: 10,
-                                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                                        transition: 'all 0.2s', padding: 0
-                                                    }}
-                                                    onMouseEnter={e => { e.currentTarget.style.background = '#ef4444'; e.currentTarget.style.borderColor = '#ef4444'; e.currentTarget.style.transform = 'scale(1.1)'; }}
-                                                    onMouseLeave={e => { e.currentTarget.style.background = 'rgba(0,0,0,0.5)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)'; e.currentTarget.style.transform = 'scale(1)'; }}
-                                                >
-                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>
-                                                </button>
-                                            </div>
-                                        </div>
-
-                                        {/* Content below image */}
-                                        <div style={{ padding: '0.75rem 0.9rem 1rem', flex: 1, display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '0.4rem', flex: 1 }}>
-                                                <p style={{
-                                                    fontWeight: 800,
-                                                    fontSize: '1.05rem',
-                                                    color: 'var(--text)',
-                                                    lineHeight: 1.3,
-                                                    margin: 0,
-                                                    display: '-webkit-box',
-                                                    WebkitLineClamp: 2,
-                                                    WebkitBoxOrient: 'vertical',
-                                                    overflow: 'hidden',
-                                                }}>
-                                                    {group.name}
-                                                </p>
-                                                <span style={{
-                                                    display: 'inline-block',
-                                                    fontSize: '0.65rem', fontWeight: 800,
-                                                    color: 'var(--text-muted)',
-                                                    background: 'var(--surface-2)',
-                                                    padding: '0.2rem 0.55rem',
-                                                    borderRadius: '6px',
-                                                    textTransform: 'uppercase', letterSpacing: '0.05em',
-                                                    border: '1px solid var(--border)',
-                                                    whiteSpace: 'nowrap',
-                                                }}>
-                                                    {groupItems.length} ITEM{groupItems.length !== 1 ? 'S' : ''}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                );
-                            })}
-
-                            {/* UNGROUPED ITEM CARDS */}
-                            {ungroupedFiltered.map(item => (
-                                (viewMode === 'card' || viewMode === 'masonry') ? (
-                                    <ItemCard
-                                        key={item.id}
-                                        item={item}
-                                        categoryName={categories.find(c => c.id === item.category_id)?.name || 'Other'}
-                                        onRemove={() => handleRemoveItem(item.id)}
-                                        onTogglePurchased={handleTogglePurchased}
-                                        onTogglePublic={async (id, val) => {
-                                            await db.discover.setPublic(id, val);
-                                            setItems(prev => prev.map(i => i.id === id ? { ...i, is_public: val } : i));
-                                        }}
-                                    />
-                                ) : (
-                                    <ProductCard
-                                        key={item.id}
-                                        item={item}
-                                        categoryName={categories.find(c => c.id === item.category_id)?.name || 'Other'}
-                                    />
-                                )
-                            ))}
-                        </GridWrapper>
-                    ) : (
-                        <div style={{ textAlign: 'center', padding: '3rem 1rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.85rem' }}>
-                            <div style={{ width: '180px', height: '180px', marginBottom: '0.5rem', borderRadius: '32px', overflow: 'hidden', boxShadow: '0 16px 40px rgba(0,0,0,0.12)', border: '1px solid rgba(255,255,255,0.4)', background: 'var(--surface)' }}>
-                                <img src="/empty_state.png" alt="Empty State" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        {/* ── Search bar + Inline Filter/Sort ── */}
+                        <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'center', marginBottom: '1.25rem' }}>
+                            <div style={{ flex: 1, position: 'relative' }}>
+                                <Search size={17} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-dim)', pointerEvents: 'none' }} />
+                                <input
+                                    type="text"
+                                    placeholder="Search products..."
+                                    value={search}
+                                    onChange={e => setSearch(e.target.value)}
+                                    style={{ width: '100%', padding: search ? '0.85rem 2.4rem 0.85rem 2.75rem' : '0.85rem 1rem 0.85rem 2.75rem', background: SURFACE, border: `1.5px solid ${BORDER}`, borderRadius: '99px', color: 'var(--text)', fontFamily: 'inherit', fontSize: '0.95rem', outline: 'none', transition: 'border-color 0.2s', boxSizing: 'border-box' }}
+                                    onFocus={e => e.target.style.borderColor = ORANGE}
+                                    onBlur={e => e.target.style.borderColor = BORDER}
+                                />
+                                {search && (
+                                    <button onClick={() => setSearch('')} style={{ position: 'absolute', right: '0.85rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'var(--text-dim)', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+                                        <X size={16} />
+                                    </button>
+                                )}
                             </div>
-                            <p style={{ fontWeight: 700, color: 'var(--text)', fontSize: '1rem' }}>Nothing here yet!</p>
-                            <p style={{ fontSize: '0.82rem', color: 'var(--text-dim)', maxWidth: '235px' }}>
-                                {search ? 'No results found. Try a different search.' : 'Tap the + button to add your first item.'}
-                            </p>
-                            {!search && (
-                                <button onClick={openModal} style={{ marginTop: '0.5rem', padding: '0.7rem 1.5rem', background: ORANGE, color: '#fff', border: 'none', borderRadius: '99px', fontWeight: 800, fontSize: '0.9rem', cursor: 'pointer', fontFamily: 'inherit', boxShadow: '0 4px 14px rgba(var(--primary-rgb),0.35)' }}>
-                                    + Add First Item
-                                </button>
-                            )}
-                        </div>
-                    )}
 
-
-                    {/* ── GROUP BOTTOM SHEET ── */}
-                    {openGroupId && (() => {
-                        const group = groups.find(g => g.id === openGroupId);
-                        if (!group) return null;
-                        const groupItems = group.itemIds
-                            .map(id => items.find(i => i.id === id))
-                            .filter(Boolean)
-                            .filter(i => !i.is_purchased);
-                        return createPortal(
-                            <div
-                                onClick={() => setOpenGroupId(null)}
-                                style={{
-                                    position: 'fixed', inset: 0, zIndex: 8000,
-                                    background: 'rgba(0,0,0,0.52)',
-                                    backdropFilter: 'blur(6px)',
-                                    WebkitBackdropFilter: 'blur(6px)',
-                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                    padding: '1.5rem',
-                                    animation: 'fadeIn 0.18s ease-out',
-                                }}
-                            >
-                                <div
-                                    onClick={e => e.stopPropagation()}
+                            {/* Custom Dropdown Sort Menu — Inspired by modern UI card design */}
+                            <div style={{ position: 'relative', flexShrink: 0 }}>
+                                {/* Visual Trigger Button */}
+                                <button
+                                    type="button"
+                                    onClick={() => setIsSortOpen(prev => !prev)}
                                     style={{
-                                        width: '100%', maxWidth: '640px',
-                                        background: 'var(--surface)',
-                                        borderRadius: '28px',
-                                        padding: '0',
-                                        maxHeight: '85vh',
-                                        display: 'flex', flexDirection: 'column',
-                                        overflow: 'hidden',
-                                        boxShadow: '0 24px 48px rgba(0,0,0,0.3)',
-                                        transformOrigin: 'center',
-                                        animation: 'popIn 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '0.35rem',
+                                        background: sortBy !== 'default' ? ORANGE : SURFACE,
+                                        color: sortBy !== 'default' ? '#fff' : 'var(--text)',
+                                        border: `1.5px solid ${sortBy !== 'default' ? ORANGE : BORDER}`,
+                                        borderRadius: '99px',
+                                        padding: '0.75rem 0.95rem',
+                                        fontSize: '0.85rem',
+                                        fontWeight: 700,
+                                        fontFamily: 'inherit',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.2s ease',
+                                        boxShadow: sortBy !== 'default' ? '0 4px 14px rgba(var(--primary-rgb),0.35)' : 'none',
+                                        whiteSpace: 'nowrap',
                                     }}
                                 >
+                                    <SlidersHorizontal size={14} style={{ color: sortBy !== 'default' ? '#fff' : ORANGE }} />
+                                    <span>Sort</span>
+                                    <ChevronDown
+                                        size={13}
+                                        style={{
+                                            color: sortBy !== 'default' ? '#fff' : 'var(--text-dim)',
+                                            transform: isSortOpen ? 'rotate(180deg)' : 'none',
+                                            transition: 'transform 0.2s ease'
+                                        }}
+                                    />
+                                </button>
 
+                                {/* Outside click backdrop */}
+                                {isSortOpen && (
+                                    <div
+                                        onClick={() => setIsSortOpen(false)}
+                                        style={{ position: 'fixed', inset: 0, zIndex: 1999 }}
+                                    />
+                                )}
+
+                                {/* Floating Dropdown Card */}
+                                {isSortOpen && (
                                     <div style={{
-                                        display: 'flex', alignItems: 'center', gap: '0.85rem',
-                                        padding: '0.85rem 1.25rem 1rem',
-                                        borderBottom: '1px solid var(--border)',
+                                        position: 'absolute',
+                                        top: 'calc(100% + 8px)',
+                                        right: 0,
+                                        zIndex: 2000,
+                                        minWidth: '210px',
+                                        background: 'var(--surface)',
+                                        border: `1px solid ${BORDER}`,
+                                        borderRadius: '20px',
+                                        padding: '0.45rem',
+                                        boxShadow: '0 12px 36px rgba(0,0,0,0.18)',
+                                        animation: 'fadeIn 0.15s ease-out',
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        gap: '0.2rem',
                                     }}>
-                                        <div style={{
-                                            width: '40px', height: '40px', borderRadius: '12px',
-                                            background: 'linear-gradient(135deg, var(--primary), var(--primary-dk))',
-                                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                            flexShrink: 0,
-                                            boxShadow: '0 4px 12px rgba(var(--primary-rgb),0.35)',
-                                        }}>
-                                            <Layers size={18} color="#fff" />
-                                        </div>
-                                        <div style={{ flex: 1, minWidth: 0 }}>
-                                            <p style={{ fontWeight: 900, fontSize: '1.5rem', color: 'var(--text)', margin: 0, lineHeight: 1.2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                                {group.name}
-                                            </p>
+                                        {[
+                                            { id: 'default', label: 'Default', icon: RotateCcw },
+                                            { id: 'price_asc', label: 'Price: Low → High', icon: TrendingUp },
+                                            { id: 'price_desc', label: 'Price: High → Low', icon: TrendingDown },
+                                            { id: 'name_asc', label: 'Name: A → Z', icon: SortAsc },
+                                            { id: 'name_desc', label: 'Name: Z → A', icon: SortDesc },
+                                        ].map((opt, idx) => {
+                                            if (opt.id === 'divider') {
+                                                return <div key={'div-' + idx} style={{ height: '1px', background: 'var(--border)', margin: '0.3rem 0.5rem', opacity: 0.7 }} />;
+                                            }
+                                            const IconComponent = opt.icon;
+                                            const isActive = sortBy === opt.id;
+                                            return (
+                                                <button
+                                                    key={opt.id}
+                                                    type="button"
+                                                    onClick={() => { setSortBy(opt.id); setIsSortOpen(false); }}
+                                                    style={{
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justify: 'space-between',
+                                                        gap: '0.75rem',
+                                                        width: '100%',
+                                                        padding: '0.65rem 0.85rem',
+                                                        borderRadius: '14px',
+                                                        border: 'none',
+                                                        background: isActive ? 'rgba(var(--primary-rgb),0.12)' : 'transparent',
+                                                        color: isActive ? ORANGE : 'var(--text)',
+                                                        fontWeight: isActive ? 700 : 500,
+                                                        fontSize: '0.86rem',
+                                                        fontFamily: 'inherit',
+                                                        cursor: 'pointer',
+                                                        textAlign: 'left',
+                                                        transition: 'all 0.15s ease',
+                                                    }}
+                                                    onMouseEnter={e => {
+                                                        if (!isActive) e.currentTarget.style.background = 'var(--surface-2)';
+                                                    }}
+                                                    onMouseLeave={e => {
+                                                        if (!isActive) e.currentTarget.style.background = 'transparent';
+                                                    }}
+                                                >
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+                                                        <IconComponent size={15} color={isActive ? ORANGE : 'var(--text-muted)'} />
+                                                        <span>{opt.label}</span>
+                                                    </div>
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
 
-                                        </div>
-                                        <button
-                                            onClick={() => setOpenGroupId(null)}
+                        {/* ── Items list header ── */}
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.85rem' }}>
+                            <h2 style={{ fontWeight: 800, fontSize: '1.05rem', color: 'var(--text)' }}>
+                                {selectedCategory ? categories.find(c => c.id === selectedCategory)?.name : 'All Items'}
+                            </h2>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                                <span style={{ fontSize: '0.8rem', color: 'var(--text-dim)' }}>{filtered.length} item{filtered.length !== 1 ? 's' : ''}</span>
+                            </div>
+                        </div>
+
+
+                        {isLoading ? (
+                            <div className={viewMode === 'card' ? "category-grid" : "list-view-container"} style={viewMode === 'list' ? { display: 'flex', flexDirection: 'column', gap: '0.75rem' } : {}}>
+                                {Array.from({ length: 6 }).map((_, i) => (
+                                    <SkeletonCard key={i} mode={viewMode} />
+                                ))}
+                            </div>
+                        ) : (filtered.length > 0 || groups.some(g => g.itemIds.length > 0)) ? (
+                            /* ── Single unified grid: folder cards first, then ungrouped items ── */
+                            <GridWrapper {...gridProps}>
+                                {/* FOLDER CARDS — one per group, inline in the grid */}
+                                {(viewMode === 'card' || viewMode === 'masonry') && groups.map(group => {
+                                    const groupItems = group.itemIds
+                                        .map(id => items.find(i => i.id === id))
+                                        .filter(Boolean)
+                                        .filter(i => !i.is_purchased);
+
+                                    if (groupItems.length === 0) return null;
+
+                                    const previews = groupItems.slice(0, 3);
+
+                                    return (
+                                        <div
+                                            key={group.id}
+                                            onClick={() => setOpenGroupId(group.id)}
                                             style={{
-                                                width: '34px', height: '34px', borderRadius: '50%',
-                                                background: 'var(--surface-2)', border: '1px solid var(--border)',
-                                                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                                cursor: 'pointer', color: 'var(--text-muted)',
-                                                flexShrink: 0, transition: 'background 0.15s',
+                                                background: SURFACE,
+                                                border: `1.5px solid ${BORDER}`,
+                                                borderRadius: '24px',
+                                                cursor: 'pointer',
+                                                display: 'flex',
+                                                flexDirection: 'column',
+                                                transition: 'all 0.22s cubic-bezier(0.4,0,0.2,1)',
+                                                overflow: 'hidden',
+                                                position: 'relative',
+                                                boxShadow: 'none',
+                                                transform: 'none',
                                             }}
-                                            onMouseEnter={e => { e.currentTarget.style.background = 'var(--surface-3)'; }}
-                                            onMouseLeave={e => { e.currentTarget.style.background = 'var(--surface-2)'; }}
+                                            onMouseEnter={e => {
+                                                e.currentTarget.style.borderColor = ORANGE;
+                                                e.currentTarget.style.boxShadow = `0 8px 28px rgba(var(--primary-rgb),0.15)`;
+                                                e.currentTarget.style.transform = 'translateY(-4px)';
+                                            }}
+                                            onMouseLeave={e => {
+                                                e.currentTarget.style.borderColor = BORDER;
+                                                e.currentTarget.style.boxShadow = 'none';
+                                                e.currentTarget.style.transform = 'translateY(0)';
+                                            }}
                                         >
-                                            <X size={16} />
-                                        </button>
-                                    </div>
-
-                                    {/* Items grid inside the sheet */}
-                                    <div style={{ overflowY: 'auto', padding: '1.25rem', flex: 1, background: 'var(--surface-2)' }}>
-                                        <div style={{
-                                            display: 'grid',
-                                            gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))',
-                                            gap: '0.75rem',
-                                            alignItems: 'start'
-                                        }}>
-                                            {groupItems.map(item => (
-                                                <div key={item.id} style={{
-                                                    transform: 'scale(0.95)',
-                                                    transformOrigin: 'top center',
+                                            <div style={{ padding: '0.8rem 0.8rem 0.4rem', position: 'relative' }}>
+                                                <div style={{
+                                                    background: 'var(--surface-2)',
+                                                    borderRadius: '16px',
+                                                    aspectRatio: '1 / 1',
+                                                    overflow: 'hidden',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
                                                     width: '100%',
-                                                    margin: '-2.5% 0' // Compensate for scale empty space
+                                                    boxShadow: '0 6px 16px rgba(0, 0, 0, 0.08)',
+                                                    border: '1px solid var(--border)',
+                                                    position: 'relative'
                                                 }}>
-                                                    <ItemCard
-                                                        item={item}
-                                                        categoryName={categories.find(c => c.id === item.category_id)?.name || 'Other'}
-                                                        onRemove={() => handleRemoveItem(item.id)}
-                                                        onTogglePurchased={handleTogglePurchased}
-                                                        onTogglePublic={async (id, val) => {
-                                                            await db.discover.setPublic(id, val);
-                                                            setItems(prev => prev.map(i => i.id === id ? { ...i, is_public: val } : i));
+                                                    {/* Folder 3D Object */}
+                                                    <div style={{ width: '85%', aspectRatio: '1.1', position: 'relative', transform: 'translateY(5%)' }}>
+                                                        {/* Back body of folder */}
+                                                        <div style={{
+                                                            position: 'absolute',
+                                                            bottom: '8%', left: 0, right: 0,
+                                                            height: '75%',
+                                                            background: darkMode ? '#1a1a1a' : (FOLDER_THEMES[colorTheme]?.back || FOLDER_THEMES.blue.back),
+                                                            borderRadius: '10px',
+                                                            boxShadow: darkMode ? 'inset 0 -10px 20px rgba(0,0,0,0.4)' : 'inset 0 -10px 20px rgba(0,0,0,0.05)',
+                                                        }} />
+
+                                                        {/* Documents */}
+                                                        {previews.map((item, idx) => {
+                                                            const configs = [
+                                                                { left: '12%', rotate: '-12deg', bottom: '25%', width: '35%', height: '58%', zIndex: 1 },
+                                                                { left: '32%', rotate: '0deg', bottom: '30%', width: '35%', height: '62%', zIndex: 3 },
+                                                                { left: '52%', rotate: '12deg', bottom: '24%', width: '35%', height: '58%', zIndex: 2 },
+                                                            ];
+                                                            const c = configs[idx] || configs[1];
+                                                            return (
+                                                                <div key={item.id} style={{
+                                                                    position: 'absolute',
+                                                                    left: c.left, bottom: c.bottom,
+                                                                    width: c.width, height: c.height,
+                                                                    borderRadius: '6px',
+                                                                    background: darkMode ? '#e5e5e5' : '#ffffff',
+                                                                    boxShadow: darkMode ? '0 4px 12px rgba(0,0,0,0.4)' : '0 4px 12px rgba(0,0,0,0.12)',
+                                                                    transform: `rotate(${c.rotate})`,
+                                                                    transformOrigin: 'bottom center',
+                                                                    zIndex: c.zIndex,
+                                                                    padding: '10px 8px',
+                                                                    display: 'flex', flexDirection: 'column', gap: '5px',
+                                                                    overflow: 'hidden'
+                                                                }}>
+                                                                    <div style={{ height: '4px', background: darkMode ? 'rgba(0, 0, 0, 0.2)' : 'rgba(107, 179, 240, 0.4)', borderRadius: '2px', width: '85%' }} />
+                                                                    <div style={{ height: '3px', background: darkMode ? 'rgba(0, 0, 0, 0.15)' : 'rgba(107, 179, 240, 0.25)', borderRadius: '2px', width: '60%' }} />
+                                                                    <div style={{ height: '3px', background: darkMode ? 'rgba(0, 0, 0, 0.15)' : 'rgba(107, 179, 240, 0.25)', borderRadius: '2px', width: '75%' }} />
+                                                                    <div style={{ height: '3px', background: darkMode ? 'rgba(0, 0, 0, 0.1)' : 'rgba(107, 179, 240, 0.2)', borderRadius: '2px', width: '50%' }} />
+                                                                </div>
+                                                            );
+                                                        })}
+
+                                                        {/* Front flap mask URL */}
+                                                        <div style={{
+                                                            position: 'absolute',
+                                                            bottom: '8%', left: 0, right: 0, height: '60%',
+                                                            background: darkMode ? 'linear-gradient(135deg, rgba(80, 80, 80, 0.65), rgba(40, 40, 40, 0.8))' : (FOLDER_THEMES[colorTheme]?.front || FOLDER_THEMES.blue.front),
+                                                            backdropFilter: 'blur(10px)',
+                                                            WebkitBackdropFilter: 'blur(10px)',
+                                                            maskImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 100 65' preserveAspectRatio='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M5 0h30q5 0 8 4l3 5q3 4 8 4h41q5 0 5 5v42q0 5-5 5H5q-5 0-5-5V5q0-5 5-5z' fill='black'/%3E%3C/svg%3E")`,
+                                                            WebkitMaskImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 100 65' preserveAspectRatio='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M5 0h30q5 0 8 4l3 5q3 4 8 4h41q5 0 5 5v42q0 5-5 5H5q-5 0-5-5V5q0-5 5-5z' fill='black'/%3E%3C/svg%3E")`,
+                                                            maskSize: '100% 100%',
+                                                            WebkitMaskSize: '100% 100%',
+                                                            zIndex: 5,
+                                                            boxShadow: darkMode ? 'inset 0 1px 1px rgba(255,255,255,0.15)' : 'inset 0 1px 1px rgba(255,255,255,0.6)',
+                                                        }}>
+                                                            {/* Top highlight */}
+                                                            <div style={{
+                                                                position: 'absolute', top: 0, left: 0, right: 0, height: '1.5px',
+                                                                background: darkMode ? 'linear-gradient(90deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.05) 100%)' : (FOLDER_THEMES[colorTheme]?.highlight || FOLDER_THEMES.blue.highlight),
+                                                            }} />
+                                                        </div>
+
+
+                                                    </div>
+
+                                                    {/* Delete button placed top right of the image box, identical to ItemCard */}
+                                                    <button
+                                                        onClick={e => deleteGroup(group.id, e)}
+                                                        title="Dissolve group"
+                                                        style={{
+                                                            position: 'absolute', top: '0.5rem', right: '0.5rem',
+                                                            width: '28px', height: '28px', borderRadius: '50%',
+                                                            background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(8px)',
+                                                            color: '#fff', border: '1px solid rgba(255,255,255,0.2)',
+                                                            cursor: 'pointer', zIndex: 10,
+                                                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                            transition: 'all 0.2s', padding: 0
                                                         }}
-                                                    />
+                                                        onMouseEnter={e => { e.currentTarget.style.background = '#ef4444'; e.currentTarget.style.borderColor = '#ef4444'; e.currentTarget.style.transform = 'scale(1.1)'; }}
+                                                        onMouseLeave={e => { e.currentTarget.style.background = 'rgba(0,0,0,0.5)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)'; e.currentTarget.style.transform = 'scale(1)'; }}
+                                                    >
+                                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>
+                                                    </button>
                                                 </div>
-                                            ))}
+                                            </div>
+
+                                            {/* Content below image */}
+                                            <div style={{ padding: '0.75rem 0.9rem 1rem', flex: 1, display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '0.4rem', flex: 1 }}>
+                                                    <p style={{
+                                                        fontWeight: 800,
+                                                        fontSize: '1.05rem',
+                                                        color: 'var(--text)',
+                                                        lineHeight: 1.3,
+                                                        margin: 0,
+                                                        display: '-webkit-box',
+                                                        WebkitLineClamp: 2,
+                                                        WebkitBoxOrient: 'vertical',
+                                                        overflow: 'hidden',
+                                                    }}>
+                                                        {group.name}
+                                                    </p>
+                                                    <span style={{
+                                                        display: 'inline-block',
+                                                        fontSize: '0.65rem', fontWeight: 800,
+                                                        color: 'var(--text-muted)',
+                                                        background: 'var(--surface-2)',
+                                                        padding: '0.2rem 0.55rem',
+                                                        borderRadius: '6px',
+                                                        textTransform: 'uppercase', letterSpacing: '0.05em',
+                                                        border: '1px solid var(--border)',
+                                                        whiteSpace: 'nowrap',
+                                                    }}>
+                                                        {groupItems.length} ITEM{groupItems.length !== 1 ? 'S' : ''}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+
+                                {/* UNGROUPED ITEM CARDS */}
+                                {ungroupedFiltered.map(item => (
+                                    (viewMode === 'card' || viewMode === 'masonry') ? (
+                                        <ItemCard
+                                            key={item.id}
+                                            item={item}
+                                            categoryName={categories.find(c => c.id === item.category_id)?.name || 'Other'}
+                                            onRemove={() => handleRemoveItem(item.id)}
+                                            onTogglePurchased={handleTogglePurchased}
+                                            onTogglePublic={async (id, val) => {
+                                                await db.discover.setPublic(id, val);
+                                                setItems(prev => prev.map(i => i.id === id ? { ...i, is_public: val } : i));
+                                            }}
+                                        />
+                                    ) : (
+                                        <ProductCard
+                                            key={item.id}
+                                            item={item}
+                                            categoryName={categories.find(c => c.id === item.category_id)?.name || 'Other'}
+                                        />
+                                    )
+                                ))}
+                            </GridWrapper>
+                        ) : (
+                            <div style={{ textAlign: 'center', padding: '3rem 1rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.85rem' }}>
+                                <div style={{ width: '180px', height: '180px', marginBottom: '0.5rem', borderRadius: '32px', overflow: 'hidden', boxShadow: '0 16px 40px rgba(0,0,0,0.12)', border: '1px solid rgba(255,255,255,0.4)', background: 'var(--surface)' }}>
+                                    <img src="/empty_state.png" alt="Empty State" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                </div>
+                                <p style={{ fontWeight: 700, color: 'var(--text)', fontSize: '1rem' }}>Nothing here yet!</p>
+                                <p style={{ fontSize: '0.82rem', color: 'var(--text-dim)', maxWidth: '235px' }}>
+                                    {search ? 'No results found. Try a different search.' : 'Tap the + button to add your first item.'}
+                                </p>
+                                {!search && (
+                                    <button onClick={openModal} style={{ marginTop: '0.5rem', padding: '0.7rem 1.5rem', background: ORANGE, color: '#fff', border: 'none', borderRadius: '99px', fontWeight: 800, fontSize: '0.9rem', cursor: 'pointer', fontFamily: 'inherit', boxShadow: '0 4px 14px rgba(var(--primary-rgb),0.35)' }}>
+                                        + Add First Item
+                                    </button>
+                                )}
+                            </div>
+                        )}
+
+
+                        {/* ── GROUP BOTTOM SHEET ── */}
+                        {openGroupId && (() => {
+                            const group = groups.find(g => g.id === openGroupId);
+                            if (!group) return null;
+                            const groupItems = group.itemIds
+                                .map(id => items.find(i => i.id === id))
+                                .filter(Boolean)
+                                .filter(i => !i.is_purchased);
+                            return createPortal(
+                                <div
+                                    onClick={() => setOpenGroupId(null)}
+                                    style={{
+                                        position: 'fixed', inset: 0, zIndex: 8000,
+                                        background: 'rgba(0,0,0,0.52)',
+                                        backdropFilter: 'blur(6px)',
+                                        WebkitBackdropFilter: 'blur(6px)',
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                        padding: '1.5rem',
+                                        animation: 'fadeIn 0.18s ease-out',
+                                    }}
+                                >
+                                    <div
+                                        onClick={e => e.stopPropagation()}
+                                        style={{
+                                            width: '100%', maxWidth: '640px',
+                                            background: 'var(--surface)',
+                                            borderRadius: '28px',
+                                            padding: '0',
+                                            maxHeight: '85vh',
+                                            display: 'flex', flexDirection: 'column',
+                                            overflow: 'hidden',
+                                            boxShadow: '0 24px 48px rgba(0,0,0,0.3)',
+                                            transformOrigin: 'center',
+                                            animation: 'popIn 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+                                        }}
+                                    >
+
+                                        <div style={{
+                                            display: 'flex', alignItems: 'center', gap: '0.85rem',
+                                            padding: '0.85rem 1.25rem 1rem',
+                                            borderBottom: '1px solid var(--border)',
+                                        }}>
+                                            <div style={{
+                                                width: '40px', height: '40px', borderRadius: '12px',
+                                                background: 'linear-gradient(135deg, var(--primary), var(--primary-dk))',
+                                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                flexShrink: 0,
+                                                boxShadow: '0 4px 12px rgba(var(--primary-rgb),0.35)',
+                                            }}>
+                                                <Layers size={18} color="#fff" />
+                                            </div>
+                                            <div style={{ flex: 1, minWidth: 0 }}>
+                                                <p style={{ fontWeight: 900, fontSize: '1.5rem', color: 'var(--text)', margin: 0, lineHeight: 1.2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                                    {group.name}
+                                                </p>
+
+                                            </div>
+                                            <button
+                                                onClick={() => setOpenGroupId(null)}
+                                                style={{
+                                                    width: '34px', height: '34px', borderRadius: '50%',
+                                                    background: 'var(--surface-2)', border: '1px solid var(--border)',
+                                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                    cursor: 'pointer', color: 'var(--text-muted)',
+                                                    flexShrink: 0, transition: 'background 0.15s',
+                                                }}
+                                                onMouseEnter={e => { e.currentTarget.style.background = 'var(--surface-3)'; }}
+                                                onMouseLeave={e => { e.currentTarget.style.background = 'var(--surface-2)'; }}
+                                            >
+                                                <X size={16} />
+                                            </button>
+                                        </div>
+
+                                        {/* Items grid inside the sheet */}
+                                        <div style={{ overflowY: 'auto', padding: '1.25rem', flex: 1, background: 'var(--surface-2)' }}>
+                                            <div style={{
+                                                display: 'grid',
+                                                gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))',
+                                                gap: '0.75rem',
+                                                alignItems: 'start'
+                                            }}>
+                                                {groupItems.map(item => (
+                                                    <div key={item.id} style={{
+                                                        transform: 'scale(0.95)',
+                                                        transformOrigin: 'top center',
+                                                        width: '100%',
+                                                        margin: '-2.5% 0' // Compensate for scale empty space
+                                                    }}>
+                                                        <ItemCard
+                                                            item={item}
+                                                            categoryName={categories.find(c => c.id === item.category_id)?.name || 'Other'}
+                                                            onRemove={() => handleRemoveItem(item.id)}
+                                                            onTogglePurchased={handleTogglePurchased}
+                                                            onTogglePublic={async (id, val) => {
+                                                                await db.discover.setPublic(id, val);
+                                                                setItems(prev => prev.map(i => i.id === id ? { ...i, is_public: val } : i));
+                                                            }}
+                                                        />
+                                                    </div>
+                                                ))}
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            </div>,
-                            document.body
-                        );
-                    })()}
+                                </div>,
+                                document.body
+                            );
+                        })()}
+                    </div>
                 </div>
-            </div>
+            </PullToRefresh>
 
             {/* Premium Upgrade Modal */}
             {shouldShowPremiumModal && createPortal(

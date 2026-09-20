@@ -7,6 +7,7 @@ import jsPDF from 'jspdf';
 import ExcelJS from 'exceljs';
 import { useIsland } from '../context/IslandContext';
 import { useSettings } from '../context/SettingsContext';
+import IOSToggle from './IOSToggle';
 
 const FOLDER_THEMES = {
     blue: '#3b82f6',
@@ -477,11 +478,13 @@ function FormatOption({ icon, title, desc, selected, onClick }) {
 
 function ToggleOption({ icon, title, checked, onChange }) {
     return (
-        <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }}>
-            <div style={{ color: 'var(--text-muted)' }}>{icon}</div>
+        <div onClick={onChange} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer', userSelect: 'none' }}>
+            <div style={{ color: 'var(--text-muted)', display: 'flex', alignItems: 'center' }}>{icon}</div>
             <div style={{ flex: 1, fontSize: '0.9rem', fontWeight: 600 }}>{title}</div>
-            <input type="checkbox" checked={checked} onChange={onChange} style={{ accentColor: 'var(--primary)', width: '18px', height: '18px', cursor: 'pointer' }} />
-        </label>
+            <div style={{ pointerEvents: 'none' }}>
+                <IOSToggle checked={checked} />
+            </div>
+        </div>
     );
 }
 

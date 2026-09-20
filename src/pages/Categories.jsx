@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import AlertModal from '../components/AlertModal';
 import { useIsland } from '../context/IslandContext';
 import { Reorder, motion, useAnimation, useDragControls } from 'framer-motion';
+import IOSSegmentedControl from '../components/IOSSegmentedControl';
 
 const ORANGE = 'var(--primary)';
 const SURFACE = 'var(--surface)';
@@ -428,29 +429,19 @@ export default function Categories() {
                     </div>
                 </div>
 
-                <div style={{ position: 'absolute', top: '2.5rem', right: '1.5rem', display: 'flex', background: 'rgba(0,0,0,0.2)', borderRadius: '12px', padding: '0.25rem' }}>
-                    <button
-                        onClick={() => setViewMode('list')}
-                        style={{
-                            background: viewMode === 'list' ? 'rgba(255,255,255,0.2)' : 'transparent',
-                            color: viewMode === 'list' ? '#fff' : 'rgba(255,255,255,0.5)',
-                            border: 'none', borderRadius: '8px', padding: '0.4rem', cursor: 'pointer',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s'
-                        }}
-                    >
-                        <LayoutList size={18} />
-                    </button>
-                    <button
-                        onClick={() => setViewMode('grid')}
-                        style={{
-                            background: viewMode === 'grid' ? 'rgba(255,255,255,0.2)' : 'transparent',
-                            color: viewMode === 'grid' ? '#fff' : 'rgba(255,255,255,0.5)',
-                            border: 'none', borderRadius: '8px', padding: '0.4rem', cursor: 'pointer',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s'
-                        }}
-                    >
-                        <LayoutGrid size={18} />
-                    </button>
+                <div style={{ position: 'absolute', top: '2.5rem', right: '1.5rem', width: '120px' }}>
+                    <IOSSegmentedControl
+                        value={viewMode}
+                        onChange={(val) => setViewMode(val)}
+                        options={[
+                            { value: 'list', icon: LayoutList },
+                            { value: 'grid', icon: LayoutGrid },
+                        ]}
+                        trackStyle={{ background: 'rgba(0,0,0,0.2)', padding: '4px' }}
+                        activePillStyle={{ background: 'rgba(255,255,255,0.2)', boxShadow: '0 2px 8px rgba(0,0,0,0.2)' }}
+                        iconColor="rgba(255,255,255,0.5)"
+                        activeIconColor="#fff"
+                    />
                 </div>
             </div>
 

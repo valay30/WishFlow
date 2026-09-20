@@ -16,6 +16,24 @@ export function AuthProvider({ children }) {
     useEffect(() => {
         let mounted = true;
 
+        // Check for session errors on mount (specifically invalid refresh tokens)
+        const checkActiveSession = async () => {
+            try {
+                const { error } = await supabase.auth.getSession();
+                if (error && (error.message.includes('Refresh Token') || error.message.includes('refresh_token'))) {
+                    console.warn("Invalid refresh token detected, clearing session...");
+                    await supabase.auth.signOut();
+                    if (mounted) {
+                        setUser(null);
+                        setLoading(false);
+                    }
+                }
+            } catch (err) {
+                console.error("Session check failed:", err);
+            }
+        };
+        checkActiveSession();
+
         // Listen for Supabase session changes (e.g., login in another tab or token refresh)
         const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
             if (event === 'PASSWORD_RECOVERY') {

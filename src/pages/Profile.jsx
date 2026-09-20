@@ -2,13 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
-import { LogOut, User, ArrowLeft, Settings, Shield, ShieldCheck, Bell, LayoutGrid, List as ListIcon, FolderHeart, ChevronDown, ChevronUp, Crown, Lock, Check, X, Columns, RefreshCw } from 'lucide-react';
+import { ChevronUp, ChevronDown, Settings, LogOut, Check, Palette, List as ListIcon, ShieldCheck, Crown, Upload, FolderHeart, LayoutGrid, Columns, User, ArrowLeft, Shield, Bell, Lock, X, RefreshCw, Sparkles } from 'lucide-react';
 import RoastCard from '../components/RoastCard';
 import { useSettings } from '../context/SettingsContext';
 import { db, supabase } from '../db';
 import TierBadgeCard from '../components/TierBadgeCard';
 import AlertModal from '../components/AlertModal';
 import CustomSelect from '../components/CustomSelect';
+import IOSToggle from '../components/IOSToggle';
+import IOSSegmentedControl from '../components/IOSSegmentedControl';
 import { API_URL, APP_VERSION } from '../config';
 import { subscribeToPushNotifications } from '../utils/pushNotifications';
 import { loadRazorpay } from '../utils/loadRazorpay';
@@ -257,37 +259,37 @@ export default function Profile() {
 
                 {/* Roast Me button - top right */}
                 {roastFeatureEnabled && (
-                <div style={{ position: 'absolute', top: '2.5rem', right: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                    <button
-                        disabled={!user?.isPremium}
-                        onClick={() => setShowRoast(true)}
-                        style={{
-                            display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
-                            background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)',
-                            color: user?.isPremium ? 'rgba(255,255,255,0.8)' : 'rgba(255,255,255,0.5)', 
-                            fontWeight: 600, fontSize: '0.85rem',
-                            cursor: user?.isPremium ? 'pointer' : 'not-allowed',
-                            fontFamily: 'inherit',
-                            padding: '0.5rem 1rem', borderRadius: '99px',
-                            transition: 'all 0.2s'
-                        }}
-                        onMouseEnter={e => { 
-                            if (user?.isPremium) {
-                                e.currentTarget.style.background = 'rgba(255,255,255,0.2)'; 
-                                e.currentTarget.style.color = '#fff'; 
-                            }
-                        }}
-                        onMouseLeave={e => { 
-                            if (user?.isPremium) {
-                                e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; 
-                                e.currentTarget.style.color = 'rgba(255,255,255,0.8)'; 
-                            }
-                        }}
-                    >
-                        🔥 Roast Me
-                        {!user?.isPremium && <Lock size={14} style={{ marginLeft: '4px', opacity: 0.8 }} />}
-                    </button>
-                </div>
+                    <div style={{ position: 'absolute', top: '2.5rem', right: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                        <button
+                            disabled={!user?.isPremium}
+                            onClick={() => setShowRoast(true)}
+                            style={{
+                                display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
+                                background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)',
+                                color: user?.isPremium ? 'rgba(255,255,255,0.8)' : 'rgba(255,255,255,0.5)',
+                                fontWeight: 600, fontSize: '0.85rem',
+                                cursor: user?.isPremium ? 'pointer' : 'not-allowed',
+                                fontFamily: 'inherit',
+                                padding: '0.5rem 1rem', borderRadius: '99px',
+                                transition: 'all 0.2s'
+                            }}
+                            onMouseEnter={e => {
+                                if (user?.isPremium) {
+                                    e.currentTarget.style.background = 'rgba(255,255,255,0.2)';
+                                    e.currentTarget.style.color = '#fff';
+                                }
+                            }}
+                            onMouseLeave={e => {
+                                if (user?.isPremium) {
+                                    e.currentTarget.style.background = 'rgba(255,255,255,0.1)';
+                                    e.currentTarget.style.color = 'rgba(255,255,255,0.8)';
+                                }
+                            }}
+                        >
+                            🔥 Roast Me
+                            {!user?.isPremium && <Lock size={14} style={{ marginLeft: '4px', opacity: 0.8 }} />}
+                        </button>
+                    </div>
                 )}
 
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.25rem', marginTop: '1rem' }}>
@@ -449,13 +451,12 @@ export default function Profile() {
                                         animation: 'slideDown 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
                                         boxShadow: '0 8px 24px rgba(var(--primary-rgb),0.08)'
                                     }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                                             <div>
                                                 <p style={{ margin: 0, fontWeight: 800, fontSize: '0.95rem', color: 'var(--text)' }}>Home View Mode</p>
-                                                <p style={{ margin: '0.1rem 0 0', fontSize: '0.82rem', color: 'var(--text-dim)' }}>Choose list or card layout</p>
                                             </div>
-                                            <div style={{ minWidth: '120px' }}>
-                                                <CustomSelect
+                                            <div style={{ width: '100%' }}>
+                                                <IOSSegmentedControl
                                                     value={viewMode}
                                                     onChange={(val) => setViewMode(val)}
                                                     options={[
@@ -500,38 +501,28 @@ export default function Profile() {
                                                 <div>
                                                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                                         <p style={{ margin: 0, fontWeight: 800, fontSize: '0.95rem', color: 'var(--text)' }}>Push Notifications</p>
-                                                        {notificationPermission === 'granted' && (
-                                                            <span style={{ display: 'inline-flex', alignItems: 'center', background: 'rgba(16, 185, 129, 0.1)', color: '#10b981', fontSize: '0.65rem', fontWeight: 800, padding: '0.15rem 0.45rem', borderRadius: '99px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                                                                Enabled
-                                                            </span>
-                                                        )}
+
                                                     </div>
                                                     <p style={{ margin: '0.1rem 0 0', fontSize: '0.82rem', color: 'var(--text-dim)' }}>Receive updates on your devices</p>
                                                 </div>
-                                                
-                                                <button style={{
-                                                    padding: '0.5rem 1rem', borderRadius: '10px',
-                                                    background: notificationPermission === 'granted' ? 'rgba(16, 185, 129, 0.1)' : 'var(--primary)',
-                                                    color: notificationPermission === 'granted' ? '#10b981' : '#fff',
-                                                    fontWeight: 800, fontSize: '0.8rem', border: 'none',
-                                                    cursor: notificationPermission === 'granted' ? 'default' : 'pointer',
-                                                    transition: 'all 0.2s', fontFamily: 'inherit'
-                                                }} onClick={async () => {
-                                                    if (notificationPermission !== 'granted') {
-                                                        const success = await subscribeToPushNotifications(user?.id);
-                                                        showToast(
-                                                            success ? 'Notifications enabled successfully!' : 'Could not enable notifications. Check permissions.',
-                                                            success ? 'success' : 'error'
-                                                        );
-                                                        if (typeof Notification !== 'undefined') {
-                                                            setNotificationPermission(Notification.permission);
+
+                                                <IOSToggle
+                                                    checked={notificationPermission === 'granted'}
+                                                    onChange={async () => {
+                                                        if (notificationPermission !== 'granted') {
+                                                            const success = await subscribeToPushNotifications(user?.id);
+                                                            showToast(
+                                                                success ? 'Notifications enabled successfully!' : 'Could not enable notifications. Check permissions.',
+                                                                success ? 'success' : 'error'
+                                                            );
+                                                            if (typeof Notification !== 'undefined') {
+                                                                setNotificationPermission(Notification.permission);
+                                                            }
+                                                        } else {
+                                                            showToast('To disable notifications, change your browser site settings.', 'info');
                                                         }
-                                                    } else {
-                                                        showToast('To disable notifications, change your browser site settings.', 'info');
-                                                    }
-                                                }}>
-                                                    {notificationPermission === 'granted' ? 'Enabled' : 'Enable'}
-                                                </button>
+                                                    }}
+                                                />
                                             </div>
                                         </div>
 
@@ -549,22 +540,13 @@ export default function Profile() {
                                                 </div>
 
                                                 {user?.isPremium ? (
-                                                    <div style={{
-                                                        width: '44px', height: '24px', borderRadius: '12px',
-                                                        background: darkMode ? ORANGE : 'var(--surface-3)',
-                                                        position: 'relative', cursor: 'pointer',
-                                                        transition: 'background 0.3s'
-                                                    }} onClick={() => {
-                                                        setDarkMode(!darkMode);
-                                                        showIsland({ title: 'Settings Saved', type: 'success' });
-                                                    }}>
-                                                        <div style={{
-                                                            width: '20px', height: '20px', borderRadius: '50%',
-                                                            background: 'var(--surface)', position: 'absolute', top: '2px',
-                                                            left: darkMode ? '22px' : '2px', transition: 'left 0.3s',
-                                                            boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-                                                        }} />
-                                                    </div>
+                                                    <IOSToggle
+                                                        checked={darkMode}
+                                                        onChange={() => {
+                                                            setDarkMode(!darkMode);
+                                                            showIsland({ title: 'Settings Saved', type: 'success' });
+                                                        }}
+                                                    />
                                                 ) : (
                                                     <div style={{ padding: '0.25rem 0.75rem', background: 'rgba(245,158,11,0.1)', color: '#d97706', borderRadius: '8px', fontSize: '0.75rem', fontWeight: 700 }}>
                                                         Locked
@@ -745,6 +727,9 @@ export default function Profile() {
             )}
 
             <style>{`
+
+
+
                 @keyframes slideDown {
                     from { opacity: 0; transform: translateY(-12px); }
                     to { opacity: 1; transform: translateY(0); }

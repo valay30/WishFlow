@@ -12,6 +12,7 @@ import AddProductModal from '../components/AddProductModal';
 import AlertModal from '../components/AlertModal';
 import ExportModal from '../components/ExportModal';
 import { useSettings } from '../context/SettingsContext';
+import PullToRefresh from '../components/PullToRefresh';
 import { useIsland } from '../context/IslandContext';
 import { useAuth } from '../context/useAuth';
 import { API_URL } from '../config';
@@ -52,12 +53,6 @@ export default function Collections() {
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('my'); // 'my' | 'shared'
 
-    useEffect(() => {
-        const searchParams = new URLSearchParams(location.search);
-        if (searchParams.get('tab') === 'shared') {
-            setActiveTab('shared');
-        }
-    }, [location.search]);
 
     // Modal state
     const [showModal, setShowModal] = useState(false);
@@ -72,13 +67,32 @@ export default function Collections() {
     // Drill-down state
     const [activeCollection, setActiveCollectionState] = useState(null);
     const setActiveCollection = (col) => {
-        setActiveCollectionState(col);
         if (col) {
-            sessionStorage.setItem('activeCollectionId', col.id);
+            navigate(`?col=${col.id}${activeTab === 'shared' ? '&tab=shared' : ''}`);
         } else {
-            sessionStorage.removeItem('activeCollectionId');
+            navigate(`?${activeTab === 'shared' ? 'tab=shared' : ''}`);
         }
     };
+
+    useEffect(() => {
+        const searchParams = new URLSearchParams(location.search);
+        
+        if (searchParams.get('tab') === 'shared') {
+            setActiveTab('shared');
+        } else {
+            setActiveTab('my');
+        }
+
+        const colId = searchParams.get('col');
+        if (colId && (collections.length > 0 || sharedCollections.length > 0)) {
+            const col = collections.find(c => c.id === colId) || sharedCollections.find(c => c.id === colId);
+            if (col && activeCollection?.id !== col.id) {
+                setActiveCollectionState(col);
+            }
+        } else if (!colId && activeCollection) {
+            setActiveCollectionState(null);
+        }
+    }, [location.search, collections, sharedCollections, activeCollection]);
     const [prioritySort, setPrioritySort] = useState(false);
     const [shareToast, setShareToast] = useState(null);
     const [showUsernameShareModal, setShowUsernameShareModal] = useState(false);
@@ -254,12 +268,6 @@ export default function Collections() {
             setCollectionItems(citems || []);
             setSharedCollections(shared || []);
             
-            // Restore active collection
-            const storedColId = sessionStorage.getItem('activeCollectionId');
-            if (storedColId) {
-                const col = (cols || []).find(c => c.id === storedColId);
-                if (col) setActiveCollection(col);
-            }
             
             setLoading(false);
         };
@@ -345,6 +353,7 @@ export default function Collections() {
     /* ── Drill-down: items inside a collection ── */
     if (activeCollection) {
         return (
+            <PullToRefresh onRefresh={reload}>
             <div style={{ minHeight: '100vh', background: BG, padding: '0 0 var(--bottom-nav)' }}>
                 {/* Header */}
                 <div style={{
@@ -789,11 +798,13 @@ export default function Collections() {
                     />
                 )}
             </div>
+            </PullToRefresh>
         );
     }
 
     /* ── Main Collections grid ── */
     return (
+        <PullToRefresh onRefresh={reload}>
         <div style={{ minHeight: '100vh', background: BG, padding: '0 0 var(--bottom-nav)' }}>
 
             {/* Page Header */}
@@ -840,7 +851,7 @@ export default function Collections() {
                 {/* Tabs */}
                 <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1.5rem' }}>
                     <button
-                        onClick={() => setActiveTab('my')}
+                        onClick={() => navigate('?tab=my')}
                         style={{
                             flex: 1, padding: '0.75rem', borderRadius: '14px', border: 'none',
                             background: activeTab === 'my' ? 'rgba(255,255,255,0.2)' : 'transparent',
@@ -852,7 +863,7 @@ export default function Collections() {
                         My Collections
                     </button>
                     <button
-                        onClick={() => setActiveTab('shared')}
+                        onClick={() => navigate('?tab=shared')}
                         style={{
                             flex: 1, padding: '0.75rem', borderRadius: '14px', border: 'none',
                             background: activeTab === 'shared' ? 'rgba(255,255,255,0.2)' : 'transparent',
@@ -1362,5 +1373,6 @@ export default function Collections() {
                 }}
             />
         </div>
+        </PullToRefresh>
     );
 }
