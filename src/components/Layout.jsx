@@ -3,6 +3,7 @@ import { Plus } from 'lucide-react';
 import { useAuth } from '../context/useAuth';
 import Sidebar from './Sidebar';
 import BottomNav from './BottomNav';
+import CommandPalette from './CommandPalette';
 
 /* ══════════════════════════════════════
    Main Layout
@@ -29,6 +30,9 @@ export default function Layout({ children }) {
 
             {/* Mobile Bottom Nav */}
             <BottomNav user={user} />
+
+            {/* Global Command Palette */}
+            <CommandPalette />
         </div>
     );
 }

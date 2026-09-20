@@ -46,3 +46,5 @@ desktop.ini
 android/*.keystore
 android/*.jks
 android/*key*.txt
+
+mobile

@@ -2,13 +2,14 @@ import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { db } from '../db';
-import { Plus, FolderHeart, Calendar, Package, ChevronRight, ArrowLeft, Pencil, Crown, X, Share2, Check, Copy } from 'lucide-react';
+import { Plus, FolderHeart, Calendar, Package, ChevronRight, ArrowLeft, Pencil, Crown, X, Share2, Check, Copy, FileDown } from 'lucide-react';
 import CollectionModal from '../components/CollectionModal';
 import ItemCard from '../components/ItemCard';
 import ProductCard from '../components/ProductCard';
 import AddExistingItemsModal from '../components/AddExistingItemsModal';
 import AddProductModal from '../components/AddProductModal';
 import AlertModal from '../components/AlertModal';
+import ExportModal from '../components/ExportModal';
 import { useSettings } from '../context/SettingsContext';
 import { useIsland } from '../context/IslandContext';
 import { useAuth } from '../context/useAuth';
@@ -64,10 +65,20 @@ export default function Collections() {
     const [showAddProductModal, setShowAddProductModal] = useState(false);
     const [showPremiumModal, setShowPremiumModal] = useState(false);
     const [showPremiumShareModal, setShowPremiumShareModal] = useState(false);
+    const [showExportModal, setShowExportModal] = useState(false);
     const [paymentStatus, setPaymentStatus] = useState({ isOpen: false, success: false, title: '', message: '' });
 
     // Drill-down state
-    const [activeCollection, setActiveCollection] = useState(null);
+    const [activeCollection, setActiveCollectionState] = useState(null);
+    const setActiveCollection = (col) => {
+        setActiveCollectionState(col);
+        if (col) {
+            sessionStorage.setItem('activeCollectionId', col.id);
+        } else {
+            sessionStorage.removeItem('activeCollectionId');
+        }
+    };
+    const [prioritySort, setPrioritySort] = useState(false);
     const [shareToast, setShareToast] = useState(null);
     const [showUsernameShareModal, setShowUsernameShareModal] = useState(false);
     const [shareUsername, setShareUsername] = useState('');
@@ -241,6 +252,14 @@ export default function Collections() {
             setCategories(cats || []);
             setCollectionItems(citems || []);
             setSharedCollections(shared || []);
+            
+            // Restore active collection
+            const storedColId = sessionStorage.getItem('activeCollectionId');
+            if (storedColId) {
+                const col = (cols || []).find(c => c.id === storedColId);
+                if (col) setActiveCollection(col);
+            }
+            
             setLoading(false);
         };
         load();
@@ -294,10 +313,21 @@ export default function Collections() {
     const categoryName = (catId) => categories.find(c => c.id === catId)?.name || 'Uncategorized';
 
     // Items for the active collection drill-down
-    const activeItemIds = activeCollection
-        ? collectionItems.filter(ci => ci.collection_id === activeCollection.id).map(ci => ci.item_id)
-        : [];
-    const activeItems = items.filter(i => activeItemIds.includes(i.id));
+    let activeItems = [];
+    let activeItemIds = [];
+    if (activeCollection && items && collectionItems) {
+        activeItemIds = collectionItems.filter(ci => ci.collection_id === activeCollection.id).map(ci => ci.item_id);
+        activeItems = items
+            .filter(i => collectionItems.some(ci => ci.collection_id === activeCollection.id && ci.item_id === i.id))
+            .map(i => {
+                const ci = collectionItems.find(ci => ci.collection_id === activeCollection.id && ci.item_id === i.id);
+                return { ...i, priority: ci?.priority || 1 };
+            });
+
+        if (prioritySort) {
+            activeItems.sort((a, b) => b.priority - a.priority);
+        }
+    }
 
     /* ── Loading ── */
     if (loading) {
@@ -342,10 +372,19 @@ export default function Collections() {
                             <h1 style={{ fontSize: '1.8rem', fontWeight: 900, color: '#fff', margin: 0, letterSpacing: '-0.02em' }}>{activeCollection.name}</h1>
                             <p style={{ color: 'rgba(255,255,255,0.7)', margin: '0.25rem 0 0', fontSize: '0.9rem' }}>
                                 {activeItems.length} item{activeItems.length !== 1 ? 's' : ''} · {fmt(activeItems.reduce((s, i) => s + (i.price || 0), 0))} total
+                                {activeItems.some(i => i.priority === 3) && (
+                                    <> · <span style={{ color: '#fca5a5', fontWeight: 600 }}>🔥 High Priority: {fmt(activeItems.filter(i => i.priority === 3).reduce((s, i) => s + (i.price || 0), 0))}</span></>
+                                )}
                             </p>
                         </div>
                         <div className="drill-down-actions" style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
 
+                            <button
+                                onClick={() => setPrioritySort(!prioritySort)}
+                                style={{ background: prioritySort ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.15)', backdropFilter: 'blur(8px)', color: '#fff', border: '1px solid rgba(255,255,255,0.25)', borderRadius: '14px', padding: '0.65rem 1rem', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem', transition: 'all 0.2s' }}
+                            >
+                                🔥 {prioritySort ? 'Priority Sorted' : 'Sort by Priority'}
+                            </button>
                             <button
                                 id="invite-friend-btn"
                                 onClick={openShareModal}
@@ -354,6 +393,9 @@ export default function Collections() {
                                 onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.15)'}
                             >
                                 <FolderHeart size={15} /> Invite Friend
+                            </button>
+                            <button onClick={() => setShowExportModal(true)} style={{ background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(8px)', color: '#fff', border: '1px solid rgba(255,255,255,0.3)', borderRadius: '14px', padding: '0.65rem 1rem', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                                <FileDown size={16} /> Export
                             </button>
                             <button onClick={() => setShowAddExistingModal(true)} style={{ background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(8px)', color: '#fff', border: '1px solid rgba(255,255,255,0.3)', borderRadius: '14px', padding: '0.65rem 1rem', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                                 <Package size={16} /> Add Existing
@@ -423,6 +465,10 @@ export default function Collections() {
                                             await db.items.update(id, { is_purchased: val });
                                             await reload();
                                         }}
+                                        onUpdatePriority={async (priority) => {
+                                            await db.collectionItems.updatePriority(activeCollection.id, item.id, priority);
+                                            await reload();
+                                        }}
                                     />
                                 ) : (
                                     <ProductCard
@@ -435,6 +481,10 @@ export default function Collections() {
                                         }}
                                         onTogglePurchased={async (id, val) => {
                                             await db.items.update(id, { is_purchased: val });
+                                            await reload();
+                                        }}
+                                        onUpdatePriority={async (priority) => {
+                                            await db.collectionItems.updatePriority(activeCollection.id, item.id, priority);
                                             await reload();
                                         }}
                                     />
@@ -729,6 +779,14 @@ export default function Collections() {
                     onCancel={() => setRemoveShareConfirm({ isOpen: false, shareId: null })}
                     isDestructive={true}
                 />
+
+                {showExportModal && (
+                    <ExportModal 
+                        collection={activeCollection} 
+                        items={activeItems} 
+                        onClose={() => setShowExportModal(false)} 
+                    />
+                )}
             </div>
         );
     }

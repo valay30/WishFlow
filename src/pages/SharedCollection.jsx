@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { db } from '../db';
-import { Package, Search, Link2, Check, ChevronDown, ArrowRight, Calendar, X } from 'lucide-react';
+import { Package, Search, Link2, Check, ChevronDown, ArrowRight, Calendar, X, FileDown } from 'lucide-react';
 import { useIsland } from '../context/IslandContext';
 import AdUnit from '../components/AdUnit';
+import ExportModal from '../components/ExportModal';
 
 /* ─── helpers ─────────────────────────────────────────────────────────────── */
 function fmt(n) {
@@ -624,6 +625,7 @@ export default function SharedCollection() {
   const [copied, setCopied] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const [showCalendar, setShowCalendar] = useState(false);
+  const [showExportModal, setShowExportModal] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -1024,6 +1026,7 @@ export default function SharedCollection() {
 
         {showSearch && <SearchOverlay items={items} onClose={() => setShowSearch(false)} />}
         {showCalendar && <CalendarModal collection={collection} onClose={() => setShowCalendar(false)} />}
+        {showExportModal && <ExportModal collection={collection} items={items} onClose={() => setShowExportModal(false)} />}
 
         {/* Header */}
         <header className="sc-header">
@@ -1132,9 +1135,14 @@ export default function SharedCollection() {
               {copied ? <Check size={16} color="#22c55e" /> : <Link2 size={16} />}
               {copied ? 'Copied!' : 'Copy Link'}
             </button>
-            <button id="sc-search-btn" className="sc-search-btn" onClick={() => setShowSearch(true)} aria-label="Search items">
-              <Search size={22} />
-            </button>
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <button className="sc-search-btn" onClick={() => setShowExportModal(true)} aria-label="Export">
+                <FileDown size={22} />
+              </button>
+              <button id="sc-search-btn" className="sc-search-btn" onClick={() => setShowSearch(true)} aria-label="Search items">
+                <Search size={22} />
+              </button>
+            </div>
           </div>
         </div>
       </div>

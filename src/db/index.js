@@ -425,12 +425,31 @@ export const db = {
       if (!id) return;
       const { data, error } = await supabase
         .from('collection_items')
-        .insert([{ user_id: id, collection_id, item_id }])
+        // We set a default priority of 1 (Low) when adding an item to a collection.
+        .insert([{ user_id: id, collection_id, item_id, priority: 1 }])
         .select();
       if (error) throw error;
       if (data?.[0] && __collectionItemsCache) {
         __collectionItemsCache = [...__collectionItemsCache, data[0]];
       }
+    },
+
+    updatePriority: async (collection_id, item_id, priority) => {
+      const id = await getUserId();
+      if (!id) return;
+      const { data, error } = await supabase
+        .from('collection_items')
+        .update({ priority })
+        .match({ user_id: id, collection_id, item_id })
+        .select();
+      
+      if (error) throw error;
+      if (data?.[0] && __collectionItemsCache) {
+        __collectionItemsCache = __collectionItemsCache.map(
+          ci => (ci.collection_id === collection_id && ci.item_id === item_id) ? { ...ci, priority } : ci
+        );
+      }
+      return data?.[0];
     },
 
     remove: async (collection_id, item_id) => {
