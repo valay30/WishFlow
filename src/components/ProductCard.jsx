@@ -24,7 +24,8 @@ export default function ProductCard({ item, categoryName, onTogglePurchased, onR
     }, [priorityMenuData]);
 
     return (
-        <div
+        <motion.div
+            whileTap={{ scale: 0.96 }}
             className="item-card"
             onClick={() => navigate(`/product/${item.id}`)}
             style={{
@@ -36,7 +37,7 @@ export default function ProductCard({ item, categoryName, onTogglePurchased, onR
                 gap: '1rem',
                 background: 'var(--surface)',
                 padding: '1rem',
-                borderRadius: '20px',
+                borderRadius: '24px',
                 border: '1px solid var(--border)',
                 cursor: 'pointer',
                 transition: 'all 0.2s',
@@ -167,43 +168,57 @@ export default function ProductCard({ item, categoryName, onTogglePurchased, onR
                         onClick={e => e.stopPropagation()}
                         style={{
                             position: 'absolute', top: priorityMenuData.y, left: priorityMenuData.x,
-                            background: darkMode ? 'rgba(30, 30, 30, 0.9)' : 'rgba(255, 255, 255, 0.95)',
-                            backdropFilter: 'blur(20px)',
+                            background: darkMode ? 'rgba(30, 30, 30, 0.75)' : 'rgba(255, 255, 255, 0.75)',
+                            backdropFilter: 'blur(30px) saturate(1.5)',
                             border: `1px solid ${darkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
-                            borderRadius: '14px', padding: '6px',
+                            borderRadius: '14px',
                             boxShadow: '0 12px 32px rgba(0,0,0,0.15)',
-                            display: 'flex', flexDirection: 'column', gap: '4px',
-                            minWidth: '160px', transformOrigin: 'top left'
+                            display: 'flex', flexDirection: 'column',
+                            minWidth: '180px', transformOrigin: 'top left',
+                            overflow: 'hidden'
                         }}
                     >
-                        <div 
-                            onClick={(e) => { e.stopPropagation(); onUpdatePriority(3); setPriorityMenuData(null); }} 
-                            style={{ padding: '10px 14px', cursor: 'pointer', borderRadius: '10px', fontSize: '0.85rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px', color: '#f87171', transition: 'background 0.15s' }} 
-                            onMouseEnter={e => e.currentTarget.style.background = 'rgba(252, 165, 165, 0.15)'} 
-                            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-                        >
-                            🔥 High Priority
-                        </div>
-                        <div 
-                            onClick={(e) => { e.stopPropagation(); onUpdatePriority(2); setPriorityMenuData(null); }} 
-                            style={{ padding: '10px 14px', cursor: 'pointer', borderRadius: '10px', fontSize: '0.85rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px', color: '#eab308', transition: 'background 0.15s' }} 
-                            onMouseEnter={e => e.currentTarget.style.background = 'rgba(253, 224, 71, 0.15)'} 
-                            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-                        >
-                            ⭐ Medium Priority
-                        </div>
-                        <div 
-                            onClick={(e) => { e.stopPropagation(); onUpdatePriority(1); setPriorityMenuData(null); }} 
-                            style={{ padding: '10px 14px', cursor: 'pointer', borderRadius: '10px', fontSize: '0.85rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-muted)', transition: 'background 0.15s' }} 
-                            onMouseEnter={e => e.currentTarget.style.background = 'var(--surface-2)'} 
-                            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-                        >
-                            ⏬ Low Priority
-                        </div>
+                        <ContextMenuItem 
+                            icon={() => <span style={{fontSize:'1.1rem'}}>🔥</span>} label="High Priority" 
+                            color="#ef4444" onClick={(e) => { e.stopPropagation(); onUpdatePriority(3); setPriorityMenuData(null); }} 
+                        />
+                        <ContextMenuItem 
+                            icon={() => <span style={{fontSize:'1.1rem'}}>⭐</span>} label="Medium Priority" 
+                            color="#eab308" onClick={(e) => { e.stopPropagation(); onUpdatePriority(2); setPriorityMenuData(null); }} 
+                        />
+                        <ContextMenuItem 
+                            icon={() => <span style={{fontSize:'1.1rem'}}>⏬</span>} label="Low Priority" 
+                            color="var(--text-muted)" isLast onClick={(e) => { e.stopPropagation(); onUpdatePriority(1); setPriorityMenuData(null); }} 
+                        />
                     </motion.div>
                 </div>,
                 document.body
             )}
-        </div>
+        </motion.div>
     );
 }
+
+const ContextMenuItem = ({ icon: Icon, label, onClick, color = 'var(--text)', isLast = false }) => {
+    const [hovered, setHovered] = useState(false);
+    return (
+        <div
+            onClick={onClick}
+            onMouseEnter={() => setHovered(true)}
+            onMouseLeave={() => setHovered(false)}
+            style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                padding: '12px 14px',
+                color: color,
+                cursor: 'pointer',
+                borderBottom: isLast ? 'none' : '1px solid rgba(128,128,128,0.15)',
+                fontWeight: 500,
+                fontSize: '0.95rem',
+                background: hovered ? 'rgba(128,128,128,0.15)' : 'transparent',
+                transition: 'background 0.1s ease'
+            }}
+        >
+            <span>{label}</span>
+            <Icon size={18} strokeWidth={2} />
+        </div>
+    );
+};

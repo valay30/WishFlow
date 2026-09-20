@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { db } from '../db';
 import { Plus, FolderHeart, Calendar, Package, ChevronRight, ArrowLeft, Pencil, Crown, X, Share2, Check, Copy, FileDown } from 'lucide-react';
+import { motion } from 'framer-motion';
 import CollectionModal from '../components/CollectionModal';
 import ItemCard from '../components/ItemCard';
 import ProductCard from '../components/ProductCard';
@@ -903,7 +904,8 @@ export default function Collections() {
                                     const isPending = share.status === 'pending';
 
                                     return (
-                                        <div key={share.id}
+                                        <motion.div key={share.id}
+                                            whileTap={{ scale: 0.96 }}
                                             onClick={() => {
                                                 if (share.status === 'accepted') navigate(`/shared/collection/${col.id}`);
                                             }}
@@ -971,7 +973,7 @@ export default function Collections() {
                                                     </button>
                                                 </div>
                                             )}
-                                        </div>
+                                        </motion.div>
                                     );
                                 })
                             )}
@@ -1022,11 +1024,12 @@ export default function Collections() {
 
                                 if (viewMode === 'card') {
                                     return (
-                                        <div
+                                        <motion.div
                                             key={col.id}
+                                            whileTap={{ scale: 0.96 }}
                                             onClick={() => setActiveCollection(col)}
                                             style={{
-                                                background: SURFACE, borderRadius: '28px',
+                                                background: SURFACE, borderRadius: '24px',
                                                 border: `1.5px solid ${BORDER}`, cursor: 'pointer',
                                                 padding: '1.75rem 1.25rem 1.5rem',
                                                 display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center',
@@ -1132,13 +1135,14 @@ export default function Collections() {
                                                     </span>
                                                 </div>
                                             </div>
-                                        </div>
+                                        </motion.div>
                                     );
                                 }
 
                                 return (
-                                    <div
+                                    <motion.div
                                         key={col.id}
+                                        whileTap={{ scale: 0.96 }}
                                         onClick={() => setActiveCollection(col)}
                                         style={{
                                             background: SURFACE, borderRadius: '24px',
@@ -1217,7 +1221,7 @@ export default function Collections() {
                                             </button>
                                             <ChevronRight size={20} color="#C4C4C4" />
                                         </div>
-                                    </div>
+                                    </motion.div>
                                 );
                             })}
 

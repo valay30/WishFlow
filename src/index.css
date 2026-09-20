@@ -108,7 +108,7 @@ body.product-detail-bg {
 /* ══════════════════════════════════════
    CUSTOM CURSOR
 ══════════════════════════════════════ */
-body.custom-cursor-active, 
+body.custom-cursor-active,
 body.custom-cursor-active * {
   cursor: none !important;
 }
@@ -333,8 +333,8 @@ ins.adsbygoogle {
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 
-              0 8px 24px rgba(0, 0, 0, 0.2);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 8px 24px rgba(0, 0, 0, 0.2);
 }
 
 /* Hide top header on mobile - use bottom nav instead */
@@ -363,8 +363,8 @@ ins.adsbygoogle {
   justify-content: space-between;
   z-index: 2000;
   padding: 0.35rem;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6), 
-              0 16px 32px rgba(0, 0, 0, 0.08);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6),
+    0 16px 32px rgba(0, 0, 0, 0.08);
 }
 
 .bottom-nav-item {
@@ -554,7 +554,8 @@ ins.adsbygoogle {
    HOME — ORANGE HERO SECTION
 ══════════════════════════════════════ */
 .home-hero {
-  background: var(--primary); /* Fallback for older browsers */
+  background: var(--primary);
+  /* Fallback for older browsers */
   background: linear-gradient(160deg, color-mix(in srgb, var(--primary) 40%, #000) 0%, color-mix(in srgb, var(--primary) 70%, #000) 55%, var(--primary) 100%);
   padding: 1.5rem 1.25rem 3.5rem;
   position: relative;
@@ -1174,9 +1175,17 @@ body::before {
 
 /* Premium Card Glowing Border Animation */
 @keyframes premiumBorderGlow {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
 }
 
 .premium-glow-card {
@@ -1188,7 +1197,10 @@ body::before {
 .premium-glow-card::before {
   content: '';
   position: absolute;
-  top: -2px; left: -2px; right: -2px; bottom: -2px;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
   border-radius: 30px;
   background: linear-gradient(90deg, #E85C2C, #FF3D3D, #FF9A5A, #E85C2C);
   background-size: 300% 300%;
@@ -1219,16 +1231,23 @@ body::before {
   font-size: 0.7rem;
   font-weight: 800;
   letter-spacing: 0.05em;
-  padding-left: 0.05em; /* optical centering for letter-spacing */
+  padding-left: 0.05em;
+  /* optical centering for letter-spacing */
   text-transform: uppercase;
-  box-shadow: 0 4px 12px rgba(232,92,44,0.4);
+  box-shadow: 0 4px 12px rgba(232, 92, 44, 0.4);
   transform: rotate(45deg);
   animation: ribbonGlow 3s ease-in-out infinite;
   text-align: center;
 }
 
 @keyframes ribbonGlow {
-  0%, 100% { filter: brightness(1); }
-  50% { filter: brightness(1.15); }
-}
 
+  0%,
+  100% {
+    filter: brightness(1);
+  }
+
+  50% {
+    filter: brightness(1.15);
+  }
+}

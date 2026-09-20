@@ -362,6 +362,7 @@ export default function ItemCard({
                 onTouchCancel={handlePointerUpOrLeave}
                 onMouseLeave={handleMouseLeaveInner}
                 onMouseEnter={() => setIsHovered(true)}
+                whileTap={{ scale: 0.96 }}
                 animate={{
                     y: isHovered ? -6 : 0,
                     opacity: contextMenuData ? 0 : 1 // hide original when context menu is open
@@ -463,15 +464,15 @@ export default function ItemCard({
                                     top: contextMenuData.menuY,
                                     left: contextMenuData.menuX,
                                     width: '220px',
-                                    background: darkMode ? 'rgba(30, 30, 30, 0.75)' : 'rgba(255, 255, 255, 0.85)',
+                                    background: darkMode ? 'rgba(30, 30, 30, 0.75)' : 'rgba(255, 255, 255, 0.75)',
                                     backdropFilter: 'blur(30px) saturate(1.5)',
                                     WebkitBackdropFilter: 'blur(30px) saturate(1.5)',
-                                    borderRadius: '16px',
-                                    padding: '6px',
+                                    borderRadius: '14px',
                                     boxShadow: '0 20px 40px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.2)',
                                     display: 'flex',
                                     flexDirection: 'column',
-                                    transformOrigin: `${contextMenuData.originX} ${contextMenuData.originY}`
+                                    transformOrigin: `${contextMenuData.originX} ${contextMenuData.originY}`,
+                                    overflow: 'hidden'
                                 }}
                             >
                                 <ContextMenuItem 
@@ -563,39 +564,28 @@ export default function ItemCard({
                         onClick={e => e.stopPropagation()}
                         style={{
                             position: 'absolute', top: priorityMenuData.y, left: priorityMenuData.x,
-                            background: darkMode ? 'rgba(30, 30, 30, 0.9)' : 'rgba(255, 255, 255, 0.95)',
-                            backdropFilter: 'blur(20px)',
+                            background: darkMode ? 'rgba(30, 30, 30, 0.75)' : 'rgba(255, 255, 255, 0.75)',
+                            backdropFilter: 'blur(30px) saturate(1.5)',
                             border: `1px solid ${darkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
-                            borderRadius: '14px', padding: '6px',
+                            borderRadius: '14px',
                             boxShadow: '0 12px 32px rgba(0,0,0,0.15)',
-                            display: 'flex', flexDirection: 'column', gap: '4px',
-                            minWidth: '160px', transformOrigin: 'top left'
+                            display: 'flex', flexDirection: 'column',
+                            minWidth: '180px', transformOrigin: 'top left',
+                            overflow: 'hidden'
                         }}
                     >
-                        <div 
-                            onClick={(e) => { e.stopPropagation(); onUpdatePriority(3); setPriorityMenuData(null); }} 
-                            style={{ padding: '10px 14px', cursor: 'pointer', borderRadius: '10px', fontSize: '0.85rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px', color: '#f87171', transition: 'background 0.15s' }} 
-                            onMouseEnter={e => e.currentTarget.style.background = 'rgba(252, 165, 165, 0.15)'} 
-                            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-                        >
-                            🔥 High Priority
-                        </div>
-                        <div 
-                            onClick={(e) => { e.stopPropagation(); onUpdatePriority(2); setPriorityMenuData(null); }} 
-                            style={{ padding: '10px 14px', cursor: 'pointer', borderRadius: '10px', fontSize: '0.85rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px', color: '#eab308', transition: 'background 0.15s' }} 
-                            onMouseEnter={e => e.currentTarget.style.background = 'rgba(253, 224, 71, 0.15)'} 
-                            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-                        >
-                            ⭐ Medium Priority
-                        </div>
-                        <div 
-                            onClick={(e) => { e.stopPropagation(); onUpdatePriority(1); setPriorityMenuData(null); }} 
-                            style={{ padding: '10px 14px', cursor: 'pointer', borderRadius: '10px', fontSize: '0.85rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-muted)', transition: 'background 0.15s' }} 
-                            onMouseEnter={e => e.currentTarget.style.background = 'var(--surface-2)'} 
-                            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-                        >
-                            ⏬ Low Priority
-                        </div>
+                        <ContextMenuItem 
+                            icon={() => <span style={{fontSize:'1.1rem'}}>🔥</span>} label="High Priority" 
+                            color="#ef4444" onClick={(e) => { e.stopPropagation(); onUpdatePriority(3); setPriorityMenuData(null); }} 
+                        />
+                        <ContextMenuItem 
+                            icon={() => <span style={{fontSize:'1.1rem'}}>⭐</span>} label="Medium Priority" 
+                            color="#eab308" onClick={(e) => { e.stopPropagation(); onUpdatePriority(2); setPriorityMenuData(null); }} 
+                        />
+                        <ContextMenuItem 
+                            icon={() => <span style={{fontSize:'1.1rem'}}>⏬</span>} label="Low Priority" 
+                            color="var(--text-muted)" isLast onClick={(e) => { e.stopPropagation(); onUpdatePriority(1); setPriorityMenuData(null); }} 
+                        />
                     </motion.div>
                 </div>,
                 document.body
@@ -670,15 +660,14 @@ const ContextMenuItem = ({ icon: Icon, label, onClick, color = 'var(--text)', is
                 color: color,
                 cursor: 'pointer',
                 borderBottom: isLast ? 'none' : '1px solid rgba(128,128,128,0.15)',
-                fontWeight: 600,
+                fontWeight: 500,
                 fontSize: '0.95rem',
-                background: hovered ? 'rgba(128,128,128,0.1)' : 'transparent',
-                borderRadius: '10px',
-                transition: 'background 0.15s ease'
+                background: hovered ? 'rgba(128,128,128,0.15)' : 'transparent',
+                transition: 'background 0.1s ease'
             }}
         >
             <span>{label}</span>
-            <Icon size={18} strokeWidth={2.5} />
+            <Icon size={18} strokeWidth={2} />
         </div>
     );
 };
