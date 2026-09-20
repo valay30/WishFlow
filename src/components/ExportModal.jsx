@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { X, FileDown, FileText, Table2, Check, QrCode, Image as ImageIcon, Share } from 'lucide-react';
+import { X, FileDown, FileText, Table2, Check, QrCode, Image as ImageIcon } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
@@ -22,16 +22,6 @@ export default function ExportModal({ collection, items, onClose }) {
     const { currency } = useSettings();
     const [format, setFormat] = useState('pdf'); // 'pdf' | 'csv' | 'notion'
     const [isExporting, setIsExporting] = useState(false);
-    
-    // Check if device supports native file sharing
-    const [canShareFile, setCanShareFile] = useState(false);
-    React.useEffect(() => {
-        try {
-            if (navigator.canShare && navigator.canShare({ files: [new File([''], 't.pdf', { type: 'application/pdf' })] })) {
-                setCanShareFile(true);
-            }
-        } catch(e) {}
-    }, []);
     
     // PDF Options
     const [includeQr, setIncludeQr] = useState(true);
@@ -184,31 +174,7 @@ export default function ExportModal({ collection, items, onClose }) {
             element.style.display = 'none';
 
             const filename = `${collection.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_guide.pdf`;
-            let sharedNatively = false;
-
-            if (navigator.canShare && navigator.share) {
-                try {
-                    const pdfBlob = pdf.output('blob');
-                    const file = new File([pdfBlob], filename, { type: 'application/pdf' });
-                    if (navigator.canShare({ files: [file] })) {
-                        await navigator.share({
-                            files: [file],
-                            title: `${collection.name} Gift Guide`,
-                            text: customNote ? customNote : 'Check out this wishlist!'
-                        });
-                        sharedNatively = true;
-                    }
-                } catch (shareErr) {
-                    console.log('Share error:', shareErr);
-                    if (shareErr.name === 'AbortError') {
-                        sharedNatively = true; // User cancelled, don't force a download
-                    }
-                }
-            }
-
-            if (!sharedNatively) {
-                pdf.save(filename);
-            }
+            pdf.save(filename);
 
             showIsland({ title: 'Export Complete', subtitle: 'PDF generated successfully!', type: 'success' });
             onClose();
@@ -452,8 +418,8 @@ export default function ExportModal({ collection, items, onClose }) {
                     >
                         {isExporting ? 'Generating...' : (
                             <>
-                                {format === 'notion' ? 'Copy to Clipboard' : (format === 'pdf' && canShareFile ? 'Share PDF' : 'Download')}
-                                {format === 'pdf' && canShareFile ? <Share size={16} /> : <FileDown size={16} />}
+                                {format === 'notion' ? 'Copy to Clipboard' : 'Download'}
+                                <FileDown size={16} />
                             </>
                         )}
                     </button>
