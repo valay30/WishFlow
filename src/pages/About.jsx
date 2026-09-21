@@ -22,7 +22,7 @@ function StatCard({ number, label }) {
 function ValueCard({ icon, title, description }) {
   return (
     <div style={{
-      background: '#fff',
+      background: 'var(--surface)',
       border: '1px solid #F3F4F6',
       borderRadius: '16px',
       padding: '1.75rem',
@@ -39,7 +39,7 @@ function ValueCard({ icon, title, description }) {
         fontSize: '1.5rem',
         marginBottom: '1rem',
       }}>{icon}</div>
-      <h3 style={{ fontWeight: 800, fontSize: '1.1rem', margin: '0 0 0.5rem 0', color: '#111' }}>{title}</h3>
+      <h3 style={{ fontWeight: 800, fontSize: '1.1rem', margin: '0 0 0.5rem 0', color: 'var(--text)' }}>{title}</h3>
       <p style={{ color: '#6B7280', lineHeight: 1.7, fontSize: '0.97rem', margin: 0 }}>{description}</p>
     </div>
   );
@@ -50,7 +50,7 @@ export default function About() {
     <div style={{
       minHeight: '100vh',
       background: 'linear-gradient(135deg, #FFF8F5 0%, #fff 60%)',
-      color: '#111',
+      color: 'var(--text)',
       fontFamily: '"Outfit", sans-serif',
       padding: '4rem 1.5rem',
     }}>
@@ -133,7 +133,7 @@ export default function About() {
 
         {/* Who we are */}
         <section style={{
-          background: '#fff',
+          background: 'var(--surface)',
           border: '1px solid #F3F4F6',
           borderRadius: '20px',
           padding: '2.5rem',
@@ -165,7 +165,7 @@ export default function About() {
             <Link
               to="/auth"
               style={{
-                background: '#fff',
+                background: 'var(--surface)',
                 color: BRAND,
                 textDecoration: 'none',
                 fontWeight: 800,

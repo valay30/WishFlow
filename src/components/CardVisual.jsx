@@ -108,7 +108,7 @@ export default function CardVisual({ phase, roastText, dateStr, showButton, onDo
             <div style={{ position: "relative", height: "1px", margin: 0, zIndex: 2 }}>
               <div style={{ position: "absolute", left: 16, right: 16, top: 0, borderTop: "2px dashed #e2e8f0", zIndex: 1 }} />
             </div>
-            <div style={{ position: "relative", padding: "1.25rem 1.75rem", background: "#ffffff", display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center", borderBottomLeftRadius: "25px", borderBottomRightRadius: "25px" }}>
+            <div style={{ position: "relative", padding: "1.25rem 1.75rem", background: "var(--surface)", display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center", borderBottomLeftRadius: "25px", borderBottomRightRadius: "25px" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
                 <img src={`${window.location.origin}/192x192.png`} crossOrigin="anonymous" alt="WishFlow Logo" style={{ width: "1.8rem", height: "1.8rem", borderRadius: "8px", objectFit: "cover", boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }} />
                 <div style={{ fontSize: "0.95rem", color: "#0f172a", fontWeight: 800, letterSpacing: "-0.01em" }}>wishflow.shop</div>
@@ -220,7 +220,7 @@ export default function CardVisual({ phase, roastText, dateStr, showButton, onDo
         {/* Header Block */}
         <div style={{ padding: '2.5rem 2.2rem 0.5rem 2.2rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', zIndex: 2 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
-            <div style={{ width: '46px', height: '46px', background: '#ffffff', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px', boxShadow: '0 4px 12px rgba(0,0,0,0.06)' }}>
+            <div style={{ width: '46px', height: '46px', background: 'var(--surface)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px', boxShadow: '0 4px 12px rgba(0,0,0,0.06)' }}>
               🔥
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.12rem' }}>
@@ -306,7 +306,7 @@ export default function CardVisual({ phase, roastText, dateStr, showButton, onDo
           {/* Footer: Positioned comfortably ABOVE the bottom margin dashes */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 'auto', paddingTop: '2.5rem', position: 'relative', zIndex: 2 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-              <div style={{ width: '38px', height: '38px', borderRadius: '11px', background: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 3px 10px rgba(0,0,0,0.06)' }}>
+              <div style={{ width: '38px', height: '38px', borderRadius: '11px', background: 'var(--surface)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 3px 10px rgba(0,0,0,0.06)' }}>
                 <img src={`${window.location.origin}/192x192.png`} crossOrigin="anonymous" alt="WishFlow Logo" style={{ width: "24px", height: "24px", objectFit: "contain" }} />
               </div>
               <div style={{ width: '1.5px', height: '22px', background: theme.textColor, opacity: 0.35, margin: '0 0.1rem' }} />
@@ -341,7 +341,7 @@ export default function CardVisual({ phase, roastText, dateStr, showButton, onDo
         {/* Header Block */}
         <div style={{ background: theme.headerBg, padding: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', color: theme.headerTextColor, zIndex: 2 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <div style={{ width: '48px', height: '48px', background: '#ffffff', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px', boxShadow: '0 4px 10px rgba(0,0,0,0.1)' }}>
+            <div style={{ width: '48px', height: '48px', background: 'var(--surface)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px', boxShadow: '0 4px 10px rgba(0,0,0,0.1)' }}>
               🔥
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.1rem' }}>
@@ -394,7 +394,7 @@ export default function CardVisual({ phase, roastText, dateStr, showButton, onDo
             {/* Footer */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 'auto', paddingTop: '3rem', position: 'relative', zIndex: 2 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
-                <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 10px rgba(0,0,0,0.05)' }}>
+                <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: 'var(--surface)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 10px rgba(0,0,0,0.05)' }}>
                   <img src={`${window.location.origin}/192x192.png`} crossOrigin="anonymous" alt="WishFlow Logo" style={{ width: "26px", height: "26px", objectFit: "contain" }} />
                 </div>
                 <div style={{ width: '2px', height: '24px', background: 'rgba(38, 28, 76, 0.3)', borderRadius: '2px' }} />
@@ -430,7 +430,7 @@ export default function CardVisual({ phase, roastText, dateStr, showButton, onDo
 
         {/* Header */}
         <div>
-          <div style={{ width: '52px', height: '52px', background: '#ffffff', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '26px', marginBottom: '1.25rem', boxShadow: '0 4px 10px rgba(0,0,0,0.1)' }}>
+          <div style={{ width: '52px', height: '52px', background: 'var(--surface)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '26px', marginBottom: '1.25rem', boxShadow: '0 4px 10px rgba(0,0,0,0.1)' }}>
             🔥
           </div>
           <h2 style={{ margin: 0, fontSize: '1.6rem', fontWeight: 800, lineHeight: 1.2, letterSpacing: '0.02em', textTransform: 'uppercase', color: theme.textColor }}>

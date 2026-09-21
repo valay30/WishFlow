@@ -64,7 +64,7 @@ export default function RoastPreview() {
         <textarea 
           value={roastText} 
           onChange={(e) => setRoastText(e.target.value)}
-          style={{ width: '100%', height: '80px', padding: '0.75rem', borderRadius: '12px', border: '1px solid #cbd5e1', background: '#fff', color: '#1e293b', fontFamily: 'inherit', resize: 'vertical', boxSizing: 'border-box' }}
+          style={{ width: '100%', height: '80px', padding: '0.75rem', borderRadius: '12px', border: '1px solid #cbd5e1', background: 'var(--surface)', color: '#1e293b', fontFamily: 'inherit', resize: 'vertical', boxSizing: 'border-box' }}
         />
       </div>
 

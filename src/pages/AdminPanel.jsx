@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
 import {
     Crown, Users, ArrowLeft, RefreshCw, Search, Trash2, Package,
-    Filter, Calendar, ChevronLeft, ChevronRight, ChevronDown, XCircle, Menu, X, Plus, Link as LinkIcon, BookOpen, TrendingDown, Play, Clock, Settings, Eye, User, Palette, Rocket, Command, Info, LogOut, Megaphone, Type, AlignLeft, Image as ImageIcon, Send, Save
+    Filter, Calendar, ChevronLeft, ChevronRight, ChevronDown, XCircle, Menu, X, Plus, Link as LinkIcon, BookOpen, TrendingDown, Play, Clock, Settings, Eye, User, Palette, Rocket, Command, Info, LogOut, Megaphone, Type, AlignLeft, Image as ImageIcon, Send, Save, Check
 } from 'lucide-react';
 import { API_URL as API } from '../config';
 import { supabase } from '../db';
@@ -13,6 +13,7 @@ import CustomSelect from '../components/CustomSelect';
 import BlogAdminTab from '../components/BlogAdminTab';
 import { useIsland } from '../context/IslandContext';
 import { useAdminContext } from '../context/AdminContext';
+import { useSettings } from '../context/SettingsContext';
 import CardVisual, { ROAST_THEMES } from '../components/CardVisual';
 import { uploadToImageKit } from '../utils/imagekit';
 
@@ -58,6 +59,18 @@ export default function AdminPanel() {
     const [roastFeatureEnabled, setRoastFeatureEnabled] = useState(true);
     const [togglingRoast, setTogglingRoast] = useState(false);
     const [roastEnabledThemes, setRoastEnabledThemes] = useState([]);
+    
+    const { darkMode } = useSettings();
+
+    // Force light mode on Admin Panel
+    useEffect(() => {
+        document.documentElement.classList.remove('dark');
+        return () => {
+            if (darkMode) {
+                document.documentElement.classList.add('dark');
+            }
+        };
+    }, [darkMode]);
     const [previewTheme, setPreviewTheme] = useState(null);
     const [refreshFeatureEnabled, setRefreshFeatureEnabled] = useState(true);
     const [togglingRefresh, setTogglingRefresh] = useState(false);
@@ -69,6 +82,9 @@ export default function AdminPanel() {
     const [broadcastBody, setBroadcastBody] = useState('');
     const [broadcastUrl, setBroadcastUrl] = useState('');
     const [broadcastImage, setBroadcastImage] = useState('');
+    const [broadcastActionButtonEnabled, setBroadcastActionButtonEnabled] = useState(false);
+    const [broadcastActionButtonTitle, setBroadcastActionButtonTitle] = useState('');
+    const [broadcastActionButtonUrl, setBroadcastActionButtonUrl] = useState('');
     const [broadcastLoading, setBroadcastLoading] = useState(false);
     const [isBroadcastModalOpen, setIsBroadcastModalOpen] = useState(false);
     const [isPromptModalOpen, setIsPromptModalOpen] = useState(false);
@@ -76,6 +92,13 @@ export default function AdminPanel() {
     const [broadcastUserSearchTerm, setBroadcastUserSearchTerm] = useState('');
     const [isBroadcastFilterOpen, setIsBroadcastFilterOpen] = useState(false);
     const [isUploadingImage, setIsUploadingImage] = useState(false);
+    // Analytics: view toggle + history data
+    const [broadcastView, setBroadcastView] = useState('compose'); // 'compose' | 'history'
+    const [broadcastHistory, setBroadcastHistory] = useState([]);
+    const [broadcastHistoryLoading, setBroadcastHistoryLoading] = useState(false);
+    const [isDeleteHistoryModalOpen, setIsDeleteHistoryModalOpen] = useState(false);
+    const [deleteHistoryTimeframe, setDeleteHistoryTimeframe] = useState('1month');
+    const [isTimeframeDropdownOpen, setIsTimeframeDropdownOpen] = useState(false);
     
     // Custom Templates & Draft State
     const [customTemplates, setCustomTemplates] = useState(() => JSON.parse(localStorage.getItem('wishflow_admin_templates')) || []);
@@ -254,7 +277,9 @@ export default function AdminPanel() {
                     body: broadcastBody,
                     url: broadcastUrl,
                     image: broadcastImage,
-                    targetUserIds: broadcastTargetUserIds.length > 0 ? broadcastTargetUserIds : undefined
+                    targetUserIds: broadcastTargetUserIds.length > 0 ? broadcastTargetUserIds : undefined,
+                    actionButtonTitle: broadcastActionButtonEnabled ? broadcastActionButtonTitle : undefined,
+                    actionButtonUrl: broadcastActionButtonEnabled ? broadcastActionButtonUrl : undefined
                 })
             });
             const data = await res.json();
@@ -264,6 +289,9 @@ export default function AdminPanel() {
                 setBroadcastBody('');
                 setBroadcastUrl('');
                 setBroadcastImage('');
+                setBroadcastActionButtonEnabled(false);
+                setBroadcastActionButtonTitle('');
+                setBroadcastActionButtonUrl('');
                 setBroadcastTargetUserIds([]);
                 setBroadcastUserSearchTerm('');
             } else {
@@ -273,6 +301,41 @@ export default function AdminPanel() {
             showToast('Network error', 'error');
         } finally {
             setBroadcastLoading(false);
+        }
+    };
+
+    const fetchBroadcastHistory = async () => {
+        setBroadcastHistoryLoading(true);
+        try {
+            const headers = await getAuthHeaders();
+            const res = await fetch(`${API}/api/admin/broadcast-history`, { headers });
+            if (res.ok) {
+                const data = await res.json();
+                setBroadcastHistory(data);
+            }
+        } catch (e) {
+            console.error('Failed to fetch broadcast history', e);
+        } finally {
+            setBroadcastHistoryLoading(false);
+        }
+    };
+
+    const confirmDeleteHistory = async () => {
+        try {
+            const headers = await getAuthHeaders();
+            const res = await fetch(`${API}/api/admin/broadcast-history?timeframe=${deleteHistoryTimeframe}`, { 
+                method: 'DELETE',
+                headers 
+            });
+            if (res.ok) {
+                showToast('History deleted successfully!');
+                fetchBroadcastHistory();
+                setIsDeleteHistoryModalOpen(false);
+            } else {
+                showToast('Failed to delete history', 'error');
+            }
+        } catch (e) {
+            showToast('Network error', 'error');
         }
     };
 
@@ -328,16 +391,16 @@ export default function AdminPanel() {
     };
 
     return (
-        <div className="admin-container" style={{ display: 'flex', minHeight: '100vh', background: '#fff', fontFamily: "'Outfit', sans-serif", color: '#111' }}>
+        <div className="admin-container" style={{ display: 'flex', minHeight: '100vh', background: 'var(--surface)', fontFamily: "'Outfit', sans-serif", color: 'var(--text)' }}>
             {/* Mobile Header Bar */}
-            <div className="admin-mobile-header" style={{ display: 'none', alignItems: 'center', justifyContent: 'space-between', padding: '1rem 1.5rem', background: '#fff', position: 'sticky', top: 0, zIndex: 100 }}>
+            <div className="admin-mobile-header" style={{ display: 'none', alignItems: 'center', justifyContent: 'space-between', padding: '1rem 1.5rem', background: 'var(--surface)', position: 'sticky', top: 0, zIndex: 100 }}>
                 <button
                     onClick={() => navigate('/')}
                     style={{ width: '36px', height: '36px', borderRadius: '50%', background: '#f5f3ff', border: 'none', color: '#4f46e5', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}
                 >
                     <ChevronLeft size={22} strokeWidth={2.5} />
                 </button>
-                <span style={{ fontSize: '1.1rem', fontWeight: 800, color: '#111' }}>WishFlow Admin</span>
+                <span style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--text)' }}>WishFlow Admin</span>
                 <div style={{ position: 'relative' }}>
                     <div
                         onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
@@ -358,7 +421,7 @@ export default function AdminPanel() {
                                 right: 0,
                                 marginTop: '0.75rem',
                                 width: '240px',
-                                background: '#fff',
+                                background: 'var(--surface)',
                                 borderRadius: '16px',
                                 padding: '0.5rem',
                                 zIndex: 100,
@@ -452,7 +515,7 @@ export default function AdminPanel() {
                                 <line x1="4" y1="22" x2="4" y2="15"></line>
                             </svg>
                         </div>
-                        <span style={{ fontSize: '1.25rem', fontWeight: 800, color: '#111' }}>WishFlow</span>
+                        <span style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text)' }}>WishFlow</span>
                         <span style={{ fontSize: '0.7rem', fontWeight: 700, color: '#4f46e5', background: '#eef2ff', padding: '0.2rem 0.6rem', borderRadius: '12px' }}>Admin</span>
                     </div>
                     <button
@@ -562,13 +625,13 @@ export default function AdminPanel() {
                     >
                         <ChevronLeft size={18} /> Back to App
                     </button>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.875rem 1rem', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '12px', cursor: 'pointer', boxShadow: '0 1px 2px rgba(0,0,0,0.02)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.875rem 1rem', background: 'var(--surface)', border: '1px solid #e2e8f0', borderRadius: '12px', cursor: 'pointer', boxShadow: '0 1px 2px rgba(0,0,0,0.02)' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', minWidth: 0 }}>
                             <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: '#6d28d9', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '0.9rem', flexShrink: 0 }}>
                                 {getInitials(user?.name, user?.email)}
                             </div>
                             <div style={{ minWidth: 0 }}>
-                                <p style={{ margin: 0, fontWeight: 700, fontSize: '0.9rem', color: '#111', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user?.name || 'Admin User'}</p>
+                                <p style={{ margin: 0, fontWeight: 700, fontSize: '0.9rem', color: 'var(--text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user?.name || 'Admin User'}</p>
                                 <p style={{ margin: 0, fontSize: '0.75rem', color: '#64748b', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user?.email}</p>
                             </div>
                         </div>
@@ -591,7 +654,7 @@ export default function AdminPanel() {
                             <button
                                 onClick={refreshData}
                                 disabled={loadingUsers || loadingItems}
-                                style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.75rem 1.25rem', background: '#fff', color: '#4f46e5', border: '1px solid #e0e7ff', borderRadius: '12px', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer', boxShadow: '0 1px 2px rgba(0,0,0,0.02)', opacity: (loadingUsers || loadingItems) ? 0.7 : 1 }}
+                                style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.75rem 1.25rem', background: 'var(--surface)', color: '#4f46e5', border: '1px solid #e0e7ff', borderRadius: '12px', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer', boxShadow: '0 1px 2px rgba(0,0,0,0.02)', opacity: (loadingUsers || loadingItems) ? 0.7 : 1 }}
                             >
                                 <RefreshCw size={18} style={{ animation: (loadingUsers || loadingItems) ? 'spin 1s linear infinite' : 'none' }} />
                                 <span className="action-text">Refresh</span>
@@ -674,7 +737,7 @@ export default function AdminPanel() {
                                             },
                                         ].map(card => (
                                             <div key={card.label} style={{
-                                                background: '#fff',
+                                                background: 'var(--surface)',
                                                 border: '1px solid #f1f5f9',
                                                 borderRadius: '18px',
                                                 padding: '1.25rem',
@@ -702,7 +765,7 @@ export default function AdminPanel() {
                                 <div className="pa-two-col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem', alignItems: 'start' }}>
 
                                     {/* Run Now Card */}
-                                    <div style={{ background: '#fff', border: '1px solid #f1f5f9', borderRadius: '20px', padding: '1.75rem', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+                                    <div style={{ background: 'var(--surface)', border: '1px solid #f1f5f9', borderRadius: '20px', padding: '1.75rem', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.5rem' }}>
                                             <div style={{ width: '32px', height: '32px', background: 'linear-gradient(135deg, #fef3c7, #fde68a)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem' }}>⚡</div>
                                             <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 800, color: '#0f172a' }}>Run Job Now</h3>
@@ -832,7 +895,7 @@ export default function AdminPanel() {
                             <Palette size={120} style={{ position: 'absolute', right: '-10px', top: '50%', transform: 'translateY(-50%)', opacity: 0.1 }} />
                         </div>
 
-                        <div style={{ background: '#fff', padding: '2rem', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', border: '1px solid #f1f5f9' }}>
+                        <div style={{ background: 'var(--surface)', padding: '2rem', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', border: '1px solid #f1f5f9' }}>
 
 
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: '1rem' }}>
@@ -975,543 +1038,452 @@ export default function AdminPanel() {
                     </div>
                 )}
 
+                
                 {/* Broadcast tab content */}
                 {activeTab === 'broadcast' && (
                     <div style={{ width: '100%' }}>
-                        <div style={{
-                            background: 'linear-gradient(135deg, #db2777 0%, #be185d 100%)',
-                            borderRadius: '16px', padding: '2.5rem 2rem', marginBottom: '2rem',
-                            color: '#fff', position: 'relative', overflow: 'hidden',
-                            boxShadow: '0 10px 25px -5px rgba(219, 39, 119, 0.4)'
-                        }}>
-                            <div style={{ position: 'relative', zIndex: 1 }}>
-                                <h2 style={{ margin: '0 0 0.5rem 0', fontSize: '1.5rem', fontWeight: 800, color: '#fff' }}>Broadcast Notification</h2>
-                            </div>
-                            <Megaphone size={120} style={{ position: 'absolute', right: '-10px', top: '50%', transform: 'translateY(-50%)', opacity: 0.1 }} />
+                        {/* Segmented Control */}
+                        <div style={{ display: 'flex', background: 'var(--surface-2)', borderRadius: '16px', padding: '4px', gap: '4px', width: 'fit-content', marginBottom: '1.5rem' }}>
+                            {[
+                                { key: 'compose', label: '✏️ Compose' },
+                                { key: 'history', label: '📊 History' }
+                            ].map(({ key, label }) => (
+                                <button
+                                    key={key}
+                                    onClick={() => {
+                                        setBroadcastView(key);
+                                        if (key === 'history') fetchBroadcastHistory();
+                                    }}
+                                    style={{
+                                        padding: '0.55rem 1.2rem', border: 'none', borderRadius: '12px', cursor: 'pointer',
+                                        fontWeight: 700, fontSize: '0.85rem', transition: 'all 0.2s',
+                                        background: broadcastView === key ? '#db2777' : 'transparent',
+                                        color: broadcastView === key ? '#fff' : 'var(--text-muted)',
+                                        boxShadow: broadcastView === key ? '0 2px 12px rgba(219,39,119,0.3)' : 'none'
+                                    }}
+                                >{label}</button>
+                            ))}
                         </div>
 
-                        <div style={{ padding: '0' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem' }}>
-                                <div style={{ background: '#f5f3ff', padding: '0.5rem', borderRadius: '8px', color: '#8b5cf6' }}>
-                                    <span style={{ fontSize: '1.5rem' }}>📢</span>
-                                </div>
-                                <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 700, color: '#0f172a' }}>Global Broadcast Notification</h3>
-                            </div>
-
+                        {/* ── History View ── */}
+                        {broadcastView === 'history' && (
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                                <div>
-                                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.4rem' }}>Target Users (Optional)</label>
-
-                                    <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'center', marginBottom: '0.85rem', flexWrap: 'wrap' }}>
-                                        {/* Search input */}
-                                        <div style={{ flex: '1 1 200px', position: 'relative' }}>
-                                            <Search size={16} color="#94a3b8" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }} />
-                                            <input
-                                                type="text"
-                                                placeholder="Search users..."
-                                                value={broadcastUserSearchTerm}
-                                                onChange={(e) => setBroadcastUserSearchTerm(e.target.value)}
-                                                style={{
-                                                    width: '100%', boxSizing: 'border-box', padding: '0.65rem 1rem 0.65rem 2.25rem',
-                                                    border: '1px solid #cbd5e1', borderRadius: '8px',
-                                                    outline: 'none', fontFamily: 'inherit', fontSize: '0.85rem',
-                                                    transition: 'border-color 0.2s'
-                                                }}
-                                                onFocus={e => e.target.style.borderColor = '#db2777'}
-                                                onBlur={e => e.target.style.borderColor = '#cbd5e1'}
-                                            />
-                                        </div>
-
-                                        {/* Quick Select Dropdown */}
-                                        <div style={{ position: 'relative', flex: '1 1 auto', minWidth: '140px' }}>
-                                            <button
-                                                type="button"
-                                                onClick={() => setIsBroadcastFilterOpen(prev => !prev)}
-                                                style={{
-                                                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
-                                                    width: '100%', background: broadcastTargetUserIds.length > 0 ? '#db2777' : '#fff',
-                                                    color: broadcastTargetUserIds.length > 0 ? '#fff' : '#475569',
-                                                    border: `1px solid ${broadcastTargetUserIds.length > 0 ? '#db2777' : '#cbd5e1'}`,
-                                                    borderRadius: '8px', padding: '0.65rem 0.95rem',
-                                                    fontSize: '0.85rem', fontWeight: 600, fontFamily: 'inherit',
-                                                    cursor: 'pointer', transition: 'all 0.2s ease',
-                                                    boxShadow: broadcastTargetUserIds.length > 0 ? '0 4px 14px rgba(219, 39, 119, 0.35)' : 'none',
-                                                }}
-                                            >
-                                                <Filter size={14} style={{ color: broadcastTargetUserIds.length > 0 ? '#fff' : '#64748b' }} />
-                                                <span>Quick Select</span>
-                                                <ChevronDown
-                                                    size={14}
-                                                    style={{
-                                                        marginLeft: 'auto',
-                                                        color: broadcastTargetUserIds.length > 0 ? '#fff' : '#94a3b8',
-                                                        transform: isBroadcastFilterOpen ? 'rotate(180deg)' : 'none',
-                                                        transition: 'transform 0.2s ease'
-                                                    }}
-                                                />
-                                            </button>
-
-                                            {isBroadcastFilterOpen && (
-                                                <div
-                                                    onClick={() => setIsBroadcastFilterOpen(false)}
-                                                    style={{ position: 'fixed', inset: 0, zIndex: 1999 }}
-                                                />
-                                            )}
-
-                                            {isBroadcastFilterOpen && (
-                                                <div style={{
-                                                    position: 'absolute', top: 'calc(100% + 8px)', right: 0, zIndex: 2000,
-                                                    background: '#fff', borderRadius: '12px',
-                                                    boxShadow: '0 10px 30px rgba(0,0,0,0.1)', border: '1px solid #e2e8f0',
-                                                    padding: '0.5rem', display: 'flex', flexDirection: 'column', minWidth: '180px'
-                                                }}>
-                                                    <button
-                                                        type="button"
-                                                        onClick={(e) => {
-                                                            e.preventDefault();
-                                                            const premiumIds = users.filter(u => u.isPremium).map(u => u.id);
-                                                            setBroadcastTargetUserIds(premiumIds);
-                                                            setIsBroadcastFilterOpen(false);
-                                                        }}
-                                                        style={{
-                                                            padding: '0.65rem 1rem', background: 'transparent', border: 'none',
-                                                            textAlign: 'left', fontSize: '0.85rem', fontWeight: 600, color: '#334155',
-                                                            cursor: 'pointer', borderRadius: '8px', transition: 'background 0.2s', fontFamily: 'inherit'
-                                                        }}
-                                                        onMouseEnter={e => e.currentTarget.style.background = '#f1f5f9'}
-                                                        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-                                                    >
-                                                        ⭐ Premium Users
-                                                    </button>
-                                                    <button
-                                                        type="button"
-                                                        onClick={(e) => {
-                                                            e.preventDefault();
-                                                            const freeIds = users.filter(u => !u.isPremium).map(u => u.id);
-                                                            setBroadcastTargetUserIds(freeIds);
-                                                            setIsBroadcastFilterOpen(false);
-                                                        }}
-                                                        style={{
-                                                            padding: '0.65rem 1rem', background: 'transparent', border: 'none',
-                                                            textAlign: 'left', fontSize: '0.85rem', fontWeight: 600, color: '#334155',
-                                                            cursor: 'pointer', borderRadius: '8px', transition: 'background 0.2s', fontFamily: 'inherit'
-                                                        }}
-                                                        onMouseEnter={e => e.currentTarget.style.background = '#f1f5f9'}
-                                                        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-                                                    >
-                                                        🆓 Free Users
-                                                    </button>
-                                                    <button
-                                                        type="button"
-                                                        onClick={(e) => {
-                                                            e.preventDefault();
-                                                            const zeroItemIds = users.filter(u => !u.itemCount || u.itemCount === 0).map(u => u.id);
-                                                            setBroadcastTargetUserIds(zeroItemIds);
-                                                            setIsBroadcastFilterOpen(false);
-                                                        }}
-                                                        style={{
-                                                            padding: '0.65rem 1rem', background: 'transparent', border: 'none',
-                                                            textAlign: 'left', fontSize: '0.85rem', fontWeight: 600, color: '#334155',
-                                                            cursor: 'pointer', borderRadius: '8px', transition: 'background 0.2s', fontFamily: 'inherit'
-                                                        }}
-                                                        onMouseEnter={e => e.currentTarget.style.background = '#f1f5f9'}
-                                                        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-                                                    >
-                                                        🎯 0 Items (Inactive)
-                                                    </button>
-
-                                                    {broadcastTargetUserIds.length > 0 && (
-                                                        <>
-                                                            <div style={{ height: '1px', background: '#e2e8f0', margin: '0.35rem 0' }} />
-                                                            <button
-                                                                type="button"
-                                                                onClick={(e) => {
-                                                                    e.preventDefault();
-                                                                    setBroadcastTargetUserIds([]);
-                                                                    setIsBroadcastFilterOpen(false);
-                                                                }}
-                                                                style={{
-                                                                    padding: '0.65rem 1rem', background: 'transparent', border: 'none',
-                                                                    textAlign: 'left', fontSize: '0.85rem', fontWeight: 700, color: '#db2777',
-                                                                    cursor: 'pointer', borderRadius: '8px', transition: 'background 0.2s', fontFamily: 'inherit'
-                                                                }}
-                                                                onMouseEnter={e => e.currentTarget.style.background = '#fdf2f8'}
-                                                                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-                                                            >
-                                                                Clear Selection
-                                                            </button>
-                                                        </>
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                    <h2 style={{ margin: 0, fontSize: '1.3rem', fontWeight: 800, color: 'var(--text)' }}>Broadcast History</h2>
+                                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                        <button onClick={() => setIsDeleteHistoryModalOpen(true)} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 1rem', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '10px', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600, color: '#ef4444' }}>
+                                            <Trash2 size={14} /> Clear
+                                        </button>
+                                        <button onClick={fetchBroadcastHistory} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 1rem', background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: '10px', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text)' }}>
+                                            <RefreshCw size={14} style={{ animation: broadcastHistoryLoading ? 'spin 1s linear infinite' : 'none' }} /> Refresh
+                                        </button>
+                                    </div>
+                                </div>
+                                {broadcastHistoryLoading ? (
+                                    <div style={{ display: 'flex', justifyContent: 'center', padding: '3rem' }}>
+                                        <RefreshCw size={24} color="#db2777" style={{ animation: 'spin 1s linear infinite' }} />
+                                    </div>
+                                ) : broadcastHistory.length === 0 ? (
+                                    <div style={{ textAlign: 'center', padding: '4rem 2rem', background: 'var(--surface)', borderRadius: '24px', border: '1px dashed var(--border)' }}>
+                                        <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📭</div>
+                                        <p style={{ color: 'var(--text-muted)', fontWeight: 600, margin: 0 }}>No broadcasts sent yet</p>
+                                        <p style={{ color: 'var(--text-dim)', fontSize: '0.85rem', margin: '0.5rem 0 0' }}>Switch to Compose to send your first notification!</p>
+                                    </div>
+                                ) : (
+                                    broadcastHistory.map((record) => {
+                                        const ctr = record.sent_count > 0 ? ((record.click_count / record.sent_count) * 100).toFixed(1) : '0.0';
+                                        const ctrColor = parseFloat(ctr) >= 10 ? '#22c55e' : parseFloat(ctr) >= 5 ? '#eab308' : '#ef4444';
+                                        return (
+                                            <div key={record.id} style={{
+                                                background: 'rgba(255, 255, 255, 0.7)',
+                                                backdropFilter: 'blur(20px)',
+                                                WebkitBackdropFilter: 'blur(20px)',
+                                                border: '1px solid rgba(255, 255, 255, 0.5)',
+                                                borderRadius: '24px',
+                                                padding: '1.5rem',
+                                                display: 'flex',
+                                                flexDirection: 'column',
+                                                gap: '1rem',
+                                                boxShadow: '0 10px 30px rgba(0,0,0,0.06)',
+                                                transition: 'transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease',
+                                                cursor: 'default'
+                                            }}
+                                            onMouseEnter={e => {
+                                                e.currentTarget.style.transform = 'scale(1.015)';
+                                                e.currentTarget.style.boxShadow = '0 15px 35px rgba(0,0,0,0.08)';
+                                            }}
+                                            onMouseLeave={e => {
+                                                e.currentTarget.style.transform = 'scale(1)';
+                                                e.currentTarget.style.boxShadow = '0 10px 30px rgba(0,0,0,0.06)';
+                                            }}>
+                                                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
+                                                    <div style={{ flex: 1 }}>
+                                                        <div style={{ fontWeight: 800, fontSize: '1.1rem', color: '#111', marginBottom: '0.25rem', letterSpacing: '-0.02em' }}>{record.title}</div>
+                                                        <div style={{ fontSize: '0.9rem', color: 'rgba(0,0,0,0.6)', lineHeight: 1.4 }}>{record.body}</div>
+                                                    </div>
+                                                    <div style={{ fontSize: '0.75rem', color: 'rgba(0,0,0,0.4)', whiteSpace: 'nowrap', flexShrink: 0, fontWeight: 600, background: 'rgba(0,0,0,0.04)', padding: '0.3rem 0.6rem', borderRadius: '10px' }}>
+                                                        {new Date(record.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                                    </div>
+                                                </div>
+                                                <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                                                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', padding: '0.4rem 0.8rem', background: 'rgba(59, 130, 246, 0.1)', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 700, color: '#2563eb', border: '1px solid rgba(59, 130, 246, 0.2)' }}>
+                                                        <Users size={14} /> {record.sent_count} Sent
+                                                    </span>
+                                                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', padding: '0.4rem 0.8rem', background: 'rgba(168, 85, 247, 0.1)', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 700, color: '#9333ea', border: '1px solid rgba(168, 85, 247, 0.2)' }}>
+                                                        👆 {record.click_count} Clicked
+                                                    </span>
+                                                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', padding: '0.4rem 0.8rem', background: record.sent_count > 0 ? `${ctrColor}15` : 'rgba(0,0,0,0.05)', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 700, color: ctrColor, border: `1px solid ${record.sent_count > 0 ? ctrColor : 'transparent'}40` }}>
+                                                        📈 {ctr}% CTR
+                                                    </span>
+                                                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', padding: '0.4rem 0.8rem', background: 'rgba(219, 39, 119, 0.1)', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 700, color: '#be185d', border: '1px solid rgba(219, 39, 119, 0.2)' }}>
+                                                        🎯 {record.target}
+                                                    </span>
+                                                    {record.failed_count > 0 && (
+                                                        <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', padding: '0.4rem 0.8rem', background: 'rgba(239, 68, 68, 0.1)', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 700, color: '#dc2626', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
+                                                            ❌ {record.failed_count} Failed
+                                                        </span>
                                                     )}
                                                 </div>
-                                            )}
+                                            </div>
+                                        );
+                                    })
+                                )}
+                            </div>
+                        )}
+
+                        {/* ── Compose View ── */}
+                        {broadcastView === 'compose' && <div className="broadcast-grid">
+                            {/* Left Column - Editor */}
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                                <div style={{ background: 'var(--surface)', padding: '2rem', borderRadius: '24px', boxShadow: '0 4px 20px rgba(0,0,0,0.04)', border: '1px solid var(--border)' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '2rem' }}>
+                                        <div style={{ background: '#fce7f3', padding: '0.6rem', borderRadius: '12px', color: '#db2777' }}>
+                                            <Megaphone size={24} />
+                                        </div>
+                                        <div>
+                                            <h2 style={{ margin: 0, fontSize: '1.4rem', fontWeight: 800, color: 'var(--text)' }}>Compose Broadcast</h2>
+                                            <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-muted)' }}>Send push notifications to your users</p>
                                         </div>
                                     </div>
-                                    <div className="custom-scrollbar" style={{ maxHeight: '280px', overflowY: 'auto', paddingRight: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
-                                        <style>{`
-                                            .custom-scrollbar::-webkit-scrollbar { width: 6px; }
-                                            .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 8px; }
-                                            .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 8px; }
-                                            .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-                                        `}</style>
 
-                                        {/* All Users Option */}
-                                        {(!broadcastUserSearchTerm.trim()) && (
-                                            <label style={{
-                                                display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.75rem 1rem', cursor: 'pointer',
-                                                background: broadcastTargetUserIds.length === 0 ? '#fdf2f8' : '#fff',
-                                                border: broadcastTargetUserIds.length === 0 ? '2px solid #db2777' : '1px solid #e2e8f0',
-                                                borderRadius: '12px', transition: 'all 0.2s ease',
-                                                boxShadow: broadcastTargetUserIds.length === 0 ? '0 4px 12px rgba(219, 39, 119, 0.1)' : '0 1px 2px rgba(0,0,0,0.02)'
-                                            }}
-                                                onMouseEnter={e => { if (broadcastTargetUserIds.length !== 0) e.currentTarget.style.borderColor = '#cbd5e1'; }}
-                                                onMouseLeave={e => { if (broadcastTargetUserIds.length !== 0) e.currentTarget.style.borderColor = '#e2e8f0'; }}
-                                            >
-                                                <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={broadcastTargetUserIds.length === 0}
-                                                        onChange={() => setBroadcastTargetUserIds([])}
-                                                        style={{ opacity: 0, position: 'absolute', width: 0, height: 0 }}
-                                                    />
-                                                    <div style={{
-                                                        width: '20px', height: '20px', borderRadius: '6px',
-                                                        border: broadcastTargetUserIds.length === 0 ? 'none' : '2px solid #cbd5e1',
-                                                        background: broadcastTargetUserIds.length === 0 ? '#db2777' : '#fff',
-                                                        display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s'
-                                                    }}>
-                                                        {broadcastTargetUserIds.length === 0 && <span style={{ color: '#fff', fontSize: '12px', fontWeight: 'bold' }}>✓</span>}
-                                                    </div>
-                                                </div>
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
-                                                    <div style={{ width: '38px', height: '38px', borderRadius: '50%', background: broadcastTargetUserIds.length === 0 ? '#db2777' : '#f1f5f9', color: broadcastTargetUserIds.length === 0 ? '#fff' : '#64748b', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem', transition: 'all 0.2s' }}>
-                                                        <Users size={18} strokeWidth={2.5} />
-                                                    </div>
-                                                    <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                                        <span style={{ fontWeight: 700, color: broadcastTargetUserIds.length === 0 ? '#9d174d' : '#334155', fontSize: '0.95rem' }}>All Users (Global Broadcast)</span>
-                                                        <span style={{ color: broadcastTargetUserIds.length === 0 ? '#be185d' : '#94a3b8', fontSize: '0.75rem', fontWeight: 500 }}>Send to everyone subscribed</span>
-                                                    </div>
-                                                </div>
-                                            </label>
-                                        )}
-
-                                        {/* Individual Users */}
-                                        {users.filter(u => {
-                                            if (!broadcastUserSearchTerm.trim()) return true;
-                                            const search = broadcastUserSearchTerm.toLowerCase();
-                                            return (u.name?.toLowerCase() || '').includes(search) || (u.email?.toLowerCase() || '').includes(search);
-                                        }).map(u => {
-                                            const isSelected = broadcastTargetUserIds.includes(u.id);
-                                            const avatarColor = getAvatarColor(u.name || u.email);
-                                            return (
-                                                <label key={u.id} style={{
-                                                    display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.75rem 1rem', cursor: 'pointer',
-                                                    background: isSelected ? '#f8fafc' : '#fff',
-                                                    border: isSelected ? '2px solid #3b82f6' : '1px solid #e2e8f0',
-                                                    borderRadius: '12px', transition: 'all 0.2s ease',
-                                                    boxShadow: isSelected ? '0 4px 12px rgba(59, 130, 246, 0.1)' : '0 1px 2px rgba(0,0,0,0.02)'
-                                                }}
-                                                    onMouseEnter={e => { if (!isSelected) e.currentTarget.style.borderColor = '#cbd5e1'; }}
-                                                    onMouseLeave={e => { if (!isSelected) e.currentTarget.style.borderColor = '#e2e8f0'; }}
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                                        {/* Target Users */}
+                                        <div>
+                                            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text)', marginBottom: '0.5rem' }}>Target Audience</label>
+                                            <div style={{ position: 'relative' }}>
+                                                <div 
+                                                    onClick={() => setIsBroadcastFilterOpen(!isBroadcastFilterOpen)}
+                                                    style={{ 
+                                                        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                                                        padding: '0.85rem 1rem', background: 'var(--surface-2)', border: '1.5px solid var(--border)',
+                                                        borderRadius: '12px', cursor: 'pointer', transition: 'all 0.2s'
+                                                    }}
                                                 >
-                                                    <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                                                        <input
-                                                            type="checkbox"
-                                                            checked={isSelected}
-                                                            onChange={(e) => {
-                                                                if (e.target.checked) {
-                                                                    setBroadcastTargetUserIds([...broadcastTargetUserIds, u.id]);
-                                                                } else {
-                                                                    setBroadcastTargetUserIds(broadcastTargetUserIds.filter(id => id !== u.id));
-                                                                }
-                                                            }}
-                                                            style={{ opacity: 0, position: 'absolute', width: 0, height: 0 }}
-                                                        />
-                                                        <div style={{
-                                                            width: '20px', height: '20px', borderRadius: '6px',
-                                                            border: isSelected ? 'none' : '2px solid #cbd5e1',
-                                                            background: isSelected ? '#3b82f6' : '#fff',
-                                                            display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s'
-                                                        }}>
-                                                            {isSelected && <span style={{ color: '#fff', fontSize: '12px', fontWeight: 'bold' }}>✓</span>}
+                                                    <span style={{ fontSize: '0.9rem', fontWeight: 600, color: broadcastTargetUserIds.length > 0 ? 'var(--text)' : 'var(--text-muted)' }}>
+                                                        {broadcastTargetUserIds.length > 0 ? `${broadcastTargetUserIds.length} users selected` : 'All Users (Global)'}
+                                                    </span>
+                                                    <ChevronDown size={16} color="var(--text-dim)" />
+                                                </div>
+                                                
+                                                {isBroadcastFilterOpen && (
+                                                    <div style={{
+                                                        position: 'absolute', top: '100%', left: 0, right: 0, marginTop: '0.5rem',
+                                                        background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '16px',
+                                                        boxShadow: '0 10px 40px rgba(0,0,0,0.1)', zIndex: 100, padding: '0.5rem',
+                                                        display: 'flex', flexDirection: 'column', gap: '0.25rem', maxHeight: '350px'
+                                                    }}>
+                                                        <div style={{ position: 'relative', marginBottom: '0.25rem' }}>
+                                                            <Search size={14} color="var(--text-dim)" style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)' }} />
+                                                            <input 
+                                                                type="text" 
+                                                                placeholder="Search users..." 
+                                                                value={broadcastUserSearchTerm}
+                                                                onChange={(e) => setBroadcastUserSearchTerm(e.target.value)}
+                                                                style={{
+                                                                    width: '100%', padding: '0.5rem 0.5rem 0.5rem 30px', 
+                                                                    background: 'var(--surface-2)', border: 'none', borderRadius: '8px', 
+                                                                    outline: 'none', color: 'var(--text)', fontSize: '0.85rem', boxSizing: 'border-box'
+                                                                }}
+                                                            />
+                                                        </div>
+                                                        
+                                                        {!broadcastUserSearchTerm && (
+                                                            <>
+                                                                <button type="button" onClick={() => { setBroadcastTargetUserIds([]); setIsBroadcastFilterOpen(false); }} style={{ padding: '0.65rem 0.75rem', background: 'transparent', border: 'none', textAlign: 'left', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text)', fontWeight: 600, fontSize: '0.85rem' }} onMouseEnter={e => e.currentTarget.style.background='var(--surface-2)'} onMouseLeave={e => e.currentTarget.style.background='transparent'}>
+                                                                    <Users size={16} color="#db2777" /> All Users (Global)
+                                                                </button>
+                                                                <button type="button" onClick={() => { setBroadcastTargetUserIds(users.filter(u => u.isPremium).map(u => u.id)); setIsBroadcastFilterOpen(false); }} style={{ padding: '0.65rem 0.75rem', background: 'transparent', border: 'none', textAlign: 'left', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text)', fontWeight: 600, fontSize: '0.85rem' }} onMouseEnter={e => e.currentTarget.style.background='var(--surface-2)'} onMouseLeave={e => e.currentTarget.style.background='transparent'}>
+                                                                    <Crown size={16} color="#eab308" /> Premium Users
+                                                                </button>
+                                                                <button type="button" onClick={() => { setBroadcastTargetUserIds(users.filter(u => !u.isPremium).map(u => u.id)); setIsBroadcastFilterOpen(false); }} style={{ padding: '0.65rem 0.75rem', background: 'transparent', border: 'none', textAlign: 'left', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text)', fontWeight: 600, fontSize: '0.85rem' }} onMouseEnter={e => e.currentTarget.style.background='var(--surface-2)'} onMouseLeave={e => e.currentTarget.style.background='transparent'}>
+                                                                    <User size={16} color="#3b82f6" /> Free Users
+                                                                </button>
+                                                                <div style={{ height: '1px', background: 'var(--border)', margin: '0.25rem 0' }}></div>
+                                                            </>
+                                                        )}
+                                                        
+                                                        <div style={{ overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '2px' }} className="custom-scrollbar">
+                                                            {users.filter(u => {
+                                                                if (!broadcastUserSearchTerm) return true;
+                                                                const s = broadcastUserSearchTerm.toLowerCase();
+                                                                return (u.name || '').toLowerCase().includes(s) || (u.email || '').toLowerCase().includes(s);
+                                                            }).map(u => (
+                                                                <label key={u.id} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.5rem 0.75rem', borderRadius: '8px', cursor: 'pointer', transition: 'background 0.2s' }} onMouseEnter={e => e.currentTarget.style.background='var(--surface-2)'} onMouseLeave={e => e.currentTarget.style.background='transparent'}>
+                                                                    <input 
+                                                                        type="checkbox" 
+                                                                        checked={broadcastTargetUserIds.includes(u.id)}
+                                                                        onChange={(e) => {
+                                                                            if (e.target.checked) setBroadcastTargetUserIds([...broadcastTargetUserIds, u.id]);
+                                                                            else setBroadcastTargetUserIds(broadcastTargetUserIds.filter(id => id !== u.id));
+                                                                        }}
+                                                                        style={{ accentColor: '#db2777', width: '16px', height: '16px', cursor: 'pointer' }}
+                                                                    />
+                                                                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                                                        <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text)' }}>{u.name || 'Anonymous'}</span>
+                                                                        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{u.email}</span>
+                                                                    </div>
+                                                                </label>
+                                                            ))}
                                                         </div>
                                                     </div>
-                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
-                                                        <div style={{ width: '38px', height: '38px', borderRadius: '50%', background: avatarColor.bg, color: avatarColor.text, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.85rem', fontWeight: 800 }}>
-                                                            {getInitials(u.name, u.email)}
-                                                        </div>
-                                                        <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                                            <span style={{ fontWeight: 600, color: isSelected ? '#1e3a8a' : '#0f172a', fontSize: '0.9rem' }}>{u.name || 'Anonymous'}</span>
-                                                            <span style={{ color: '#64748b', fontSize: '0.75rem', fontWeight: 500 }}>{u.email}</span>
-                                                        </div>
-                                                    </div>
-                                                </label>
-                                            );
-                                        })}
-                                    </div>
-                                </div>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-                                    <div>
-                                        <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.5rem' }}>
-                                            Quick Templates
-                                        </label>
-                                        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                                            {[
-                                                { label: "Welcome 👋", title: "Welcome to WishFlow! 🎉", body: "Start building your ultimate wishlist today, {{name}}.", url: "/", image: "" },
-                                                { label: "Sale 🛍️", title: "Weekend Sale! 🛍️", body: "Hey {{name}}, check out our exclusive weekend discounts, just for you.", url: "/discover", image: "" },
-                                                { label: "Cart 🛒", title: "Don't forget your items! 🛒", body: "The items in your wishlist are waiting for you!", url: "/profile", image: "" },
-                                                { label: "Update 🚀", title: "New Feature Alert! 🚀", body: "We've just added exciting new tools to help you manage your lists.", url: "/", image: "" },
-                                                { label: "Miss You 🥺", title: "We miss you, {{name}}! 🥺", body: "Come back and see what's trending right now on WishFlow.", url: "/discover", image: "" },
-                                                ...customTemplates
-                                            ].map((tpl, i) => (
-                                                <div key={i} style={{ display: 'inline-flex', alignItems: 'stretch' }}>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        {/* Quick Templates */}
+                                        <div>
+                                            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text)', marginBottom: '0.5rem' }}>Quick Templates</label>
+                                            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                                                {[
+                                                    { label: "Welcome 👋", title: "Welcome to WishFlow! 🎉", body: "Start building your ultimate wishlist today, {{name}}.", url: "/", image: "" },
+                                                    { label: "Sale 🛍️", title: "Weekend Sale! 🛍️", body: "Hey {{name}}, check out our exclusive weekend discounts, just for you.", url: "/discover", image: "" },
+                                                    { label: "Cart 🛒", title: "Don't forget your items! 🛒", body: "The items in your wishlist are waiting for you!", url: "/profile", image: "" },
+                                                    { label: "Update 🚀", title: "New Feature Alert! 🚀", body: "We've just added exciting new tools to help you manage your lists.", url: "/", image: "" },
+                                                    { label: "Miss You 🥺", title: "We miss you, {{name}}! 🥺", body: "Come back and see what's trending right now on WishFlow.", url: "/discover", image: "" },
+                                                    { label: "Feedback 📝", title: "We value your feedback!", body: "Take a 1-minute survey and get a special badge on your profile.", url: "/contact", image: "" },
+                                                ].map((tpl, i) => (
                                                     <button
-                                                        type="button"
-                                                        onClick={() => {
-                                                            setBroadcastTitle(tpl.title);
-                                                            setBroadcastBody(tpl.body);
-                                                            setBroadcastUrl(tpl.url || '');
-                                                            setBroadcastImage(tpl.image || '');
-                                                        }}
+                                                        key={i} type="button"
+                                                        onClick={() => { setBroadcastTitle(tpl.title); setBroadcastBody(tpl.body); setBroadcastUrl(tpl.url || ''); setBroadcastImage(tpl.image || ''); }}
                                                         style={{
-                                                            padding: '0.4rem 0.75rem', background: '#f8fafc', border: '1px solid #cbd5e1', 
-                                                            borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px',
-                                                            borderTopRightRadius: tpl.isCustom ? '0' : '8px', borderBottomRightRadius: tpl.isCustom ? '0' : '8px',
-                                                            fontSize: '0.75rem', fontWeight: 600, color: '#475569', 
-                                                            cursor: 'pointer', transition: 'all 0.2s', whiteSpace: 'nowrap',
-                                                            borderRight: tpl.isCustom ? 'none' : '1px solid #cbd5e1'
+                                                            padding: '0.5rem 0.85rem', background: 'var(--surface-2)', border: '1px solid var(--border)', 
+                                                            borderRadius: '99px', fontSize: '0.8rem', fontWeight: 600, color: 'var(--text)', 
+                                                            cursor: 'pointer', transition: 'all 0.2s'
                                                         }}
-                                                        onMouseEnter={e => { e.currentTarget.style.background = '#f1f5f9'; e.currentTarget.style.borderColor = '#94a3b8'; e.currentTarget.style.color = '#0f172a'; }}
-                                                        onMouseLeave={e => { e.currentTarget.style.background = '#f8fafc'; e.currentTarget.style.borderColor = '#cbd5e1'; e.currentTarget.style.color = '#475569'; }}
+                                                        onMouseEnter={e => e.currentTarget.style.background = 'var(--surface-3)'}
+                                                        onMouseLeave={e => e.currentTarget.style.background = 'var(--surface-2)'}
                                                     >
                                                         {tpl.label}
                                                     </button>
-                                                    {tpl.isCustom && (
-                                                        <button
-                                                            type="button"
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                setCustomTemplates(customTemplates.filter(ct => ct.label !== tpl.label));
-                                                            }}
-                                                            style={{
-                                                                padding: '0 0.4rem', background: '#fef2f2', border: '1px solid #fca5a5', 
-                                                                borderTopRightRadius: '8px', borderBottomRightRadius: '8px', borderLeft: 'none',
-                                                                fontSize: '0.75rem', fontWeight: 600, color: '#ef4444', 
-                                                                cursor: 'pointer', transition: 'all 0.2s', display: 'flex', alignItems: 'center'
-                                                            }}
-                                                            onMouseEnter={e => { e.currentTarget.style.background = '#fee2e2'; }}
-                                                            onMouseLeave={e => { e.currentTarget.style.background = '#fef2f2'; }}
-                                                        >
-                                                            ×
-                                                        </button>
-                                                    )}
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.5rem' }}>
-                                            <span>Title</span>
-                                            <span style={{ fontSize: '0.75rem', fontWeight: 500, color: '#64748b' }}>Use <code style={{ background: '#f1f5f9', padding: '2px 4px', borderRadius: '4px', color: '#db2777' }}>{"{{name}}"}</code> to personalize</span>
-                                        </label>
-                                        <div style={{ position: 'relative' }}>
-                                            <Type size={18} color="#94a3b8" style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)' }} />
-                                            <input
-                                                type="text"
-                                                value={broadcastTitle}
-                                                onChange={(e) => setBroadcastTitle(e.target.value)}
-                                                placeholder="e.g., Huge Summer Sale!"
-                                                style={{ 
-                                                    width: '100%', boxSizing: 'border-box', padding: '0.85rem 1rem 0.85rem 2.75rem', 
-                                                    border: '1px solid #cbd5e1', borderRadius: '12px', outline: 'none', 
-                                                    fontFamily: 'inherit', fontSize: '0.9rem', backgroundColor: '#f8fafc',
-                                                    transition: 'all 0.2s', color: '#0f172a'
-                                                }}
-                                                onFocus={e => { e.target.style.borderColor = '#db2777'; e.target.style.backgroundColor = '#fff'; e.target.style.boxShadow = '0 0 0 3px rgba(219,39,119,0.1)'; }}
-                                                onBlur={e => { e.target.style.borderColor = '#cbd5e1'; e.target.style.backgroundColor = '#f8fafc'; e.target.style.boxShadow = 'none'; }}
-                                            />
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.5rem' }}>
-                                            <span>Body</span>
-                                            <span style={{ fontSize: '0.75rem', fontWeight: 500, color: '#64748b' }}>Use <code style={{ background: '#f1f5f9', padding: '2px 4px', borderRadius: '4px', color: '#db2777' }}>{"{{name}}"}</code> to personalize</span>
-                                        </label>
-                                        <div style={{ position: 'relative' }}>
-                                            <AlignLeft size={18} color="#94a3b8" style={{ position: 'absolute', left: '14px', top: '15px' }} />
-                                            <textarea
-                                                value={broadcastBody}
-                                                onChange={(e) => setBroadcastBody(e.target.value)}
-                                                placeholder="e.g., Check out these new discounts on your wishlist items."
-                                                rows={3}
-                                                style={{ 
-                                                    width: '100%', boxSizing: 'border-box', padding: '0.85rem 1rem 0.85rem 2.75rem', 
-                                                    border: '1px solid #cbd5e1', borderRadius: '12px', outline: 'none', 
-                                                    fontFamily: 'inherit', fontSize: '0.9rem', backgroundColor: '#f8fafc',
-                                                    transition: 'all 0.2s', resize: 'vertical', color: '#0f172a', lineHeight: '1.4'
-                                                }}
-                                                onFocus={e => { e.target.style.borderColor = '#db2777'; e.target.style.backgroundColor = '#fff'; e.target.style.boxShadow = '0 0 0 3px rgba(219,39,119,0.1)'; }}
-                                                onBlur={e => { e.target.style.borderColor = '#cbd5e1'; e.target.style.backgroundColor = '#f8fafc'; e.target.style.boxShadow = 'none'; }}
-                                            />
-                                        </div>
-                                    </div>
-                                    <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-                                        <div style={{ flex: '1 1 200px' }}>
-                                            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.5rem' }}>Target URL (Optional)</label>
-                                            <div style={{ position: 'relative' }}>
-                                                <LinkIcon size={18} color="#94a3b8" style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)' }} />
-                                                <input
-                                                    type="text"
-                                                    value={broadcastUrl}
-                                                    onChange={(e) => setBroadcastUrl(e.target.value)}
-                                                    placeholder="e.g., /discover"
-                                                    style={{ 
-                                                        width: '100%', boxSizing: 'border-box', padding: '0.85rem 1rem 0.85rem 2.75rem', 
-                                                        border: '1px solid #cbd5e1', borderRadius: '12px', outline: 'none', 
-                                                        fontFamily: 'inherit', fontSize: '0.9rem', backgroundColor: '#f8fafc',
-                                                        transition: 'all 0.2s', color: '#0f172a'
-                                                    }}
-                                                    onFocus={e => { e.target.style.borderColor = '#db2777'; e.target.style.backgroundColor = '#fff'; e.target.style.boxShadow = '0 0 0 3px rgba(219,39,119,0.1)'; }}
-                                                    onBlur={e => { e.target.style.borderColor = '#cbd5e1'; e.target.style.backgroundColor = '#f8fafc'; e.target.style.boxShadow = 'none'; }}
-                                                />
+                                                ))}
                                             </div>
                                         </div>
-                                        <div style={{ flex: '1 1 200px' }}>
-                                            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.5rem' }}>Image URL (Optional)</label>
-                                            {broadcastImage ? (
-                                                <div style={{
-                                                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                                                    padding: '0.5rem', border: '1px solid #cbd5e1', borderRadius: '12px',
-                                                    backgroundColor: '#f8fafc', height: '48px', boxSizing: 'border-box'
-                                                }}>
-                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', overflow: 'hidden' }}>
-                                                        <div style={{ width: '32px', height: '32px', borderRadius: '8px', overflow: 'hidden', flexShrink: 0, backgroundColor: '#e2e8f0' }}>
-                                                            <img src={broadcastImage} alt="Attached" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => { e.target.style.display = 'none'; }} />
-                                                        </div>
-                                                        <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Image Attached</span>
-                                                    </div>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => setBroadcastImage('')}
-                                                        style={{
-                                                            background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer',
-                                                            display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0.25rem',
-                                                            borderRadius: '6px', transition: 'all 0.2s'
-                                                        }}
-                                                        onMouseEnter={e => { e.currentTarget.style.backgroundColor = '#fef2f2'; }}
-                                                        onMouseLeave={e => { e.currentTarget.style.backgroundColor = 'transparent'; }}
-                                                        title="Remove Image"
-                                                    >
-                                                        <X size={16} />
-                                                    </button>
-                                                </div>
+
+                                        {/* My Saved Templates */}
+                                        <div>
+                                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                                                <label style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text)' }}>My Saved Templates</label>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => (broadcastTitle || broadcastBody) ? setIsPromptModalOpen(true) : showToast('Fill in a title or message first', 'error')}
+                                                    style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', padding: '0.35rem 0.85rem', background: '#fce7f3', border: '1px solid #fbcfe8', borderRadius: '99px', fontSize: '0.78rem', fontWeight: 700, color: '#db2777', cursor: 'pointer', transition: 'all 0.2s' }}
+                                                    onMouseEnter={e => e.currentTarget.style.background = '#fbcfe8'}
+                                                    onMouseLeave={e => e.currentTarget.style.background = '#fce7f3'}
+                                                >
+                                                    <span style={{ fontSize: '0.9rem' }}>＋</span> Save Current
+                                                </button>
+                                            </div>
+                                            {customTemplates.length === 0 ? (
+                                                <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-dim)', fontStyle: 'italic' }}>No saved templates yet — compose a message and click "Save Current".</p>
                                             ) : (
-                                                <div style={{ position: 'relative' }}>
-                                                    <ImageIcon size={18} color="#94a3b8" style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)' }} />
-                                                    <input
-                                                        type="text"
-                                                        value={broadcastImage}
-                                                        onChange={(e) => setBroadcastImage(e.target.value)}
-                                                        placeholder="e.g., https://example.com/banner.png"
-                                                        style={{ 
-                                                            width: '100%', boxSizing: 'border-box', padding: '0.85rem 5.5rem 0.85rem 2.75rem', 
-                                                            border: '1px solid #cbd5e1', borderRadius: '12px', outline: 'none', 
-                                                            fontFamily: 'inherit', fontSize: '0.9rem', backgroundColor: '#f8fafc',
-                                                            transition: 'all 0.2s', color: '#0f172a', height: '48px'
-                                                        }}
-                                                        onFocus={e => { e.target.style.borderColor = '#db2777'; e.target.style.backgroundColor = '#fff'; e.target.style.boxShadow = '0 0 0 3px rgba(219,39,119,0.1)'; }}
-                                                        onBlur={e => { e.target.style.borderColor = '#cbd5e1'; e.target.style.backgroundColor = '#f8fafc'; e.target.style.boxShadow = 'none'; }}
-                                                    />
-                                                    <label style={{ 
-                                                        position: 'absolute', right: '6px', top: '50%', transform: 'translateY(-50%)', 
-                                                        cursor: isUploadingImage ? 'not-allowed' : 'pointer', background: '#e2e8f0', color: '#475569', 
-                                                        padding: '0.35rem 0.65rem', borderRadius: '8px', fontSize: '0.75rem', 
-                                                        fontWeight: 600, transition: 'all 0.2s', display: 'flex', alignItems: 'center'
-                                                    }}
-                                                    onMouseEnter={e => { if(!isUploadingImage) e.currentTarget.style.background = '#cbd5e1'; }}
-                                                    onMouseLeave={e => { if(!isUploadingImage) e.currentTarget.style.background = '#e2e8f0'; }}
-                                                    >
-                                                        {isUploadingImage ? <RefreshCw size={14} style={{ animation: 'spin 1s linear infinite' }} /> : 'Upload'}
-                                                        <input type="file" accept="image/*" disabled={isUploadingImage} style={{ display: 'none' }} onChange={handleImageUpload} />
+                                                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                                                    {customTemplates.map((tpl, i) => (
+                                                        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0', background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: '99px', overflow: 'hidden' }}>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => { setBroadcastTitle(tpl.title); setBroadcastBody(tpl.body); setBroadcastUrl(tpl.url || ''); setBroadcastImage(tpl.image || ''); }}
+                                                                style={{ padding: '0.5rem 0.75rem', background: 'transparent', border: 'none', fontSize: '0.8rem', fontWeight: 600, color: 'var(--text)', cursor: 'pointer' }}
+                                                            >
+                                                                {tpl.label}
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                title="Delete template"
+                                                                onClick={() => {
+                                                                    const updated = customTemplates.filter((_, idx) => idx !== i);
+                                                                    setCustomTemplates(updated);
+                                                                    showToast('Template deleted');
+                                                                }}
+                                                                style={{ padding: '0.5rem 0.6rem 0.5rem 0', background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-dim)', display: 'flex', alignItems: 'center', lineHeight: 1, fontSize: '0.85rem', transition: 'color 0.15s' }}
+                                                                onMouseEnter={e => e.currentTarget.style.color = '#ef4444'}
+                                                                onMouseLeave={e => e.currentTarget.style.color = 'var(--text-dim)'}
+                                                            >
+                                                                ✕
+                                                            </button>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {/* Title & Body */}
+                                        <div>
+                                            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text)', marginBottom: '0.5rem' }}>Title</label>
+                                            <input type="text" value={broadcastTitle} onChange={e => setBroadcastTitle(e.target.value)} placeholder="Notification Title"
+                                                style={{ width: '100%', padding: '0.85rem 1rem', background: 'var(--surface-2)', border: '1.5px solid var(--border)', borderRadius: '12px', color: 'var(--text)', fontSize: '0.95rem', outline: 'none', transition: 'border-color 0.2s', boxSizing: 'border-box' }}
+                                                onFocus={e => e.target.style.borderColor = '#db2777'} onBlur={e => e.target.style.borderColor = 'var(--border)'} />
+                                        </div>
+                                        <div>
+                                            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text)', marginBottom: '0.5rem' }}>Message</label>
+                                            <textarea value={broadcastBody} onChange={e => setBroadcastBody(e.target.value)} placeholder="Keep it short and engaging..." rows={3}
+                                                style={{ width: '100%', padding: '0.85rem 1rem', background: 'var(--surface-2)', border: '1.5px solid var(--border)', borderRadius: '12px', color: 'var(--text)', fontSize: '0.95rem', outline: 'none', transition: 'border-color 0.2s', resize: 'vertical', boxSizing: 'border-box', fontFamily: 'inherit' }}
+                                                onFocus={e => e.target.style.borderColor = '#db2777'} onBlur={e => e.target.style.borderColor = 'var(--border)'} />
+                                        </div>
+
+                                        {/* URLs */}
+                                        {/* URLs */}
+                                        <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+                                            <div style={{ flex: '1 1 200px' }}>
+                                                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text)', marginBottom: '0.5rem' }}>Target URL (Optional)</label>
+                                                <input type="text" value={broadcastUrl} onChange={e => setBroadcastUrl(e.target.value)} placeholder="/discover"
+                                                    style={{ width: '100%', padding: '0.85rem 1rem', background: 'var(--surface-2)', border: '1.5px solid var(--border)', borderRadius: '12px', color: 'var(--text)', fontSize: '0.9rem', outline: 'none', boxSizing: 'border-box' }} />
+                                            </div>
+                                            <div style={{ flex: '1 1 200px' }}>
+                                                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text)', marginBottom: '0.5rem' }}>Image URL (Optional)</label>
+                                                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                                    <input type="text" value={broadcastImage} onChange={e => setBroadcastImage(e.target.value)} placeholder="https://..."
+                                                        style={{ flex: 1, width: '100%', padding: '0.85rem 1rem', background: 'var(--surface-2)', border: '1.5px solid var(--border)', borderRadius: '12px', color: 'var(--text)', fontSize: '0.9rem', outline: 'none', boxSizing: 'border-box' }} />
+                                                    <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 1rem', background: '#db2777', color: '#fff', borderRadius: '12px', cursor: 'pointer', fontWeight: 700, fontSize: '0.85rem', whiteSpace: 'nowrap' }}>
+                                                        {isUploadingImage ? <RefreshCw size={16} style={{ animation: 'spin 1s linear infinite' }} /> : 'Upload'}
+                                                        <input type="file" accept="image/*" style={{ display: 'none' }} onChange={handleImageUpload} disabled={isUploadingImage} />
                                                     </label>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Action Button */}
+                                        <div style={{ padding: '1.25rem', background: 'var(--surface-2)', borderRadius: '16px', border: '1px solid var(--border)' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: broadcastActionButtonEnabled ? '1rem' : '0' }}>
+                                                <div>
+                                                    <div style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text)' }}>Rich Action Button</div>
+                                                    <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>Add a custom button inside the notification</div>
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setBroadcastActionButtonEnabled(!broadcastActionButtonEnabled)}
+                                                    style={{ width: '44px', height: '24px', background: broadcastActionButtonEnabled ? '#22c55e' : 'var(--border)', borderRadius: '12px', position: 'relative', cursor: 'pointer', border: 'none', transition: 'background 0.2s' }}
+                                                >
+                                                    <div style={{ width: '20px', height: '20px', background: '#fff', borderRadius: '50%', position: 'absolute', top: '2px', left: broadcastActionButtonEnabled ? '22px' : '2px', transition: 'left 0.2s', boxShadow: '0 2px 4px rgba(0,0,0,0.2)' }} />
+                                                </button>
+                                            </div>
+                                            
+                                            {broadcastActionButtonEnabled && (
+                                                <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+                                                    <div style={{ flex: '1 1 150px' }}>
+                                                        <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text)', marginBottom: '0.4rem' }}>Button Title</label>
+                                                        <input type="text" value={broadcastActionButtonTitle} onChange={e => setBroadcastActionButtonTitle(e.target.value)} placeholder="e.g. View Deal"
+                                                            style={{ width: '100%', padding: '0.75rem', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '10px', color: 'var(--text)', fontSize: '0.85rem', outline: 'none', boxSizing: 'border-box' }} />
+                                                    </div>
+                                                    <div style={{ flex: '1 1 200px' }}>
+                                                        <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text)', marginBottom: '0.4rem' }}>Button URL</label>
+                                                        <input type="text" value={broadcastActionButtonUrl} onChange={e => setBroadcastActionButtonUrl(e.target.value)} placeholder="/shop/sale"
+                                                            style={{ width: '100%', padding: '0.75rem', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '10px', color: 'var(--text)', fontSize: '0.85rem', outline: 'none', boxSizing: 'border-box' }} />
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Right Column - iOS Preview */}
+                            <div className="broadcast-preview-col">
+                                {/* iPhone Mockup */}
+                                <div style={{ 
+                                    width: '320px', height: '650px', background: '#000', borderRadius: '50px',
+                                    padding: '14px', boxSizing: 'border-box', position: 'relative',
+                                    boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25), inset 0 0 0 2px #333, inset 0 0 0 8px #111'
+                                }}>
+                                    {/* Notch */}
+                                    <div style={{ position: 'absolute', top: '14px', left: '50%', transform: 'translateX(-50%)', width: '120px', height: '35px', background: '#000', borderRadius: '0 0 20px 20px', zIndex: 10 }}>
+                                        <div style={{ position: 'absolute', top: '12px', left: '50%', transform: 'translateX(-50%)', width: '50px', height: '8px', background: '#111', borderRadius: '10px' }}></div>
+                                        <div style={{ position: 'absolute', top: '10px', right: '25px', width: '12px', height: '12px', background: '#111', borderRadius: '50%' }}></div>
+                                    </div>
+                                    
+                                    {/* Screen */}
+                                    <div style={{ width: '100%', height: '100%', borderRadius: '38px', overflow: 'hidden', position: 'relative', background: 'url(https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1400&auto=format&fit=crop) center/cover' }}>
+                                        {/* Status Bar */}
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', padding: '16px 20px', color: '#fff', fontSize: '0.75rem', fontWeight: 600, zIndex: 5, position: 'relative' }}>
+                                            <span>{new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: false })}</span>
+                                            <div style={{ display: 'flex', gap: '5px' }}>
+                                                <span>📶</span> <span>🔋</span>
+                                            </div>
+                                        </div>
+
+                                        {/* Lockscreen Time */}
+                                        <div style={{ position: 'absolute', top: '80px', width: '100%', textAlign: 'center', color: '#fff', textShadow: '0 1px 10px rgba(0,0,0,0.2)' }}>
+                                            <p style={{ margin: 0, fontWeight: 600, fontSize: '1.25rem' }}>{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</p>
+                                            <p style={{ margin: '-10px 0 0', fontWeight: 800, fontSize: '5rem', letterSpacing: '-0.02em', fontFamily: 'system-ui, -apple-system' }}>
+                                                {new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: false })}
+                                            </p>
+                                        </div>
+
+                                        {/* iOS Notification Toast */}
+                                        <div style={{
+                                            position: 'absolute', top: '300px', left: '16px', right: '16px',
+                                            background: 'rgba(255, 255, 255, 0.65)', backdropFilter: 'blur(25px)', WebkitBackdropFilter: 'blur(25px)',
+                                            borderRadius: '24px', padding: '14px', display: 'flex', flexDirection: 'column', gap: '0.5rem',
+                                            boxShadow: '0 10px 30px rgba(0,0,0,0.15)', border: '1px solid rgba(255,255,255,0.2)'
+                                        }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                <img src="/192x192.png" alt="App" style={{ width: '20px', height: '20px', borderRadius: '5px' }} />
+                                                <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'rgba(0,0,0,0.7)', textTransform: 'uppercase', letterSpacing: '0.02em' }}>WishFlow</span>
+                                                <span style={{ fontSize: '0.8rem', color: 'rgba(0,0,0,0.5)', marginLeft: 'auto' }}>now</span>
+                                            </div>
+                                            <div>
+                                                <p style={{ margin: 0, fontWeight: 700, fontSize: '1rem', color: '#000', lineHeight: 1.2 }}>{broadcastTitle || 'Notification Title'}</p>
+                                                <p style={{ margin: '2px 0 0 0', fontWeight: 500, fontSize: '0.9rem', color: 'rgba(0,0,0,0.85)', lineHeight: 1.3 }}>{broadcastBody || 'The notification body goes here.'}</p>
+                                            </div>
+                                            {broadcastImage && (
+                                                <div style={{ marginTop: '0.25rem', width: '100%', height: '140px', borderRadius: '12px', overflow: 'hidden', background: '#e2e8f0' }}>
+                                                    <img src={broadcastImage} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                                </div>
+                                            )}
+                                            {broadcastActionButtonEnabled && broadcastActionButtonTitle && (
+                                                <div style={{ marginTop: '0.5rem', display: 'flex', gap: '0.5rem' }}>
+                                                    <div style={{ flex: 1, padding: '0.65rem', background: 'rgba(0,0,0,0.05)', borderRadius: '12px', textAlign: 'center', fontSize: '0.9rem', fontWeight: 600, color: '#db2777' }}>
+                                                        {broadcastActionButtonTitle}
+                                                    </div>
                                                 </div>
                                             )}
                                         </div>
                                     </div>
-                                    <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem', flexWrap: 'wrap' }}>
-                                        <button
-                                            type="button"
-                                            disabled={!broadcastTitle || !broadcastBody}
-                                            onClick={() => setIsPromptModalOpen(true)}
-                                            style={{
-                                                padding: '1rem 1.5rem',
-                                                background: (!broadcastTitle || !broadcastBody) ? '#f8fafc' : '#fff',
-                                                color: (!broadcastTitle || !broadcastBody) ? '#94a3b8' : '#3b82f6',
-                                                border: (!broadcastTitle || !broadcastBody) ? '1px solid #e2e8f0' : '1px solid #bfdbfe',
-                                                borderRadius: '12px', fontWeight: 700, fontSize: '0.9rem',
-                                                cursor: (!broadcastTitle || !broadcastBody) ? 'not-allowed' : 'pointer',
-                                                transition: 'all 0.2s ease', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
-                                            }}
-                                            onMouseEnter={e => {
-                                                if (broadcastTitle && broadcastBody) {
-                                                    e.currentTarget.style.background = '#eff6ff';
-                                                    e.currentTarget.style.borderColor = '#3b82f6';
-                                                }
-                                            }}
-                                            onMouseLeave={e => {
-                                                if (broadcastTitle && broadcastBody) {
-                                                    e.currentTarget.style.background = '#fff';
-                                                    e.currentTarget.style.borderColor = '#bfdbfe';
-                                                }
-                                            }}
-                                        >
-                                            <Save size={18} />
-                                            Save as Template
-                                        </button>
-                                        <button
-                                            disabled={broadcastLoading || !broadcastTitle || !broadcastBody}
-                                            onClick={() => setIsBroadcastModalOpen(true)}
-                                            style={{
-                                                flex: 1,
-                                                minWidth: '250px',
-                                                padding: '1rem 2rem',
-                                                background: (broadcastLoading || !broadcastTitle || !broadcastBody) ? '#e2e8f0' : 'linear-gradient(135deg, #db2777 0%, #be185d 100%)',
-                                                color: (broadcastLoading || !broadcastTitle || !broadcastBody) ? '#94a3b8' : '#fff',
-                                                border: 'none',
-                                                borderRadius: '12px',
-                                                fontWeight: 700,
-                                                fontSize: '1rem',
-                                                cursor: (broadcastLoading || !broadcastTitle || !broadcastBody) ? 'not-allowed' : 'pointer',
-                                                transition: 'all 0.3s ease',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
-                                                gap: '0.75rem',
-                                                boxShadow: (broadcastLoading || !broadcastTitle || !broadcastBody) ? 'none' : '0 10px 20px -5px rgba(219, 39, 119, 0.4)',
-                                            }}
-                                            onMouseEnter={e => {
-                                                if (!broadcastLoading && broadcastTitle && broadcastBody) {
-                                                    e.currentTarget.style.transform = 'translateY(-2px)';
-                                                    e.currentTarget.style.boxShadow = '0 15px 25px -5px rgba(219, 39, 119, 0.5)';
-                                                }
-                                            }}
-                                            onMouseLeave={e => {
-                                                if (!broadcastLoading && broadcastTitle && broadcastBody) {
-                                                    e.currentTarget.style.transform = 'translateY(0)';
-                                                    e.currentTarget.style.boxShadow = '0 10px 20px -5px rgba(219, 39, 119, 0.4)';
-                                                }
-                                            }}
-                                        >
-                                            {broadcastLoading ? <RefreshCw size={20} style={{ animation: 'spin 1s linear infinite' }} /> : <Send size={20} />}
-                                            {broadcastLoading ? 'Sending Broadcast...' : 'Send Broadcast Notification'}
-                                        </button>
-                                    </div>
                                 </div>
+
+                                {/* Send Button */}
+                                <button
+                                    type="button"
+                                    disabled={!broadcastTitle || !broadcastBody || broadcastLoading}
+                                    onClick={() => setIsBroadcastModalOpen(true)}
+                                    style={{
+                                        width: '100%', padding: '1rem', background: '#db2777', color: '#fff',
+                                        border: 'none', borderRadius: '16px', fontSize: '1rem', fontWeight: 800,
+                                        cursor: (!broadcastTitle || !broadcastBody || broadcastLoading) ? 'not-allowed' : 'pointer',
+                                        opacity: (!broadcastTitle || !broadcastBody || broadcastLoading) ? 0.6 : 1,
+                                        transition: 'background 0.2s',
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem'
+                                    }}
+                                >
+                                    {broadcastLoading ? <RefreshCw size={20} style={{ animation: 'spin 1s linear infinite' }} /> : <Send size={20} />}
+                                    {broadcastLoading ? 'Sending...' : 'Send Broadcast'}
+                                </button>
                             </div>
-                        </div>
+                        </div>}
                     </div>
                 )}
 
-                {/* Global Settings tab content */}
+{/* Global Settings tab content */}
                 {activeTab === 'global-settings' && (
                     <div style={{ width: '100%' }}>
                         <div style={{
@@ -1528,7 +1500,7 @@ export default function AdminPanel() {
                         </div>
 
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1.5rem', marginBottom: '2rem' }}>
-                            <div style={{ background: '#fff', padding: '2rem', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', border: '1px solid #f1f5f9' }}>
+                            <div style={{ background: 'var(--surface)', padding: '2rem', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', border: '1px solid #f1f5f9' }}>
                                 <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '2rem' }}>
                                     <div>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
@@ -1572,7 +1544,7 @@ export default function AdminPanel() {
                                         >
                                             <div style={{
                                                 position: 'absolute', top: '3px', left: roastFeatureEnabled ? '27px' : '3px',
-                                                width: '22px', height: '22px', background: '#fff', borderRadius: '50%',
+                                                width: '22px', height: '22px', background: 'var(--surface)', borderRadius: '50%',
                                                 transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
                                             }} />
                                         </button>
@@ -1621,7 +1593,7 @@ export default function AdminPanel() {
                                         >
                                             <div style={{
                                                 position: 'absolute', top: '3px', left: customCursorEnabled ? '27px' : '3px',
-                                                width: '22px', height: '22px', background: '#fff', borderRadius: '50%',
+                                                width: '22px', height: '22px', background: 'var(--surface)', borderRadius: '50%',
                                                 transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
                                             }} />
                                         </button>
@@ -1630,7 +1602,7 @@ export default function AdminPanel() {
                             </div>
 
                             {/* Profile Refresh Feature Toggle */}
-                            <div style={{ background: '#fff', padding: '2rem', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', border: '1px solid #f1f5f9' }}>
+                            <div style={{ background: 'var(--surface)', padding: '2rem', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', border: '1px solid #f1f5f9' }}>
                                 <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '2rem' }}>
                                     <div>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
@@ -1672,7 +1644,7 @@ export default function AdminPanel() {
                                         >
                                             <div style={{
                                                 position: 'absolute', top: '3px', left: refreshFeatureEnabled ? '27px' : '3px',
-                                                width: '22px', height: '22px', background: '#fff', borderRadius: '50%',
+                                                width: '22px', height: '22px', background: 'var(--surface)', borderRadius: '50%',
                                                 transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
                                             }} />
                                         </button>
@@ -1699,7 +1671,7 @@ export default function AdminPanel() {
                                     else setCurrentItemsPage(1);
                                 }}
                                 placeholder={activeTab === 'users' ? "Search users..." : "Search products..."}
-                                style={{ width: '100%', padding: '0.875rem 1rem 0.875rem 3rem', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '99px', fontSize: '0.95rem', color: '#0f172a', outline: 'none', boxSizing: 'border-box', boxShadow: '0 1px 2px rgba(0,0,0,0.01)' }}
+                                style={{ width: '100%', padding: '0.875rem 1rem 0.875rem 3rem', background: 'var(--surface)', border: '1px solid #e2e8f0', borderRadius: '99px', fontSize: '0.95rem', color: '#0f172a', outline: 'none', boxSizing: 'border-box', boxShadow: '0 1px 2px rgba(0,0,0,0.01)' }}
                             />
                         </div>
                         <div className="admin-filter-dropdown" style={{ width: '220px' }}>
@@ -1716,7 +1688,7 @@ export default function AdminPanel() {
                                             icon: (props) => <Filter {...props} color="#f97316" />
                                         }))
                                     ]}
-                                    style={{ background: '#fff', border: '1px solid #e2e8f0', color: '#0f172a', borderRadius: '99px', height: '100%', padding: '0.875rem 1.25rem', boxShadow: '0 1px 2px rgba(0,0,0,0.01)', fontWeight: 600 }}
+                                    style={{ background: 'var(--surface)', border: '1px solid #e2e8f0', color: '#0f172a', borderRadius: '99px', height: '100%', padding: '0.875rem 1.25rem', boxShadow: '0 1px 2px rgba(0,0,0,0.01)', fontWeight: 600 }}
                                 />
                             ) : (
                                 <CustomSelect
@@ -1727,7 +1699,7 @@ export default function AdminPanel() {
                                         { value: 'premium', label: 'Premium', icon: (props) => <Filter {...props} color="#f97316" /> },
                                         { value: 'free', label: 'Free', icon: (props) => <Filter {...props} color="#f97316" /> }
                                     ]}
-                                    style={{ background: '#fff', border: '1px solid #e2e8f0', color: '#0f172a', borderRadius: '99px', height: '100%', padding: '0.875rem 1.25rem', boxShadow: '0 1px 2px rgba(0,0,0,0.01)', fontWeight: 600 }}
+                                    style={{ background: 'var(--surface)', border: '1px solid #e2e8f0', color: '#0f172a', borderRadius: '99px', height: '100%', padding: '0.875rem 1.25rem', boxShadow: '0 1px 2px rgba(0,0,0,0.01)', fontWeight: 600 }}
                                 />
                             )}
                         </div>
@@ -1742,7 +1714,7 @@ export default function AdminPanel() {
                                 <div className="admin-stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1.5rem', marginBottom: '2.5rem' }}>
                                     {loadingUsers ? (
                                         Array.from({ length: 4 }).map((_, i) => (
-                                            <div key={i} className="admin-stat-card" style={{ background: '#fff', border: '1px solid #f1f5f9', borderRadius: '16px', padding: '1.5rem', display: 'flex', gap: '1.25rem', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.02)' }}>
+                                            <div key={i} className="admin-stat-card" style={{ background: 'var(--surface)', border: '1px solid #f1f5f9', borderRadius: '16px', padding: '1.5rem', display: 'flex', gap: '1.25rem', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.02)' }}>
                                                 <div className="skeleton-shimmer" style={{ width: '48px', height: '48px', borderRadius: '12px', flexShrink: 0 }} />
                                                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.5rem', justifyContent: 'center' }}>
                                                     <div className="skeleton-shimmer" style={{ height: '28px', width: '50%' }} />
@@ -1757,7 +1729,7 @@ export default function AdminPanel() {
                                             { val: premiumCount, label: 'Premium Users', icon: Crown, bg: '#fff7ed', color: '#f59e0b' },
                                             { val: freeCount, label: 'Free Users', icon: Users, bg: '#eff6ff', color: '#3b82f6' },
                                         ].map((s, i) => (
-                                            <div key={i} className="admin-stat-card" style={{ background: '#fff', border: '1px solid #f1f5f9', borderRadius: '16px', padding: '1.5rem', display: 'flex', gap: '1.25rem', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -2px rgba(0, 0, 0, 0.02)' }}>
+                                            <div key={i} className="admin-stat-card" style={{ background: 'var(--surface)', border: '1px solid #f1f5f9', borderRadius: '16px', padding: '1.5rem', display: 'flex', gap: '1.25rem', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -2px rgba(0, 0, 0, 0.02)' }}>
                                                 <div className="admin-stat-icon-wrapper" style={{ width: '48px', height: '48px', borderRadius: '12px', background: s.bg, color: s.color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                                                     <s.icon size={24} />
                                                 </div>
@@ -1772,7 +1744,7 @@ export default function AdminPanel() {
                                 </div>
 
                                 {/* Table */}
-                                <div className="admin-table-wrapper" style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
+                                <div className="admin-table-wrapper" style={{ background: 'var(--surface)', border: '1px solid #e2e8f0', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
                                     {/* Table Header */}
                                     <div className="admin-table-header" style={{ display: 'grid', gridTemplateColumns: '2.5fr 2fr 1fr 1fr 2.5fr', padding: '1rem 1.5rem', background: '#f8fafc', borderBottom: '1px solid #e2e8f0', fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                                         <span>User</span>
@@ -1915,7 +1887,7 @@ export default function AdminPanel() {
                                             <button
                                                 onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                                                 disabled={currentPage === 1}
-                                                style={{ width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px', cursor: currentPage === 1 ? 'not-allowed' : 'pointer', color: '#64748b', opacity: currentPage === 1 ? 0.5 : 1 }}
+                                                style={{ width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--surface)', border: '1px solid #e2e8f0', borderRadius: '8px', cursor: currentPage === 1 ? 'not-allowed' : 'pointer', color: '#64748b', opacity: currentPage === 1 ? 0.5 : 1 }}
                                             >
                                                 <ChevronLeft size={16} />
                                             </button>
@@ -1940,7 +1912,7 @@ export default function AdminPanel() {
                                             <button
                                                 onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                                                 disabled={currentPage === totalPages}
-                                                style={{ width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px', cursor: currentPage === totalPages ? 'not-allowed' : 'pointer', color: '#64748b', opacity: currentPage === totalPages ? 0.5 : 1 }}
+                                                style={{ width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--surface)', border: '1px solid #e2e8f0', borderRadius: '8px', cursor: currentPage === totalPages ? 'not-allowed' : 'pointer', color: '#64748b', opacity: currentPage === totalPages ? 0.5 : 1 }}
                                             >
                                                 <ChevronRight size={16} />
                                             </button>
@@ -1953,7 +1925,7 @@ export default function AdminPanel() {
                                                         value={usersPerPage}
                                                         onChange={(val) => { setUsersPerPage(Number(val)); setCurrentPage(1); }}
                                                         options={[5, 10, 20, 50]}
-                                                        style={{ padding: '0.4rem 0.75rem', borderRadius: '8px', border: '1px solid #e2e8f0', background: '#fff', color: '#0f172a', fontSize: '0.85rem' }}
+                                                        style={{ padding: '0.4rem 0.75rem', borderRadius: '8px', border: '1px solid #e2e8f0', background: 'var(--surface)', color: '#0f172a', fontSize: '0.85rem' }}
                                                     />
                                                 </div>
                                             </div>
@@ -1965,7 +1937,7 @@ export default function AdminPanel() {
                         ) : (
                             <>
                                 {/* Items Table */}
-                                <div className="admin-table-wrapper" style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
+                                <div className="admin-table-wrapper" style={{ background: 'var(--surface)', border: '1px solid #e2e8f0', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
                                     <div className="admin-table-header" style={{ display: 'grid', gridTemplateColumns: '2fr 1.5fr 1fr 1fr 1fr', padding: '1rem 1.5rem', background: '#f8fafc', borderBottom: '1px solid #e2e8f0', fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                                         <span>Item Details</span>
                                         <span>Created By</span>
@@ -2068,7 +2040,7 @@ export default function AdminPanel() {
 
                                                         {/* ===== MOBILE CARD ===== */}
                                                         <div className="admin-mobile-card" style={{
-                                                            background: '#fff',
+                                                            background: 'var(--surface)',
                                                             position: 'relative',
                                                             overflow: 'hidden'
                                                         }}>
@@ -2137,7 +2109,7 @@ export default function AdminPanel() {
                                             <button
                                                 onClick={() => setCurrentItemsPage(p => Math.max(1, p - 1))}
                                                 disabled={currentItemsPage === 1}
-                                                style={{ width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px', cursor: currentItemsPage === 1 ? 'not-allowed' : 'pointer', color: '#64748b', opacity: currentItemsPage === 1 ? 0.5 : 1 }}
+                                                style={{ width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--surface)', border: '1px solid #e2e8f0', borderRadius: '8px', cursor: currentItemsPage === 1 ? 'not-allowed' : 'pointer', color: '#64748b', opacity: currentItemsPage === 1 ? 0.5 : 1 }}
                                             >
                                                 <ChevronLeft size={16} />
                                             </button>
@@ -2162,7 +2134,7 @@ export default function AdminPanel() {
                                             <button
                                                 onClick={() => setCurrentItemsPage(p => Math.min(totalItemsPages, p + 1))}
                                                 disabled={currentItemsPage === totalItemsPages}
-                                                style={{ width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px', cursor: currentItemsPage === totalItemsPages ? 'not-allowed' : 'pointer', color: '#64748b', opacity: currentItemsPage === totalItemsPages ? 0.5 : 1 }}
+                                                style={{ width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--surface)', border: '1px solid #e2e8f0', borderRadius: '8px', cursor: currentItemsPage === totalItemsPages ? 'not-allowed' : 'pointer', color: '#64748b', opacity: currentItemsPage === totalItemsPages ? 0.5 : 1 }}
                                             >
                                                 <ChevronRight size={16} />
                                             </button>
@@ -2175,7 +2147,7 @@ export default function AdminPanel() {
                                                         value={itemsPerPage}
                                                         onChange={(val) => { setItemsPerPage(Number(val)); setCurrentItemsPage(1); }}
                                                         options={[5, 10, 20, 50]}
-                                                        style={{ padding: '0.4rem 0.75rem', borderRadius: '8px', border: '1px solid #e2e8f0', background: '#fff', color: '#0f172a', fontSize: '0.85rem' }}
+                                                        style={{ padding: '0.4rem 0.75rem', borderRadius: '8px', border: '1px solid #e2e8f0', background: 'var(--surface)', color: '#0f172a', fontSize: '0.85rem' }}
                                                     />
                                                 </div>
                                             </div>
@@ -2610,6 +2582,100 @@ export default function AdminPanel() {
                     }
                 }}
             />
+
+            {/* Custom Delete History Modal */}
+            {isDeleteHistoryModalOpen && (
+                <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(5px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', animation: 'fadeIn 0.2s ease' }}>
+                    <div style={{ background: '#fff', borderRadius: '24px', padding: '2rem', width: '100%', maxWidth: '400px', boxShadow: '0 20px 40px rgba(0,0,0,0.2)', animation: 'slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)' }}>
+                        <div style={{ width: '48px', height: '48px', background: '#fef2f2', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1rem' }}>
+                            <Trash2 size={24} color="#ef4444" />
+                        </div>
+                        <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1.25rem', fontWeight: 800, color: '#111' }}>Clear History</h3>
+                        <p style={{ margin: '0 0 1.5rem 0', fontSize: '0.9rem', color: '#64748b', lineHeight: 1.5 }}>
+                            Select how much broadcast history you want to permanently delete.
+                        </p>
+                        
+                        <div style={{ marginBottom: '2rem' }}>
+                            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: '#334155', marginBottom: '0.5rem' }}>Timeframe</label>
+                            <div style={{ position: 'relative' }}>
+                                <div 
+                                    onClick={() => setIsTimeframeDropdownOpen(!isTimeframeDropdownOpen)}
+                                    style={{ 
+                                        width: '100%', padding: '0.9rem 1.2rem', borderRadius: '16px', background: '#f8fafc', border: '1px solid #e2e8f0', 
+                                        display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer',
+                                        fontSize: '0.95rem', fontWeight: 600, color: '#0f172a', transition: 'all 0.2s',
+                                        boxShadow: isTimeframeDropdownOpen ? '0 0 0 4px rgba(219,39,119,0.1)' : 'none',
+                                        borderColor: isTimeframeDropdownOpen ? '#db2777' : '#e2e8f0'
+                                    }}
+                                >
+                                    <span>
+                                        {deleteHistoryTimeframe === '1day' ? 'Older than 1 Day' :
+                                         deleteHistoryTimeframe === '1week' ? 'Older than 1 Week' :
+                                         deleteHistoryTimeframe === '1month' ? 'Older than 1 Month' : 'Delete All History'}
+                                    </span>
+                                    <ChevronDown size={18} style={{ transform: isTimeframeDropdownOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s', color: '#94a3b8' }} />
+                                </div>
+
+                                {isTimeframeDropdownOpen && (
+                                    <>
+                                        <div 
+                                            style={{ position: 'fixed', inset: 0, zIndex: 100 }} 
+                                            onClick={() => setIsTimeframeDropdownOpen(false)} 
+                                        />
+                                        <div style={{
+                                            position: 'absolute', top: 'calc(100% + 8px)', left: 0, right: 0, zIndex: 101,
+                                            background: 'rgba(255, 255, 255, 0.85)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
+                                            border: '1px solid rgba(0,0,0,0.08)', borderRadius: '16px', padding: '0.5rem',
+                                            boxShadow: '0 10px 40px -10px rgba(0,0,0,0.15)', animation: 'slideUp 0.2s cubic-bezier(0.16, 1, 0.3, 1)'
+                                        }}>
+                                            {[
+                                                { id: '1day', label: 'Older than 1 Day' },
+                                                { id: '1week', label: 'Older than 1 Week' },
+                                                { id: '1month', label: 'Older than 1 Month' },
+                                                { id: 'all', label: 'Delete All History', isDestructive: true }
+                                            ].map((option) => (
+                                                <div 
+                                                    key={option.id}
+                                                    onClick={() => {
+                                                        setDeleteHistoryTimeframe(option.id);
+                                                        setIsTimeframeDropdownOpen(false);
+                                                    }}
+                                                    style={{
+                                                        padding: '0.85rem 1rem', borderRadius: '12px', cursor: 'pointer',
+                                                        fontSize: '0.95rem', fontWeight: deleteHistoryTimeframe === option.id ? 700 : 500,
+                                                        color: option.isDestructive ? '#ef4444' : '#1e293b',
+                                                        background: deleteHistoryTimeframe === option.id ? (option.isDestructive ? '#fef2f2' : '#f1f5f9') : 'transparent',
+                                                        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                                                        transition: 'background 0.2s'
+                                                    }}
+                                                    onMouseEnter={e => {
+                                                        if (deleteHistoryTimeframe !== option.id) e.currentTarget.style.background = option.isDestructive ? '#fef2f2' : '#f8fafc';
+                                                    }}
+                                                    onMouseLeave={e => {
+                                                        if (deleteHistoryTimeframe !== option.id) e.currentTarget.style.background = 'transparent';
+                                                    }}
+                                                >
+                                                    {option.label}
+                                                    {deleteHistoryTimeframe === option.id && <Check size={16} color={option.isDestructive ? '#ef4444' : '#db2777'} />}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </>
+                                )}
+                            </div>
+                        </div>
+
+                        <div style={{ display: 'flex', gap: '0.75rem' }}>
+                            <button onClick={() => setIsDeleteHistoryModalOpen(false)} style={{ flex: 1, padding: '0.9rem', background: '#f1f5f9', border: 'none', borderRadius: '14px', fontSize: '0.95rem', fontWeight: 700, color: '#475569', cursor: 'pointer', transition: 'background 0.2s' }}>
+                                Cancel
+                            </button>
+                            <button onClick={confirmDeleteHistory} style={{ flex: 1, padding: '0.9rem', background: '#ef4444', border: 'none', borderRadius: '14px', fontSize: '0.95rem', fontWeight: 700, color: '#fff', cursor: 'pointer', transition: 'background 0.2s', boxShadow: '0 4px 12px rgba(239, 68, 68, 0.25)' }}>
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Mobile Bottom Navigation */}
             <div className="admin-mobile-bottom-nav" style={{ display: 'none', position: 'fixed', bottom: '1.5rem', left: '1.5rem', right: '1.5rem', zIndex: 1000 }}>

@@ -438,7 +438,7 @@ const styles = {
     width: '100%', padding: '14px 20px',
     borderRadius: 13, border: 'none',
     background: 'linear-gradient(135deg,#00FF87,#00cc6a)',
-    color: '#000', fontSize: 15, fontWeight: 700,
+    color: 'var(--text)', fontSize: 15, fontWeight: 700,
     fontFamily: 'inherit', cursor: 'pointer',
     boxShadow: '0 0 18px rgba(0,255,135,.30)',
     transition: 'all 0.2s ease',

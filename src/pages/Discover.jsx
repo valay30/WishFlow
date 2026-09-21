@@ -556,10 +556,10 @@ export default function Discover() {
                     style={{
                         cursor: actuallyCollapsed ? 'pointer' : 'default',
                         pointerEvents: 'auto',
-                        background: 'rgba(255, 255, 255, 0.85)',
+                        background: 'var(--surface-blur)',
                         backdropFilter: 'blur(20px)',
                         WebkitBackdropFilter: 'blur(20px)',
-                        border: '1px solid rgba(0,0,0, 0.08)',
+                        border: '1px solid var(--border-blur)',
                         overflow: actuallyCollapsed ? 'hidden' : 'visible',
                         display: 'flex', flexDirection: 'column',
                         alignItems: actuallyCollapsed ? 'center' : 'stretch',
@@ -613,7 +613,7 @@ export default function Discover() {
                                                 width: '100%', boxSizing: 'border-box',
                                                 padding: '0.75rem 2.75rem 0.75rem 2.75rem',
                                                 borderRadius: '14px', border: '1.5px solid var(--border)',
-                                                background: 'rgba(0,0,0,0.03)', color: 'var(--text)',
+                                                background: 'var(--surface-2)', color: 'var(--text)',
                                                 fontSize: '0.95rem', fontFamily: 'inherit', outline: 'none',
                                                 transition: 'border-color 0.2s',
                                             }}

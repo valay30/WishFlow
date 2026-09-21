@@ -76,7 +76,7 @@ export default function AlertModal({
                             margin: '0 0 0.6rem',
                             fontSize: '1.15rem',
                             fontWeight: 600,
-                            color: '#000',
+                            color: 'var(--text)',
                             letterSpacing: '-0.01em',
                             fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
                         }}>

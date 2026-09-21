@@ -82,7 +82,7 @@ const GoogleButton = ({ onClick }) => (
     <button type="button" onClick={onClick} style={{
         width: '100%',
         padding: '1rem',
-        background: '#FFFFFF',
+        background: 'var(--surface)',
         border: '1px solid #E5E7EB',
         borderRadius: '50px',
         display: 'flex',
@@ -301,8 +301,8 @@ export default function AuthPage() {
                     <div style={{ fontSize: '0.85rem', color: '#88909D' }}>
                         <button onClick={() => go('forgot')} style={{ background: 'none', border: 'none', padding: 0, color: '#4B5563', fontWeight: 500, textDecoration: 'underline', cursor: 'pointer', fontFamily: 'inherit' }}>Forgot password?</button>
                     </div>
-                    <div style={{ fontSize: '0.9rem', color: '#111', fontWeight: 600 }}>
-                        New here? <button onClick={() => go('signup')} style={{ background: 'none', border: 'none', padding: 0, color: '#111', fontWeight: 600, textDecoration: 'underline', cursor: 'pointer', fontFamily: 'inherit' }}>Create an account</button>
+                    <div style={{ fontSize: '0.9rem', color: 'var(--text)', fontWeight: 600 }}>
+                        New here? <button onClick={() => go('signup')} style={{ background: 'none', border: 'none', padding: 0, color: 'var(--text)', fontWeight: 600, textDecoration: 'underline', cursor: 'pointer', fontFamily: 'inherit' }}>Create an account</button>
                     </div>
                 </div>
             )}
@@ -312,16 +312,16 @@ export default function AuthPage() {
                     <div style={{ fontSize: '0.8rem', color: '#88909D', lineHeight: 1.5 }}>
                         Signing up for a WishFlow account means you<br />agree to the <Link to="/privacy" style={{ color: '#4B5563', fontWeight: 600, textDecoration: 'underline' }}>Privacy Policy</Link> and <Link to="/terms" style={{ color: '#4B5563', fontWeight: 600, textDecoration: 'underline' }}>Terms of Service</Link>.
                     </div>
-                    <div style={{ fontSize: '0.9rem', color: '#111', fontWeight: 600 }}>
-                        Have an account? <button onClick={() => go('login')} style={{ background: 'none', border: 'none', padding: 0, color: '#111', fontWeight: 600, textDecoration: 'underline', cursor: 'pointer', fontFamily: 'inherit' }}>Log in here</button>
+                    <div style={{ fontSize: '0.9rem', color: 'var(--text)', fontWeight: 600 }}>
+                        Have an account? <button onClick={() => go('login')} style={{ background: 'none', border: 'none', padding: 0, color: 'var(--text)', fontWeight: 600, textDecoration: 'underline', cursor: 'pointer', fontFamily: 'inherit' }}>Log in here</button>
                     </div>
                 </div>
             )}
 
             {screen === 'forgot' && (
                 <div style={{ marginTop: '1.25rem', textAlign: 'center' }}>
-                    <div style={{ fontSize: '0.9rem', color: '#111', fontWeight: 600 }}>
-                        Remembered it? <button onClick={() => go('login')} style={{ background: 'none', border: 'none', padding: 0, color: '#111', fontWeight: 600, textDecoration: 'underline', cursor: 'pointer', fontFamily: 'inherit' }}>Log in here</button>
+                    <div style={{ fontSize: '0.9rem', color: 'var(--text)', fontWeight: 600 }}>
+                        Remembered it? <button onClick={() => go('login')} style={{ background: 'none', border: 'none', padding: 0, color: 'var(--text)', fontWeight: 600, textDecoration: 'underline', cursor: 'pointer', fontFamily: 'inherit' }}>Log in here</button>
                     </div>
                 </div>
             )}
@@ -370,7 +370,7 @@ export default function AuthPage() {
 
                 <div style={{
                     flex: '1',
-                    background: '#FFFFFF',
+                    background: 'var(--surface)',
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
@@ -440,7 +440,7 @@ export default function AuthPage() {
 
             <div style={{
                 flex: 1,
-                background: '#FFFFFF',
+                background: 'var(--surface)',
                 borderRadius: '32px 32px 0 0',
                 marginTop: '-32px',
                 position: 'relative',

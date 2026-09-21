@@ -112,4 +112,41 @@ router.post('/notify-share', async (req, res) => {
   }
 });
 
+// Route to track notification click and redirect
+router.get('/track-click', async (req, res) => {
+  const { id, redirect } = req.query;
+  
+  // Increment click_count in background (fire and forget)
+  if (id) {
+    supabase.rpc('increment_broadcast_click', { broadcast_id: id })
+      .then(({ error }) => {
+        if (error) {
+          // Fallback: direct update if RPC not available
+          supabase.from('broadcast_history')
+            .select('click_count')
+            .eq('id', id)
+            .single()
+            .then(({ data }) => {
+              if (data) {
+                supabase.from('broadcast_history')
+                  .update({ click_count: (data.click_count || 0) + 1 })
+                  .eq('id', id)
+                  .then(() => {});
+              }
+            });
+        }
+      });
+  }
+
+  // Redirect to the real destination immediately
+  const destination = redirect ? decodeURIComponent(redirect) : '/';
+  // If it's a relative path, redirect to frontend
+  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+  if (destination.startsWith('http')) {
+    res.redirect(destination);
+  } else {
+    res.redirect(`${frontendUrl}${destination}`);
+  }
+});
+
 export default router;

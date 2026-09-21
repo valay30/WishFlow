@@ -117,7 +117,7 @@ function SectionCard({ section, index, total, onChange, onRemove, onMove }) {
                                 <span style={{ color: '#94a3b8', fontSize: '0.8rem', flexShrink: 0 }}>•</span>
                                 <input value={item} onChange={e => updateItem(i, e.target.value)}
                                     placeholder={`List item ${i + 1}`}
-                                    style={{ flex: 1, padding: '0.4rem 0.6rem', border: '1px solid #e2e8f0', borderRadius: '7px', fontSize: '0.88rem', fontFamily: FONT, outline: 'none', background: '#fff' }} />
+                                    style={{ flex: 1, padding: '0.4rem 0.6rem', border: '1px solid #e2e8f0', borderRadius: '7px', fontSize: '0.88rem', fontFamily: FONT, outline: 'none', background: 'var(--surface)' }} />
                                 <button onClick={() => removeItem(i)} disabled={(section.items || []).length <= 1}
                                     style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444', opacity: (section.items || []).length <= 1 ? 0.3 : 1, padding: '2px', display: 'flex' }}>
                                     <Trash2 size={14} />
@@ -152,7 +152,7 @@ function AddSectionBar({ onAdd }) {
             <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748b', fontFamily: FONT, alignSelf: 'center', marginRight: '0.25rem' }}>+ Add:</span>
             {SECTION_TYPES.map(({ type, icon: Icon, label }) => (
                 <button key={type} onClick={() => onAdd(type)}
-                    style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '0.35rem 0.75rem', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '99px', cursor: 'pointer', fontSize: '0.78rem', fontWeight: 600, fontFamily: FONT, color: '#334155', transition: 'all 0.15s' }}
+                    style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '0.35rem 0.75rem', background: 'var(--surface)', border: '1px solid #e2e8f0', borderRadius: '99px', cursor: 'pointer', fontSize: '0.78rem', fontWeight: 600, fontFamily: FONT, color: '#334155', transition: 'all 0.15s' }}
                     onMouseEnter={e => { e.currentTarget.style.background = '#f0f4ff'; e.currentTarget.style.borderColor = '#a5b4fc'; }}
                     onMouseLeave={e => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.borderColor = '#e2e8f0'; }}>
                     <Icon size={13} /> {label}
@@ -211,7 +211,7 @@ function BlogForm({ post, onSave, onCancel, showToast }) {
         }
     };
 
-    const inputStyle = { width: '100%', boxSizing: 'border-box', padding: '0.7rem 1rem', border: '1.5px solid #e2e8f0', borderRadius: '10px', fontSize: '0.93rem', fontFamily: FONT, outline: 'none', color: '#0f172a', background: '#fff', transition: 'border-color 0.2s' };
+    const inputStyle = { width: '100%', boxSizing: 'border-box', padding: '0.7rem 1rem', border: '1.5px solid #e2e8f0', borderRadius: '10px', fontSize: '0.93rem', fontFamily: FONT, outline: 'none', color: '#0f172a', background: 'var(--surface)', transition: 'border-color 0.2s' };
     const labelStyle = { display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#475569', marginBottom: '0.35rem', fontFamily: FONT, textTransform: 'uppercase', letterSpacing: '0.05em' };
     const focusStyle = (e) => e.target.style.borderColor = '#6d28d9';
     const blurStyle = (e) => e.target.style.borderColor = '#e2e8f0';
@@ -313,7 +313,7 @@ function BlogForm({ post, onSave, onCancel, showToast }) {
                     {/* Category */}
                     <div>
                         <label style={labelStyle}>Category</label>
-                        <input value={form.category} onChange={e => set('category', e.target.value)} placeholder="e.g. Gift Guides" style={{ ...inputStyle, background: '#fff' }} onFocus={focusStyle} onBlur={blurStyle} />
+                        <input value={form.category} onChange={e => set('category', e.target.value)} placeholder="e.g. Gift Guides" style={{ ...inputStyle, background: 'var(--surface)' }} onFocus={focusStyle} onBlur={blurStyle} />
                     </div>
 
                     {/* Category Color */}
@@ -331,26 +331,26 @@ function BlogForm({ post, onSave, onCancel, showToast }) {
                     {/* Read Time */}
                     <div>
                         <label style={labelStyle}>Read Time</label>
-                        <input value={form.readTime} onChange={e => set('readTime', e.target.value)} placeholder="5 min read" style={{ ...inputStyle, background: '#fff' }} onFocus={focusStyle} onBlur={blurStyle} />
+                        <input value={form.readTime} onChange={e => set('readTime', e.target.value)} placeholder="5 min read" style={{ ...inputStyle, background: 'var(--surface)' }} onFocus={focusStyle} onBlur={blurStyle} />
                     </div>
 
                     {/* Published At (display date) */}
                     <div>
                         <label style={labelStyle}>Display Date</label>
-                        <input value={form.publishedAt} onChange={e => set('publishedAt', e.target.value)} placeholder="September 5, 2026" style={{ ...inputStyle, background: '#fff' }} onFocus={focusStyle} onBlur={blurStyle} />
+                        <input value={form.publishedAt} onChange={e => set('publishedAt', e.target.value)} placeholder="September 5, 2026" style={{ ...inputStyle, background: 'var(--surface)' }} onFocus={focusStyle} onBlur={blurStyle} />
                     </div>
 
                     {/* Author */}
                     <div>
                         <label style={labelStyle}>Author</label>
-                        <input value={form.author} onChange={e => set('author', e.target.value)} placeholder="WishFlow Team" style={{ ...inputStyle, background: '#fff' }} onFocus={focusStyle} onBlur={blurStyle} />
+                        <input value={form.author} onChange={e => set('author', e.target.value)} placeholder="WishFlow Team" style={{ ...inputStyle, background: 'var(--surface)' }} onFocus={focusStyle} onBlur={blurStyle} />
                     </div>
 
                     {/* Cover Image */}
                     <div>
                         <label style={labelStyle}>Cover Image</label>
                         <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                            <input value={form.coverImage} onChange={e => set('coverImage', e.target.value)} placeholder="ImageKit URL" style={{ ...inputStyle, background: '#fff', flex: 1 }} onFocus={focusStyle} onBlur={blurStyle} />
+                            <input value={form.coverImage} onChange={e => set('coverImage', e.target.value)} placeholder="ImageKit URL" style={{ ...inputStyle, background: 'var(--surface)', flex: 1 }} onFocus={focusStyle} onBlur={blurStyle} />
                             <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#e2e8f0', padding: '0 1rem', borderRadius: '10px', cursor: 'pointer', fontFamily: FONT, fontSize: '0.85rem', fontWeight: 600, color: '#334155', transition: 'background 0.2s' }}>
                                 Upload
                                 <input type="file" accept="image/*" style={{ display: 'none' }} onChange={async (e) => {
@@ -375,7 +375,7 @@ function BlogForm({ post, onSave, onCancel, showToast }) {
                     {/* Cover Alt */}
                     <div>
                         <label style={labelStyle}>Cover Image Alt</label>
-                        <input value={form.coverAlt} onChange={e => set('coverAlt', e.target.value)} placeholder="Describe the image" style={{ ...inputStyle, background: '#fff' }} onFocus={focusStyle} onBlur={blurStyle} />
+                        <input value={form.coverAlt} onChange={e => set('coverAlt', e.target.value)} placeholder="Describe the image" style={{ ...inputStyle, background: 'var(--surface)' }} onFocus={focusStyle} onBlur={blurStyle} />
                     </div>
 
                     {/* Save buttons */}
@@ -386,7 +386,7 @@ function BlogForm({ post, onSave, onCancel, showToast }) {
                             {isEdit ? 'Save & Publish' : 'Publish Now'}
                         </button>
                         <button onClick={() => handleSave(false)} disabled={saving}
-                            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '0.8rem', background: '#fff', color: '#334155', border: '1.5px solid #e2e8f0', borderRadius: '12px', fontFamily: FONT, fontWeight: 700, fontSize: '0.92rem', cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.7 : 1 }}>
+                            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '0.8rem', background: 'var(--surface)', color: '#334155', border: '1.5px solid #e2e8f0', borderRadius: '12px', fontFamily: FONT, fontWeight: 700, fontSize: '0.92rem', cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.7 : 1 }}>
                             <Save size={15} /> Save as Draft
                         </button>
                     </div>
@@ -582,7 +582,7 @@ export default function BlogAdminTab({ showToast }) {
                     </p>
                 </div>
                 <div className="blog-header-buttons">
-                    <button onClick={fetchPosts} disabled={loading} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.75rem 1.25rem', background: '#fff', color: '#4f46e5', border: '1px solid #e0e7ff', borderRadius: '12px', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer' }}>
+                    <button onClick={fetchPosts} disabled={loading} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.75rem 1.25rem', background: 'var(--surface)', color: '#4f46e5', border: '1px solid #e0e7ff', borderRadius: '12px', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer' }}>
                         <RefreshCw size={16} style={{ animation: loading ? 'spin 1s linear infinite' : 'none' }} /> Refresh
                     </button>
                     <button onClick={handleNew} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.75rem 1.5rem', background: '#6d28d9', color: '#fff', border: 'none', borderRadius: '12px', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer', boxShadow: '0 4px 12px rgba(109,40,217,0.3)' }}>
@@ -592,7 +592,7 @@ export default function BlogAdminTab({ showToast }) {
             </div>
 
             {/* Table */}
-            <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '16px', overflowX: 'auto', overflowY: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
+            <div style={{ background: 'var(--surface)', border: '1px solid #e2e8f0', borderRadius: '16px', overflowX: 'auto', overflowY: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
                 <div>
                     {/* Table header */}
                     <div className="blog-table-header" style={{ padding: '0.875rem 1.5rem', background: '#f8fafc', borderBottom: '1px solid #e2e8f0', fontSize: '0.72rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', fontFamily: FONT }}>
@@ -629,7 +629,7 @@ export default function BlogAdminTab({ showToast }) {
             {/* Delete Confirmation Modal */}
             {deletePost && (
                 <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem' }}>
-                    <div style={{ background: '#fff', borderRadius: '20px', padding: '2rem', maxWidth: '400px', width: '100%', boxShadow: '0 20px 60px rgba(0,0,0,0.2)', fontFamily: FONT }}>
+                    <div style={{ background: 'var(--surface)', borderRadius: '20px', padding: '2rem', maxWidth: '400px', width: '100%', boxShadow: '0 20px 60px rgba(0,0,0,0.2)', fontFamily: FONT }}>
                         <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: '#fff5f5', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1rem' }}>
                             <Trash2 size={22} color="#ef4444" />
                         </div>

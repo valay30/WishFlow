@@ -16,7 +16,7 @@ export default function PricingBanner({ onUpgrade }) {
         }}>
             {/* Free Plan */}
             <div style={{
-                background: '#ffffff',
+                background: 'var(--surface)',
                 borderRadius: '24px',
                 width: '100%',
                 display: 'flex',
@@ -33,7 +33,7 @@ export default function PricingBanner({ onUpgrade }) {
                     margin: '6px'
                 }}>
                     <div style={{
-                        background: '#ffffff',
+                        background: 'var(--surface)',
                         display: 'inline-block',
                         padding: '0.35rem 0.85rem',
                         borderRadius: '99px',
@@ -116,7 +116,7 @@ export default function PricingBanner({ onUpgrade }) {
                     margin: '6px'
                 }}>
                     <div style={{
-                        background: '#ffffff',
+                        background: 'var(--surface)',
                         display: 'inline-block',
                         padding: '0.35rem 0.85rem',
                         borderRadius: '99px',

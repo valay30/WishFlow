@@ -140,7 +140,7 @@ function ArticleCard({ post, featured = false }) {
           position: 'relative',
           aspectRatio: featured ? '16/7' : '16/9',
           overflow: 'hidden',
-          background: '#f5f5f5',
+          background: 'var(--surface-2)',
           flexShrink: 0,
         }}>
           <img

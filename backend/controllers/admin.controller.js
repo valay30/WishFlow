@@ -364,7 +364,7 @@ export const updateGlobalSetting = async (req, res) => {
 };
 
 export const broadcastNotification = async (req, res) => {
-    const { title, body, url, image, targetUserId, targetUserIds } = req.body;
+    const { title, body, url, image, targetUserId, targetUserIds, actionButtonTitle, actionButtonUrl } = req.body;
 
     if (!title || !body) {
         return res.status(400).json({ error: 'Title and body are required' });
@@ -386,6 +386,18 @@ export const broadcastNotification = async (req, res) => {
             return res.status(200).json({ success: true, sentCount: 0, message: 'No subscriptions found' });
         }
 
+        // ── Analytics: Create history record first to get an ID ──
+        let broadcastId = null;
+        const targetLabel = targetUserIds && targetUserIds.length > 0
+            ? `${targetUserIds.length} selected users`
+            : targetUserId ? '1 user' : 'All Users';
+        const { data: historyRecord } = await supabase
+            .from('broadcast_history')
+            .insert({ title, body, url: url || '/', image: image || null, sent_count: 0, failed_count: 0, click_count: 0, target: targetLabel })
+            .select('id')
+            .single();
+        if (historyRecord) broadcastId = historyRecord.id;
+
         // Check if personalization is needed
         const needsPersonalization = title.includes('{{name}}') || body.includes('{{name}}');
         let userMap = {};
@@ -405,7 +417,6 @@ export const broadcastNotification = async (req, res) => {
                 const bodyJson = await response.json();
                 const users = bodyJson.users || bodyJson || [];
                 users.forEach(u => {
-                    // Grab just the first name or fallback to email prefix
                     let fullName = u.user_metadata?.name || u.email?.split('@')[0] || 'User';
                     let firstName = fullName.split(' ')[0];
                     userMap[u.id] = firstName;
@@ -436,12 +447,27 @@ export const broadcastNotification = async (req, res) => {
                 personalizedBody = body.replace(/\{\{name\}\}/g, userName);
             }
 
-            const payload = JSON.stringify({
+            // ── Analytics: Use tracked URL so clicks are recorded ──
+            const trackedUrl = broadcastId
+                ? `${process.env.BACKEND_URL || 'http://localhost:5000'}/api/notifications/track-click?id=${broadcastId}&redirect=${encodeURIComponent(url || '/')}`
+                : (url || '/');
+
+            const payloadData = {
                 title: personalizedTitle,
                 body: personalizedBody,
-                url: url || '/',
+                url: trackedUrl,
                 image: image || undefined
-            });
+            };
+
+            if (actionButtonTitle) {
+                payloadData.actions = [{ action: 'btn1', title: actionButtonTitle }];
+                const trackedBtnUrl = broadcastId
+                    ? `${process.env.BACKEND_URL || 'http://localhost:5000'}/api/notifications/track-click?id=${broadcastId}&redirect=${encodeURIComponent(actionButtonUrl || '/')}`
+                    : (actionButtonUrl || '/');
+                payloadData.actionUrls = { btn1: trackedBtnUrl };
+            }
+
+            const payload = JSON.stringify(payloadData);
 
             try {
                 await webpush.sendNotification(pushSubscription, payload);
@@ -457,9 +483,66 @@ export const broadcastNotification = async (req, res) => {
 
         await Promise.allSettled(sendPromises);
 
+        // ── Analytics: Update history record with final counts ──
+        if (broadcastId) {
+            await supabase
+                .from('broadcast_history')
+                .update({ sent_count: sentCount, failed_count: failedCount })
+                .eq('id', broadcastId);
+        }
+
         res.json({ success: true, sentCount, failedCount });
     } catch (error) {
         console.error('Broadcast error:', error);
         res.status(500).json({ error: 'Failed to broadcast notifications' });
+    }
+};
+
+export const getBroadcastHistory = async (req, res) => {
+    try {
+        const { data, error } = await supabase
+            .from('broadcast_history')
+            .select('*')
+            .order('created_at', { ascending: false })
+            .limit(50);
+        if (error) throw error;
+        res.json(data || []);
+    } catch (err) {
+        console.error('Get broadcast history error:', err);
+        res.status(500).json({ error: 'Failed to fetch broadcast history' });
+    }
+};
+
+export const deleteBroadcastHistory = async (req, res) => {
+    try {
+        const { timeframe } = req.query;
+        let query = supabase.from('broadcast_history').delete();
+
+        if (timeframe === '1day') {
+            const date = new Date();
+            date.setDate(date.getDate() - 1);
+            query = query.lt('created_at', date.toISOString());
+        } else if (timeframe === '1week') {
+            const date = new Date();
+            date.setDate(date.getDate() - 7);
+            query = query.lt('created_at', date.toISOString());
+        } else if (timeframe === '1month') {
+            const date = new Date();
+            date.setMonth(date.getMonth() - 1);
+            query = query.lt('created_at', date.toISOString());
+        } else if (timeframe !== 'all') {
+            return res.status(400).json({ error: 'Invalid timeframe parameter' });
+        } else {
+            // 'all' means delete where id is not null (everything)
+            query = query.not('id', 'is', null);
+        }
+
+        const { error } = await query;
+        if (error) throw error;
+
+        res.json({ success: true, message: 'History deleted successfully' });
+    } catch (err) {
+        console.error('Delete broadcast history error:', err);
+        res.status(500).json({ error: 'Failed to delete broadcast history' });
     }
 };

@@ -62,6 +62,8 @@ self.addEventListener('push', (event) => {
   let body = '';
   let url = '/';
   let image = null;
+  let actions = null;
+  let actionUrls = null;
 
   try {
     const data = event.data.json();
@@ -69,6 +71,8 @@ self.addEventListener('push', (event) => {
     body = data.body || '';
     url = data.url || url;
     image = data.image || null;
+    actions = data.actions || null;
+    actionUrls = data.actionUrls || null;
   } catch (err) {
     // Fallback to text for dev-tools testing
     body = event.data.text();
@@ -78,20 +82,29 @@ self.addEventListener('push', (event) => {
     body,
     icon: '/192x192.png',
     badge: '/badge.png',
-    data: { url },
+    data: { url, actionUrls },
   };
   
-  if (image) {
-    options.image = image;
-  }
+  if (image) options.image = image;
+  if (actions) options.actions = actions;
 
   event.waitUntil(self.registration.showNotification(title, options));
 });
 
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
+  
+  let targetUrl = event.notification.data?.url || '/';
+  
+  // If an action button was clicked, use its specific URL
+  if (event.action && event.notification.data?.actionUrls) {
+    if (event.notification.data.actionUrls[event.action]) {
+      targetUrl = event.notification.data.actionUrls[event.action];
+    }
+  }
+
   // Ensure url is absolute so we can match it against client.url
-  const urlToOpen = new URL(event.notification.data?.url || '/', self.location.origin).href;
+  const urlToOpen = new URL(targetUrl, self.location.origin).href;
 
   event.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {

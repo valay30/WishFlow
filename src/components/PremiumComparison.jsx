@@ -20,7 +20,7 @@ export default function PremiumComparison({ inline = false }) {
                 
                 {/* Free Tier */}
                 <div style={{
-                    background: '#ffffff',
+                    background: 'var(--surface)',
                     borderRadius: '20px',
                     padding: '2rem 1.5rem',
                     border: '1px solid #bbf7d0',

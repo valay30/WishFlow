@@ -8,6 +8,8 @@
   --surface: #FFFFFF;
   --surface-2: #F5F5F5;
   --surface-3: #E2E2E2;
+  --surface-blur: rgba(255, 255, 255, 0.85);
+  --border-blur: rgba(0, 0, 0, 0.08);
 
   /* Primary theme color — overridden by [data-theme] */
   --primary: #10367D;
@@ -35,11 +37,14 @@
   --transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+:root[data-theme="dark"],
 :root.dark {
   --bg: #000000;
   --surface: #0A0A0A;
   --surface-2: #1C1C1E;
   --surface-3: #2C2C2E;
+  --surface-blur: rgba(28, 28, 30, 0.85);
+  --border-blur: rgba(255, 255, 255, 0.1);
 
   --text: #FFFFFF;
   --text-muted: #98989D;
@@ -1249,5 +1254,35 @@ body::before {
 
   50% {
     filter: brightness(1.15);
+  }
+}\n
+/* ══════════════════════════════════════
+   BROADCAST ADMIN RESPONSIVE
+══════════════════════════════════════ */
+.broadcast-grid {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 2rem;
+  align-items: start;
+}
+
+.broadcast-preview-col {
+  position: sticky;
+  top: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  align-items: center;
+}
+
+@media (max-width: 1024px) {
+  .broadcast-grid {
+    grid-template-columns: 1fr;
+  }
+  .broadcast-preview-col {
+    position: static;
+    margin-top: 1rem;
+    align-items: center;
+    width: 100%;
   }
 }

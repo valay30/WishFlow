@@ -143,7 +143,7 @@ export default function CustomDatePicker({ value, onChange, placeholder = "Selec
                     left: containerRef.current ? containerRef.current.getBoundingClientRect().left + window.scrollX : 0,
                     width: '280px',
                 }),
-                background: '#FFFFFF',
+                background: 'var(--surface)',
                 borderRadius: '20px',
                 padding: '1.25rem',
                 boxShadow: '0 20px 50px rgba(0,0,0,0.25)',
@@ -157,7 +157,7 @@ export default function CustomDatePicker({ value, onChange, placeholder = "Selec
                 <button onClick={handlePrevMonth} type="button" style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0.25rem', color: '#333' }}>
                     <ChevronLeft size={20} strokeWidth={2.5} />
                 </button>
-                <div style={{ fontWeight: 700, fontSize: '1.05rem', color: '#111' }}>
+                <div style={{ fontWeight: 700, fontSize: '1.05rem', color: 'var(--text)' }}>
                     {currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
                 </div>
                 <button onClick={handleNextMonth} type="button" style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0.25rem', color: '#333' }}>
@@ -168,7 +168,7 @@ export default function CustomDatePicker({ value, onChange, placeholder = "Selec
             {/* Days of Week */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '0', marginBottom: '0.5rem', textAlign: 'center' }}>
                 {daysOfWeek.map(day => (
-                    <div key={day} style={{ fontSize: '0.8rem', fontWeight: 600, color: '#666', paddingBottom: '0.5rem' }}>
+                    <div key={day} style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-muted)', paddingBottom: '0.5rem' }}>
                         {day}
                     </div>
                 ))}

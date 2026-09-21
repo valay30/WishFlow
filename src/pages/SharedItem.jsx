@@ -93,7 +93,7 @@ export default function SharedItem() {
         <Header />
         <div style={{ ...cardStyle, textAlign: "center", padding: "3rem 2rem" }}>
           <Package size={56} color="#ccc" style={{ margin: "0 auto 1rem" }} />
-          <h2 style={{ margin: "0 0 0.5rem", fontSize: "1.3rem", color: "#111", fontWeight: 700 }}>Item not found</h2>
+          <h2 style={{ margin: "0 0 0.5rem", fontSize: "1.3rem", color: "var(--text)", fontWeight: 700 }}>Item not found</h2>
           <p style={{ margin: 0, color: "#888", fontSize: "0.95rem" }}>This item may have been removed or the link is invalid.</p>
           <Link to="/" style={{
             display: "inline-block", marginTop: "1.5rem",
@@ -141,7 +141,7 @@ export default function SharedItem() {
           margin: "0 0 0.4rem",
           fontSize: "1.3rem",
           fontWeight: 800,
-          color: "#111",
+          color: "var(--text)",
           lineHeight: 1.3,
           letterSpacing: "-0.02em",
         }}>
@@ -269,7 +269,7 @@ function Header() {
     }}>
       <Link to="/" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: "0.5rem" }}>
         <span style={{ fontSize: "1.5rem" }}>🎁</span>
-        <span style={{ fontWeight: 800, fontSize: "1.1rem", color: "#111", letterSpacing: "-0.02em" }}>WishFlow</span>
+        <span style={{ fontWeight: 800, fontSize: "1.1rem", color: "var(--text)", letterSpacing: "-0.02em" }}>WishFlow</span>
       </Link>
       <Link
         to="/auth"
@@ -299,7 +299,7 @@ function Footer() {
         margin: "0 0 0.75rem",
         fontSize: "1rem",
         fontWeight: 700,
-        color: "#111",
+        color: "var(--text)",
         letterSpacing: "-0.01em",
       }}>
         Save this to your own wishlist 🎁
@@ -336,7 +336,7 @@ const cardStyle = {
   maxWidth: "480px",
   margin: "0 auto",
   padding: "1.25rem",
-  background: "#fff",
+  background: "var(--surface)",
   borderRadius: "24px",
   boxShadow: "0 2px 20px rgba(0,0,0,0.07)",
   border: "1px solid rgba(0,0,0,0.06)",

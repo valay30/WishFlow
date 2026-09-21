@@ -53,7 +53,7 @@ function SearchOverlay({ items, onClose }) {
       padding: '1.25rem',
     }} onClick={onClose}>
       <div style={{
-        background: '#fff',
+        background: 'var(--surface)',
         borderRadius: '28px',
         padding: '1.25rem',
         width: '100%',
@@ -79,7 +79,7 @@ function SearchOverlay({ items, onClose }) {
             placeholder="Search items…"
             style={{
               border: 'none', background: 'none', outline: 'none',
-              fontSize: '1rem', fontFamily: 'inherit', flex: 1, color: '#111',
+              fontSize: '1rem', fontFamily: 'inherit', flex: 1, color: 'var(--text)',
             }}
           />
           {q ? (
@@ -88,7 +88,7 @@ function SearchOverlay({ items, onClose }) {
               style={{
                 border: 'none', background: 'rgba(0,0,0,0.08)', borderRadius: '50%',
                 width: 22, height: 22, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                cursor: 'pointer', color: '#666', padding: 0,
+                cursor: 'pointer', color: 'var(--text-muted)', padding: 0,
               }}
             >
               <X size={13} />
@@ -97,7 +97,7 @@ function SearchOverlay({ items, onClose }) {
             <button
               onClick={onClose}
               style={{
-                border: 'none', background: 'none', color: '#999', cursor: 'pointer',
+                border: 'none', background: 'none', color: 'var(--text-dim)', cursor: 'pointer',
                 padding: '0 0.25rem', display: 'flex', alignItems: 'center',
               }}
             >
@@ -124,7 +124,7 @@ function SearchOverlay({ items, onClose }) {
           }}
         >
           {filtered.length === 0 && (
-            <div style={{ textAlign: 'center', color: '#999', padding: '2.5rem 1rem' }}>
+            <div style={{ textAlign: 'center', color: 'var(--text-dim)', padding: '2.5rem 1rem' }}>
               <Package size={36} color="#ddd" style={{ margin: '0 auto 0.5rem', display: 'block' }} />
               <p style={{ margin: 0, fontWeight: 500, fontSize: '0.95rem' }}>No items found</p>
             </div>
@@ -137,8 +137,8 @@ function SearchOverlay({ items, onClose }) {
               rel="noopener noreferrer"
               style={{
                 display: 'flex', alignItems: 'center', gap: '0.75rem',
-                padding: '0.75rem', borderRadius: '16px', background: '#fafafa',
-                textDecoration: 'none', color: '#111',
+                padding: '0.75rem', borderRadius: '16px', background: 'var(--surface-2)',
+                textDecoration: 'none', color: 'var(--text)',
                 border: '1px solid #f0f0f0',
                 transition: 'background 0.15s ease',
               }}
@@ -167,7 +167,7 @@ function MobileItemCard({ item }) {
   const purchased = !!item.is_purchased;
   return (
     <div style={{
-      background: '#fff',
+      background: 'var(--surface)',
       borderRadius: '20px',
       overflow: 'hidden',
       boxShadow: '0 4px 16px rgba(0,0,0,0.04)',
@@ -201,14 +201,14 @@ function MobileItemCard({ item }) {
       </div>
       <div style={{ padding: '0.75rem 0.5rem 0.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', flex: 1 }}>
         <p style={{
-          margin: 0, fontWeight: 700, fontSize: '0.9rem', color: '#111',
+          margin: 0, fontWeight: 700, fontSize: '0.9rem', color: 'var(--text)',
           lineHeight: 1.3,
           display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
         }}>{item.name}</p>
 
         <div style={{ marginTop: 'auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem' }}>
           {item.price > 0 && (
-            <span style={{ fontWeight: 800, fontSize: '1.05rem', color: '#111' }}>{fmt(item.price)}</span>
+            <span style={{ fontWeight: 800, fontSize: '1.05rem', color: 'var(--text)' }}>{fmt(item.price)}</span>
           )}
           {item.link && (
             <a
@@ -217,7 +217,7 @@ function MobileItemCard({ item }) {
               rel="noopener noreferrer"
               style={{
                 width: 36, height: 36, borderRadius: '50%',
-                background: '#fff',
+                background: 'var(--surface)',
                 border: '1.5px solid #f0f0f0',
                 boxShadow: '0 4px 12px rgba(0,0,0,0.03)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -240,7 +240,7 @@ function DesktopItemCard({ item }) {
   return (
     <div
       style={{
-        background: '#fff',
+        background: 'var(--surface)',
         borderRadius: '24px',
         overflow: 'hidden',
         boxShadow: '0 12px 40px rgba(0,0,0,0.06)',
@@ -308,14 +308,14 @@ function DesktopItemCard({ item }) {
         display: 'flex', flexDirection: 'column', gap: '1rem',
       }}>
         <p style={{
-          margin: 0, fontWeight: 700, fontSize: '1.2rem', color: '#111',
+          margin: 0, fontWeight: 700, fontSize: '1.2rem', color: 'var(--text)',
           lineHeight: 1.4, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden'
         }}>{item.name}</p>
 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 'auto', gap: '0.5rem' }}>
           {item.price > 0 ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
-              <span style={{ fontSize: '0.75rem', color: '#888', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Price</span>
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Price</span>
               <span style={{ fontWeight: 800, fontSize: '1.4rem', color: '#E85C2C', lineHeight: 1 }}>{fmt(item.price)}</span>
             </div>
           ) : <div />}
@@ -972,7 +972,7 @@ export default function SharedCollection() {
         <div className="sc-content">
           <div className="sc-grid-mobile">
             {[1, 2, 3, 4].map(k => (
-              <div key={k} style={{ background: '#fff', borderRadius: '20px', overflow: 'hidden' }}>
+              <div key={k} style={{ background: 'var(--surface)', borderRadius: '20px', overflow: 'hidden' }}>
                 <Skeleton h="160px" r="0" />
                 <div style={{ padding: '0.85rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                   <Skeleton h="14px" w="80%" /><Skeleton h="14px" w="50%" />
@@ -982,7 +982,7 @@ export default function SharedCollection() {
           </div>
           <div className="sc-grid-desktop">
             {[1, 2].map(k => (
-              <div key={k} style={{ background: '#fff', borderRadius: '20px', overflow: 'hidden', display: 'flex' }}>
+              <div key={k} style={{ background: 'var(--surface)', borderRadius: '20px', overflow: 'hidden', display: 'flex' }}>
                 <Skeleton w="45%" h="160px" r="0" />
                 <div style={{ flex: 1, padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                   <Skeleton h="16px" w="70%" /><Skeleton h="14px" w="40%" />
@@ -1002,8 +1002,8 @@ export default function SharedCollection() {
         <style>{STYLES}</style>
         <div className="sc-notfound" style={{ minHeight: '60vh', background: 'transparent' }}>
           <div style={{ fontSize: '5rem' }}>🔍</div>
-          <h1 style={{ fontSize: '1.75rem', fontWeight: 900, color: '#111', margin: 0 }}>Collection not found</h1>
-          <p style={{ color: '#666', textAlign: 'center', margin: 0, maxWidth: '320px' }}>
+          <h1 style={{ fontSize: '1.75rem', fontWeight: 900, color: 'var(--text)', margin: 0 }}>Collection not found</h1>
+          <p style={{ color: 'var(--text-muted)', textAlign: 'center', margin: 0, maxWidth: '320px' }}>
             This link may be invalid or the collection was deleted.
           </p>
           <Link to="/auth" style={{
@@ -1076,11 +1076,11 @@ export default function SharedCollection() {
           {items.length === 0 ? (
             <div style={{
               margin: '1rem 1.25rem', padding: '3rem 1.5rem',
-              background: '#fff', borderRadius: '20px', textAlign: 'center',
+              background: 'var(--surface)', borderRadius: '20px', textAlign: 'center',
             }}>
               <Package size={48} color="#ddd" style={{ marginBottom: '1rem' }} />
-              <h3 style={{ color: '#111', fontWeight: 800, margin: '0 0 0.5rem' }}>Empty Collection</h3>
-              <p style={{ color: '#888', margin: 0 }}>No items have been added yet.</p>
+              <h3 style={{ color: 'var(--text)', fontWeight: 800, margin: '0 0 0.5rem' }}>Empty Collection</h3>
+              <p style={{ color: 'var(--text-dim)', margin: 0 }}>No items have been added yet.</p>
             </div>
           ) : (
             <>

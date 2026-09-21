@@ -493,8 +493,8 @@ function PdfPage({ chunk, pageIndex, totalPages, collection, items, showPrice, i
         <div className="pdf-page" style={{ 
             width: '800px', 
             minHeight: '1131px', 
-            background: '#fff', 
-            color: '#000', 
+            background: 'var(--surface)', 
+            color: 'var(--text)', 
             padding: '40px', 
             fontFamily: 'system-ui, -apple-system, sans-serif',
             display: 'flex',
@@ -515,7 +515,7 @@ function PdfPage({ chunk, pageIndex, totalPages, collection, items, showPrice, i
                         )}
                     </div>
                     {includeQr && (
-                        <div style={{ background: '#fff', padding: '12px', borderRadius: '12px', flexShrink: 0 }}>
+                        <div style={{ background: 'var(--surface)', padding: '12px', borderRadius: '12px', flexShrink: 0 }}>
                             <QRCodeSVG value={`${window.location.origin}/shared/collection/${collection.id}`} size={80} level="H" />
                         </div>
                     )}
@@ -525,9 +525,9 @@ function PdfPage({ chunk, pageIndex, totalPages, collection, items, showPrice, i
             {/* Items Grid */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '30px' }}>
                 {chunk.map(item => (
-                    <div key={item.id} style={{ display: 'flex', gap: '20px', border: '1px solid #eee', padding: '20px', borderRadius: '16px' }}>
+                    <div key={item.id} style={{ display: 'flex', gap: '20px', border: '1px solid var(--border)', padding: '20px', borderRadius: '16px' }}>
                         {/* Item Image */}
-                        <div style={{ width: '100px', height: '100px', borderRadius: '12px', background: '#f5f5f5', flexShrink: 0, overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <div style={{ width: '100px', height: '100px', borderRadius: '12px', background: 'var(--surface-2)', flexShrink: 0, overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                             {item.image ? (
                                 <img src={item.image} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} crossOrigin="anonymous" />
                             ) : (
@@ -541,7 +541,7 @@ function PdfPage({ chunk, pageIndex, totalPages, collection, items, showPrice, i
                                 {item.name}
                             </h3>
                             <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '8px' }}>
-                                <span style={{ fontSize: '0.85rem', color: '#666', background: '#f5f5f5', padding: '2px 8px', borderRadius: '100px' }}>
+                                <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', background: 'var(--surface-2)', padding: '2px 8px', borderRadius: '100px' }}>
                                     {item.store || 'Various'}
                                 </span>
                                 {showPrice && item.price > 0 && (
@@ -551,7 +551,7 @@ function PdfPage({ chunk, pageIndex, totalPages, collection, items, showPrice, i
                                 )}
                             </div>
                             {item.notes && (
-                                <p style={{ margin: 0, fontSize: '0.85rem', color: '#666', fontStyle: 'italic' }}>
+                                <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
                                     "{item.notes}"
                                 </p>
                             )}
@@ -560,7 +560,7 @@ function PdfPage({ chunk, pageIndex, totalPages, collection, items, showPrice, i
                         {/* Item QR */}
                         {includeQr && item.link && (
                             <div style={{ marginLeft: '10px', display: 'flex', alignItems: 'center' }}>
-                                <div style={{ border: '1px solid #eee', padding: '5px', borderRadius: '8px' }}>
+                                <div style={{ border: '1px solid var(--border)', padding: '5px', borderRadius: '8px' }}>
                                     <QRCodeSVG value={item.link} size={50} level="M" />
                                 </div>
                             </div>
@@ -571,7 +571,7 @@ function PdfPage({ chunk, pageIndex, totalPages, collection, items, showPrice, i
             
             {/* Footer */}
             {totalPages > 1 && (
-                <div style={{ marginTop: 'auto', paddingTop: '30px', textAlign: 'center', color: '#999', fontSize: '0.9rem', fontWeight: 500 }}>
+                <div style={{ marginTop: 'auto', paddingTop: '30px', textAlign: 'center', color: 'var(--text-dim)', fontSize: '0.9rem', fontWeight: 500 }}>
                     Page {pageIndex + 1} of {totalPages}
                 </div>
             )}

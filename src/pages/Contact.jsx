@@ -18,7 +18,7 @@ function ContactCard({ icon, title, value, href, description }) {
         display: 'flex',
         gap: '1.25rem',
         alignItems: 'flex-start',
-        background: '#fff',
+        background: 'var(--surface)',
         border: `1px solid ${hovered ? BRAND : '#F3F4F6'}`,
         borderRadius: '16px',
         padding: '1.5rem',
@@ -42,7 +42,7 @@ function ContactCard({ icon, title, value, href, description }) {
       }}>{icon}</div>
       <div>
         <div style={{ fontWeight: 800, fontSize: '0.85rem', color: '#9CA3AF', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: '0.2rem' }}>{title}</div>
-        <div style={{ fontWeight: 700, fontSize: '1.05rem', color: '#111', marginBottom: '0.25rem' }}>{value}</div>
+        <div style={{ fontWeight: 700, fontSize: '1.05rem', color: 'var(--text)', marginBottom: '0.25rem' }}>{value}</div>
         <div style={{ fontSize: '0.92rem', color: '#6B7280', lineHeight: 1.5 }}>{description}</div>
       </div>
     </a>
@@ -72,7 +72,7 @@ function FaqItem({ question, answer }) {
           textAlign: 'left',
         }}
       >
-        <span style={{ fontWeight: 700, fontSize: '1.05rem', color: '#111' }}>{question}</span>
+        <span style={{ fontWeight: 700, fontSize: '1.05rem', color: 'var(--text)' }}>{question}</span>
         <span style={{ fontSize: '1.4rem', color: BRAND, transition: 'transform 0.2s', transform: open ? 'rotate(45deg)' : 'none', marginLeft: '1rem', minWidth: '24px', textAlign: 'center' }}>+</span>
       </button>
       {open && (
@@ -108,14 +108,14 @@ export default function Contact() {
     outline: 'none',
     transition: 'border-color 0.2s',
     boxSizing: 'border-box',
-    background: '#FAFAFA',
+    background: 'var(--surface-2)',
   };
 
   return (
     <div style={{
       minHeight: '100vh',
       background: 'linear-gradient(135deg, #FFF8F5 0%, #fff 60%)',
-      color: '#111',
+      color: 'var(--text)',
       fontFamily: '"Outfit", sans-serif',
       padding: '4rem 1.5rem',
     }}>
@@ -183,7 +183,7 @@ export default function Contact() {
 
         {/* Contact Form */}
         <div style={{
-          background: '#fff',
+          background: 'var(--surface)',
           border: '1px solid #F3F4F6',
           borderRadius: '24px',
           padding: '2.5rem',

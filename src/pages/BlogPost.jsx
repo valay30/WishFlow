@@ -121,7 +121,7 @@ function RelatedCard({ post }) {
         boxShadow: hovered ? '0 12px 32px rgba(0,0,0,0.1)' : '0 2px 10px rgba(0,0,0,0.04)',
         display: 'flex', flexDirection: 'column', height: '100%',
       }}>
-        <div style={{ aspectRatio: '16/9', overflow: 'hidden', background: '#f5f5f5' }}>
+        <div style={{ aspectRatio: '16/9', overflow: 'hidden', background: 'var(--surface-2)' }}>
           <img
             src={post.coverImage} alt={post.coverAlt} loading="lazy"
             style={{ width: '100%', height: '100%', objectFit: 'cover',

@@ -26,7 +26,7 @@ export default function IOSToggle({ checked, onChange, disabled }) {
                     width: '26px',
                     height: '26px',
                     borderRadius: '50%',
-                    background: '#ffffff',
+                    background: 'var(--surface)',
                     boxShadow: '0 3px 8px rgba(0,0,0,0.15), 0 1px 2px rgba(0,0,0,0.06)'
                 }}
                 transition={{ type: 'spring', stiffness: 500, damping: 30 }}
