@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { Clock, ArrowRight, BookOpen, ArrowLeft } from 'lucide-react';
 import { API_URL as API } from '../config';
 import { blogPosts as staticPosts } from '../data/blogPosts';
+import SEO from '../components/SEO';
 
 const PRIMARY = '#E97451';
 const FONT = "'Outfit', 'Inter', sans-serif";
@@ -242,8 +243,12 @@ export default function Blog() {
 
   return (
     <div style={{ fontFamily: FONT, minHeight: '100vh', background: 'var(--bg, #f9f9f9)' }}>
-      {/* Page title for SEO */}
-      <title>Blog — Gift Guides & Shopping Tips | WishFlow</title>
+      {/* Page title and metadata for SEO */}
+      <SEO 
+        title="Blog — Gift Guides & Shopping Tips" 
+        description="Thoughtful articles on gifting, smart shopping, and making the most of your wishlists — for every occasion and budget." 
+        url="/blog" 
+      />
 
       <BlogHero />
 

@@ -1,9 +1,11 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import SEO from '../components/SEO';
 
 export default function Privacy() {
     return (
         <div style={{ minHeight: '100vh', background: 'var(--bg, #fff)', color: 'var(--text, #111)', fontFamily: '"Outfit", sans-serif', padding: '4rem 1.5rem' }}>
+            <SEO title="Privacy Policy" description="Read our Privacy Policy to understand how WishFlow collects, uses, and protects your data." url="/privacy" />
             <div style={{ maxWidth: '680px', margin: '0 auto' }}>
                 <Link 
                     to="/" 

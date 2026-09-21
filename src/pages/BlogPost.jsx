@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { Link, useParams, Navigate } from 'react-router-dom';
 import { API_URL as API } from '../config';
 import AdUnit from '../components/AdUnit';
-import { Clock, ArrowLeft, ArrowRight, BookOpen } from 'lucide-react';
+import { Clock, ArrowLeft, ArrowRight, BookOpen, Share2 } from 'lucide-react';
 import { blogPosts as staticPosts } from '../data/blogPosts';
+import SEO from '../components/SEO';
 
 const PRIMARY = '#E97451';
 const FONT = "'Outfit', 'Inter', sans-serif";
@@ -210,6 +211,13 @@ export default function BlogPost() {
 
   return (
     <div style={{ fontFamily: FONT, minHeight: '100vh', background: 'var(--bg, #f9f9f9)' }}>
+      <SEO 
+        title={post.title} 
+        description={post.excerpt} 
+        image={post.coverImage} 
+        url={`/blog/${post.slug}`} 
+        type="article"
+      />
 
       {/* ── Hero ── */}
       <div style={{
@@ -329,20 +337,47 @@ export default function BlogPost() {
             </div>
           </div>
 
-          <Link
-            to="/blog"
-            id="back-to-blog"
-            style={{
-              display: 'inline-flex', alignItems: 'center', gap: '8px',
-              color: PRIMARY, fontFamily: FONT, fontWeight: 700,
-              fontSize: '0.88rem', textDecoration: 'none',
-              transition: 'opacity 0.2s',
-            }}
-            onMouseEnter={e => e.currentTarget.style.opacity = '0.7'}
-            onMouseLeave={e => e.currentTarget.style.opacity = '1'}
-          >
-            <ArrowLeft size={15} /> Back to Blog
-          </Link>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+            <button 
+              onClick={() => {
+                const url = window.location.href;
+                if (navigator.share) {
+                  navigator.share({ title: post.title, url }).catch(() => {});
+                } else {
+                  navigator.clipboard.writeText(url);
+                  alert("Link copied to clipboard!");
+                }
+              }}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: '6px',
+                background: 'var(--surface-2, #f5f5f5)',
+                border: '1px solid var(--border, #eee)',
+                color: 'var(--text, #111)',
+                fontFamily: FONT, fontSize: '0.85rem', fontWeight: 600,
+                padding: '8px 16px', borderRadius: '999px',
+                cursor: 'pointer', transition: 'background 0.2s',
+              }}
+              onMouseEnter={e => e.currentTarget.style.background = 'var(--surface-3, #e5e5e5)'}
+              onMouseLeave={e => e.currentTarget.style.background = 'var(--surface-2, #f5f5f5)'}
+            >
+              <Share2 size={15} /> Share Article
+            </button>
+
+            <Link
+              to="/blog"
+              id="back-to-blog"
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: '8px',
+                color: PRIMARY, fontFamily: FONT, fontWeight: 700,
+                fontSize: '0.88rem', textDecoration: 'none',
+                transition: 'opacity 0.2s',
+              }}
+              onMouseEnter={e => e.currentTarget.style.opacity = '0.7'}
+              onMouseLeave={e => e.currentTarget.style.opacity = '1'}
+            >
+              <ArrowLeft size={15} /> Back to Blog
+            </Link>
+          </div>
         </div>
 
         {/* Bottom Ad */}

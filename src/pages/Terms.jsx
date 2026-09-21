@@ -1,9 +1,11 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import SEO from '../components/SEO';
 
 export default function Terms() {
     return (
         <div style={{ minHeight: '100vh', background: 'var(--bg, #fff)', color: 'var(--text, #111)', fontFamily: '"Outfit", sans-serif', padding: '4rem 1.5rem' }}>
+            <SEO title="Terms of Service" description="Read our Terms of Service." url="/terms" />
             <div style={{ maxWidth: '680px', margin: '0 auto' }}>
                 <Link 
                     to="/" 

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import SEO from '../components/SEO';
 
 const BRAND = '#E97451';
 const BRAND_LIGHT = 'rgba(233,116,81,0.1)';
@@ -118,6 +119,7 @@ export default function Contact() {
       fontFamily: '"Outfit", sans-serif',
       padding: '4rem 1.5rem',
     }}>
+      <SEO title="Contact Us" description="Get in touch with WishFlow for support, feedback, or any questions." url="/contact" />
       <div style={{ maxWidth: '800px', margin: '0 auto' }}>
 
         {/* Back link */}

@@ -19,7 +19,7 @@ export default function ItemCard({
     const { currency, viewMode, darkMode } = useSettings();
     const { showIsland } = useIsland();
     const price = new Intl.NumberFormat(undefined, { style: 'currency', currency: currency || 'INR', maximumFractionDigits: 2 }).format(item.price);
-    
+
     const [showPublicConfirm, setShowPublicConfirm] = useState(false);
     const [isHovered, setIsHovered] = useState(false);
 
@@ -55,11 +55,11 @@ export default function ItemCard({
         const clientX = e.touches ? e.touches[0].clientX : e.clientX;
         const clientY = e.touches ? e.touches[0].clientY : e.clientY;
         startPos.current = { x: clientX, y: clientY };
-        
+
         longPressTimerRef.current = setTimeout(() => {
             wasLongPressed.current = true;
             if (navigator.vibrate) navigator.vibrate(50);
-            
+
             // Calculate position
             const rect = cardRef.current.getBoundingClientRect();
             const clientWidth = document.documentElement.clientWidth;
@@ -67,7 +67,7 @@ export default function ItemCard({
             const menuWidth = 220;
             const menuHeight = 220; // approximate max height
             const padding = 16;
-            
+
             let menuX, menuY, originX, originY;
             let cardTop = rect.top; // default clone position
 
@@ -77,7 +77,7 @@ export default function ItemCard({
                 menuY = rect.top;
                 originX = 'left';
                 originY = 'top';
-                
+
                 // Clamp menuY to screen bounds (top and bottom)
                 menuY = Math.max(padding, Math.min(menuY, clientHeight - padding - menuHeight));
             } else if (rect.left - padding - menuWidth >= 0) {
@@ -86,13 +86,13 @@ export default function ItemCard({
                 menuY = rect.top;
                 originX = 'right';
                 originY = 'top';
-                
+
                 // Clamp menuY to screen bounds (top and bottom)
                 menuY = Math.max(padding, Math.min(menuY, clientHeight - padding - menuHeight));
             } else {
                 // Mobile layout: Not enough space left or right. Place it below the card, centered.
                 menuX = Math.max(padding, Math.min(clientWidth - padding - menuWidth, rect.left + (rect.width / 2) - (menuWidth / 2)));
-                
+
                 menuY = rect.bottom + padding;
                 originX = 'center';
                 originY = 'top';
@@ -104,15 +104,15 @@ export default function ItemCard({
                     menuY -= overflowY;
                     cardTop -= overflowY;
                 }
-                
+
                 // Ensure the card doesn't get pushed completely off the top of the screen
                 if (cardTop < padding) {
                     const underflow = padding - cardTop;
                     cardTop += underflow;
-                    menuY += underflow; 
+                    menuY += underflow;
                 }
             }
-            
+
             setContextMenuData({ rect, menuX, menuY, originX, originY, cardTop });
         }, 400);
     };
@@ -196,7 +196,7 @@ export default function ItemCard({
                     ) : (
                         <span style={{ fontSize: '2.5rem', color: 'var(--text-muted)', padding: viewMode === 'masonry' ? '3rem 0' : 0 }}>📦</span>
                     )}
-                    
+
                     {/* Only show inline buttons if NOT the context menu clone */}
                     {!isClone && onTogglePublic && (
                         <div
@@ -246,23 +246,11 @@ export default function ItemCard({
                 </p>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'flex-start' }}>
-                        <span style={{
-                            display: 'inline-block',
-                            fontSize: '0.65rem', fontWeight: 800,
-                            color: 'var(--text-muted)',
-                            background: 'var(--surface-2)',
-                            padding: '0.2rem 0.55rem',
-                            borderRadius: '6px',
-                            textTransform: 'uppercase', letterSpacing: '0.05em',
-                            border: '1px solid var(--border)',
-                            whiteSpace: 'nowrap',
-                        }}>
-                            {categoryName}
-                        </span>
-                        
+                    <div style={{ display: 'flex', alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.4rem' }}>
+
+
                         {onUpdatePriority && item.priority && (
-                            <span 
+                            <span
                                 onClick={(e) => {
                                     e.stopPropagation();
                                     const rect = e.currentTarget.getBoundingClientRect();
@@ -278,9 +266,6 @@ export default function ItemCard({
                                     textTransform: 'uppercase', letterSpacing: '0.05em',
                                     border: `1px solid ${item.priority === 3 ? 'rgba(252, 165, 165, 0.3)' : item.priority === 2 ? 'rgba(253, 224, 71, 0.3)' : 'var(--border)'}`,
                                     whiteSpace: 'nowrap',
-                                    cursor: 'pointer',
-                                    marginLeft: '0.5rem',
-                                    transition: 'all 0.2s'
                                 }}
                             >
                                 {item.priority === 3 ? '🔥 High' : item.priority === 2 ? '⭐ Med' : '⏬ Low'}
@@ -382,7 +367,6 @@ export default function ItemCard({
                     transition: 'border-color 0.22s ease, box-shadow 0.22s ease',
                     overflow: 'hidden',
                     position: 'relative',
-                    filter: item.is_purchased ? 'grayscale(0.6)' : 'none',
                     boxShadow: isHovered
                         ? `0 12px 32px rgba(var(--primary-rgb),0.18)`
                         : '0 4px 12px rgba(0,0,0,0.03)',
@@ -410,23 +394,23 @@ export default function ItemCard({
                                     WebkitBackdropFilter: 'blur(20px)',
                                 }}
                             />
-                            
+
                             {/* Cloned Card */}
                             <motion.div
-                                initial={{ 
-                                    top: contextMenuData.rect.top, 
-                                    left: contextMenuData.rect.left, 
-                                    width: contextMenuData.rect.width, 
+                                initial={{
+                                    top: contextMenuData.rect.top,
+                                    left: contextMenuData.rect.left,
+                                    width: contextMenuData.rect.width,
                                     height: contextMenuData.rect.height,
                                     scale: 1,
                                     boxShadow: '0 0 0 rgba(0,0,0,0)'
                                 }}
-                                animate={{ 
+                                animate={{
                                     top: contextMenuData.cardTop, // animate to shifted position
                                     scale: 1.05,
                                     boxShadow: '0 25px 50px -12px rgba(0,0,0,0.4)'
                                 }}
-                                exit={{ 
+                                exit={{
                                     top: contextMenuData.rect.top, // animate back to original position
                                     scale: 1,
                                     boxShadow: '0 0 0 rgba(0,0,0,0)',
@@ -440,7 +424,6 @@ export default function ItemCard({
                                     display: 'flex',
                                     flexDirection: 'column',
                                     overflow: 'hidden',
-                                    filter: item.is_purchased ? 'grayscale(0.6)' : 'none',
                                     border: `1.5px solid ${BORDER}`,
                                     pointerEvents: 'none', // purely visual clone
                                 }}
@@ -450,9 +433,9 @@ export default function ItemCard({
 
                             {/* Floating Context Menu Options */}
                             <motion.div
-                                initial={{ 
-                                    opacity: 0, 
-                                    scale: 0.8, 
+                                initial={{
+                                    opacity: 0,
+                                    scale: 0.8,
                                     x: contextMenuData.originX === 'left' ? -15 : (contextMenuData.originX === 'right' ? 15 : 0),
                                     y: contextMenuData.originY === 'top' && contextMenuData.originX === 'center' ? -15 : (contextMenuData.originY === 'bottom' ? 15 : 0)
                                 }}
@@ -475,20 +458,20 @@ export default function ItemCard({
                                     overflow: 'hidden'
                                 }}
                             >
-                                <ContextMenuItem 
-                                    icon={Edit2} label="Edit Details" 
-                                    onClick={(e) => handleAction(e, () => navigate(`/product/${item.id}?edit=true`))} 
+                                <ContextMenuItem
+                                    icon={Edit2} label="Edit Details"
+                                    onClick={(e) => handleAction(e, () => navigate(`/product/${item.id}?edit=true`))}
                                 />
                                 {onTogglePurchased && (
-                                    <ContextMenuItem 
-                                        icon={Check} label={item.is_purchased ? "Unmark Purchased" : "Mark Purchased"} 
+                                    <ContextMenuItem
+                                        icon={Check} label={item.is_purchased ? "Unmark Purchased" : "Mark Purchased"}
                                         onClick={(e) => handleAction(e, () => {
                                             if (!item.is_purchased) {
                                                 const end = Date.now() + 2 * 1000;
                                                 (function frame() {
                                                     const sidebarWidth = window.innerWidth > 768 ? 260 : 0;
                                                     const leftOriginX = sidebarWidth / window.innerWidth;
-                                                    
+
                                                     confetti({
                                                         particleCount: 4,
                                                         angle: 60,
@@ -507,16 +490,16 @@ export default function ItemCard({
                                                 }());
                                             }
                                             onTogglePurchased(item.id, !item.is_purchased);
-                                        })} 
+                                        })}
                                     />
                                 )}
                                 {onTogglePublic && (
-                                    <ContextMenuItem 
-                                        icon={Globe} label={item.is_public ? "Remove from Discover" : "Share to Discover"} 
+                                    <ContextMenuItem
+                                        icon={Globe} label={item.is_public ? "Remove from Discover" : "Share to Discover"}
                                         onClick={(e) => handleAction(e, () => {
                                             if (!item.is_public) setShowPublicConfirm(true);
                                             else onTogglePublic(item.id, false);
-                                        })} 
+                                        })}
                                     />
                                 )}
                                 <ContextMenuItem
@@ -537,10 +520,10 @@ export default function ItemCard({
                                     })}
                                 />
                                 {onRemove && (
-                                    <ContextMenuItem 
-                                        icon={Trash2} label="Delete Item" 
+                                    <ContextMenuItem
+                                        icon={Trash2} label="Delete Item"
                                         color="#ef4444" isLast
-                                        onClick={(e) => handleAction(e, () => onRemove())} 
+                                        onClick={(e) => handleAction(e, () => onRemove())}
                                     />
                                 )}
                             </motion.div>
@@ -552,7 +535,7 @@ export default function ItemCard({
 
             {/* Priority Menu Portal */}
             {priorityMenuData && createPortal(
-                <div 
+                <div
                     onClick={(e) => { e.stopPropagation(); setPriorityMenuData(null); }}
                     style={{ position: 'fixed', inset: 0, zIndex: 999999 }}
                 >
@@ -574,17 +557,17 @@ export default function ItemCard({
                             overflow: 'hidden'
                         }}
                     >
-                        <ContextMenuItem 
-                            icon={() => <span style={{fontSize:'1.1rem'}}>🔥</span>} label="High Priority" 
-                            color="#ef4444" onClick={(e) => { e.stopPropagation(); onUpdatePriority(3); setPriorityMenuData(null); }} 
+                        <ContextMenuItem
+                            icon={() => <span style={{ fontSize: '1.1rem' }}>🔥</span>} label="High Priority"
+                            color="#ef4444" onClick={(e) => { e.stopPropagation(); onUpdatePriority(3); setPriorityMenuData(null); }}
                         />
-                        <ContextMenuItem 
-                            icon={() => <span style={{fontSize:'1.1rem'}}>⭐</span>} label="Medium Priority" 
-                            color="#eab308" onClick={(e) => { e.stopPropagation(); onUpdatePriority(2); setPriorityMenuData(null); }} 
+                        <ContextMenuItem
+                            icon={() => <span style={{ fontSize: '1.1rem' }}>⭐</span>} label="Medium Priority"
+                            color="#eab308" onClick={(e) => { e.stopPropagation(); onUpdatePriority(2); setPriorityMenuData(null); }}
                         />
-                        <ContextMenuItem 
-                            icon={() => <span style={{fontSize:'1.1rem'}}>⏬</span>} label="Low Priority" 
-                            color="var(--text-muted)" isLast onClick={(e) => { e.stopPropagation(); onUpdatePriority(1); setPriorityMenuData(null); }} 
+                        <ContextMenuItem
+                            icon={() => <span style={{ fontSize: '1.1rem' }}>⏬</span>} label="Low Priority"
+                            color="var(--text-muted)" isLast onClick={(e) => { e.stopPropagation(); onUpdatePriority(1); setPriorityMenuData(null); }}
                         />
                     </motion.div>
                 </div>,
