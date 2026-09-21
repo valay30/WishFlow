@@ -468,20 +468,6 @@ export default function Profile() {
                                             </div>
                                         </div>
 
-                                        {/* Dark Mode */}
-                                        <div style={{ borderTop: `1px solid ${BORDER}`, paddingTop: '1rem' }}>
-                                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                                <div>
-                                                    <p style={{ margin: 0, fontWeight: 800, fontSize: '0.95rem', color: 'var(--text)' }}>Dark Mode</p>
-                                                    <p style={{ margin: '0.1rem 0 0', fontSize: '0.82rem', color: 'var(--text-dim)' }}>Switch to dark theme</p>
-                                                </div>
-                                                <IOSToggle
-                                                    checked={darkMode}
-                                                    onChange={(checked) => setDarkMode(checked)}
-                                                />
-                                            </div>
-                                        </div>
-
                                         {/* Currency Selection */}
                                         <div style={{ borderTop: `1px solid ${BORDER}`, paddingTop: '1rem' }}>
                                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
