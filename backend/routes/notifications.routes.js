@@ -114,7 +114,7 @@ router.post('/notify-share', async (req, res) => {
 
 // Route to track notification click and redirect
 router.get('/track-click', async (req, res) => {
-  const { id, redirect } = req.query;
+  const { id, redirect, frontend } = req.query;
   
   // Increment click_count in background (fire and forget)
   if (id) {
@@ -141,7 +141,7 @@ router.get('/track-click', async (req, res) => {
   // Redirect to the real destination immediately
   const destination = redirect ? decodeURIComponent(redirect) : '/';
   // If it's a relative path, redirect to frontend
-  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+  const frontendUrl = frontend ? decodeURIComponent(frontend) : (process.env.FRONTEND_URL || 'http://localhost:5173');
   if (destination.startsWith('http')) {
     res.redirect(destination);
   } else {

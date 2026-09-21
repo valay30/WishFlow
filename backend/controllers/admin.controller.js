@@ -448,8 +448,13 @@ export const broadcastNotification = async (req, res) => {
             }
 
             // ── Analytics: Use tracked URL so clicks are recorded ──
+            const origin = req.headers.origin || (req.headers.referer ? new URL(req.headers.referer).origin : 'http://localhost:5173');
+            const backendHost = req.headers['x-forwarded-host'] || req.get('host');
+            const protocol = req.headers['x-forwarded-proto'] || req.protocol || 'http';
+            const backendUrl = process.env.BACKEND_URL || `${protocol}://${backendHost}`;
+
             const trackedUrl = broadcastId
-                ? `${process.env.BACKEND_URL || 'http://localhost:5000'}/api/notifications/track-click?id=${broadcastId}&redirect=${encodeURIComponent(url || '/')}`
+                ? `${backendUrl}/api/notifications/track-click?id=${broadcastId}&redirect=${encodeURIComponent(url || '/')}&frontend=${encodeURIComponent(origin)}`
                 : (url || '/');
 
             const payloadData = {
@@ -462,7 +467,7 @@ export const broadcastNotification = async (req, res) => {
             if (actionButtonTitle) {
                 payloadData.actions = [{ action: 'btn1', title: actionButtonTitle }];
                 const trackedBtnUrl = broadcastId
-                    ? `${process.env.BACKEND_URL || 'http://localhost:5000'}/api/notifications/track-click?id=${broadcastId}&redirect=${encodeURIComponent(actionButtonUrl || '/')}`
+                    ? `${backendUrl}/api/notifications/track-click?id=${broadcastId}&redirect=${encodeURIComponent(actionButtonUrl || '/')}&frontend=${encodeURIComponent(origin)}`
                     : (actionButtonUrl || '/');
                 payloadData.actionUrls = { btn1: trackedBtnUrl };
             }
