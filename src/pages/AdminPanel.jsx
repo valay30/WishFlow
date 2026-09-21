@@ -19,7 +19,7 @@ import { uploadToImageKit } from '../utils/imagekit';
 
 const getAuthHeaders = async () => {
     let { data: { session } } = await supabase.auth.getSession();
-    
+
     // Proactively refresh the token if it's expired or about to expire (within 1 min)
     if (session?.expires_at && Date.now() > (session.expires_at * 1000) - 60000) {
         const { data } = await supabase.auth.refreshSession();
@@ -59,7 +59,7 @@ export default function AdminPanel() {
     const [roastFeatureEnabled, setRoastFeatureEnabled] = useState(true);
     const [togglingRoast, setTogglingRoast] = useState(false);
     const [roastEnabledThemes, setRoastEnabledThemes] = useState([]);
-    
+
     const { darkMode } = useSettings();
 
     // Force light mode on Admin Panel
@@ -99,10 +99,10 @@ export default function AdminPanel() {
     const [isDeleteHistoryModalOpen, setIsDeleteHistoryModalOpen] = useState(false);
     const [deleteHistoryTimeframe, setDeleteHistoryTimeframe] = useState('1month');
     const [isTimeframeDropdownOpen, setIsTimeframeDropdownOpen] = useState(false);
-    
+
     // Custom Templates & Draft State
     const [customTemplates, setCustomTemplates] = useState(() => JSON.parse(localStorage.getItem('wishflow_admin_templates')) || []);
-    
+
     useEffect(() => {
         const draft = JSON.parse(localStorage.getItem('wishflow_broadcast_draft'));
         if (draft) {
@@ -323,9 +323,9 @@ export default function AdminPanel() {
     const confirmDeleteHistory = async () => {
         try {
             const headers = await getAuthHeaders();
-            const res = await fetch(`${API}/api/admin/broadcast-history?timeframe=${deleteHistoryTimeframe}`, { 
+            const res = await fetch(`${API}/api/admin/broadcast-history?timeframe=${deleteHistoryTimeframe}`, {
                 method: 'DELETE',
-                headers 
+                headers
             });
             if (res.ok) {
                 showToast('History deleted successfully!');
@@ -1038,7 +1038,7 @@ export default function AdminPanel() {
                     </div>
                 )}
 
-                
+
                 {/* Broadcast tab content */}
                 {activeTab === 'broadcast' && (
                     <div style={{ width: '100%' }}>
@@ -1067,86 +1067,71 @@ export default function AdminPanel() {
 
                         {/* ── History View ── */}
                         {broadcastView === 'history' && (
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                    <h2 style={{ margin: 0, fontSize: '1.3rem', fontWeight: 800, color: 'var(--text)' }}>Broadcast History</h2>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', background: '#f2f2f7', padding: '1rem', borderRadius: '24px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 0.5rem' }}>
+                                    <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 800, color: '#000' }}>Broadcast History</h2>
                                     <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                        <button onClick={() => setIsDeleteHistoryModalOpen(true)} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 1rem', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '10px', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600, color: '#ef4444' }}>
+                                        <button onClick={() => setIsDeleteHistoryModalOpen(true)} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.4rem 0.75rem', background: '#ff3b30', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600, color: '#fff' }}>
                                             <Trash2 size={14} /> Clear
                                         </button>
-                                        <button onClick={fetchBroadcastHistory} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 1rem', background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: '10px', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text)' }}>
+                                        <button onClick={fetchBroadcastHistory} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.4rem 0.75rem', background: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600, color: '#007aff', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
                                             <RefreshCw size={14} style={{ animation: broadcastHistoryLoading ? 'spin 1s linear infinite' : 'none' }} /> Refresh
                                         </button>
                                     </div>
                                 </div>
                                 {broadcastHistoryLoading ? (
                                     <div style={{ display: 'flex', justifyContent: 'center', padding: '3rem' }}>
-                                        <RefreshCw size={24} color="#db2777" style={{ animation: 'spin 1s linear infinite' }} />
+                                        <RefreshCw size={24} color="#007aff" style={{ animation: 'spin 1s linear infinite' }} />
                                     </div>
                                 ) : broadcastHistory.length === 0 ? (
-                                    <div style={{ textAlign: 'center', padding: '4rem 2rem', background: 'var(--surface)', borderRadius: '24px', border: '1px dashed var(--border)' }}>
+                                    <div style={{ textAlign: 'center', padding: '4rem 2rem', background: '#fff', borderRadius: '12px', border: '0.5px solid #e5e5ea' }}>
                                         <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📭</div>
-                                        <p style={{ color: 'var(--text-muted)', fontWeight: 600, margin: 0 }}>No broadcasts sent yet</p>
-                                        <p style={{ color: 'var(--text-dim)', fontSize: '0.85rem', margin: '0.5rem 0 0' }}>Switch to Compose to send your first notification!</p>
+                                        <p style={{ color: '#000', fontWeight: 600, margin: 0 }}>No broadcasts sent yet</p>
+                                        <p style={{ color: '#8e8e93', fontSize: '0.85rem', margin: '0.5rem 0 0' }}>Switch to Compose to send your first notification!</p>
                                     </div>
                                 ) : (
-                                    broadcastHistory.map((record) => {
+                                    <div style={{ background: '#fff', borderRadius: '12px', border: '0.5px solid #e5e5ea', overflow: 'hidden' }}>
+                                    {broadcastHistory.map((record, index) => {
                                         const ctr = record.sent_count > 0 ? ((record.click_count / record.sent_count) * 100).toFixed(1) : '0.0';
-                                        const ctrColor = parseFloat(ctr) >= 10 ? '#22c55e' : parseFloat(ctr) >= 5 ? '#eab308' : '#ef4444';
+                                        const ctrColor = parseFloat(ctr) >= 10 ? '#34c759' : parseFloat(ctr) >= 5 ? '#ff9500' : '#ff3b30';
                                         return (
                                             <div key={record.id} style={{
-                                                background: 'rgba(255, 255, 255, 0.7)',
-                                                backdropFilter: 'blur(20px)',
-                                                WebkitBackdropFilter: 'blur(20px)',
-                                                border: '1px solid rgba(255, 255, 255, 0.5)',
-                                                borderRadius: '24px',
-                                                padding: '1.5rem',
-                                                display: 'flex',
-                                                flexDirection: 'column',
-                                                gap: '1rem',
-                                                boxShadow: '0 10px 30px rgba(0,0,0,0.06)',
-                                                transition: 'transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease',
-                                                cursor: 'default'
-                                            }}
-                                            onMouseEnter={e => {
-                                                e.currentTarget.style.transform = 'scale(1.015)';
-                                                e.currentTarget.style.boxShadow = '0 15px 35px rgba(0,0,0,0.08)';
-                                            }}
-                                            onMouseLeave={e => {
-                                                e.currentTarget.style.transform = 'scale(1)';
-                                                e.currentTarget.style.boxShadow = '0 10px 30px rgba(0,0,0,0.06)';
+                                                padding: '1rem',
+                                                borderBottom: index < broadcastHistory.length - 1 ? '0.5px solid #e5e5ea' : 'none',
+                                                display: 'flex', flexDirection: 'column', gap: '0.75rem'
                                             }}>
-                                                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
+                                                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '1rem' }}>
                                                     <div style={{ flex: 1 }}>
-                                                        <div style={{ fontWeight: 800, fontSize: '1.1rem', color: '#111', marginBottom: '0.25rem', letterSpacing: '-0.02em' }}>{record.title}</div>
-                                                        <div style={{ fontSize: '0.9rem', color: 'rgba(0,0,0,0.6)', lineHeight: 1.4 }}>{record.body}</div>
+                                                        <div style={{ fontWeight: 600, fontSize: '1rem', color: '#000', marginBottom: '0.2rem' }}>{record.title}</div>
+                                                        <div style={{ fontSize: '0.85rem', color: '#8e8e93', lineHeight: 1.3 }}>{record.body}</div>
                                                     </div>
-                                                    <div style={{ fontSize: '0.75rem', color: 'rgba(0,0,0,0.4)', whiteSpace: 'nowrap', flexShrink: 0, fontWeight: 600, background: 'rgba(0,0,0,0.04)', padding: '0.3rem 0.6rem', borderRadius: '10px' }}>
-                                                        {new Date(record.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                                    <div style={{ fontSize: '0.75rem', color: '#8e8e93', whiteSpace: 'nowrap', flexShrink: 0, fontWeight: 500 }}>
+                                                        {new Date(record.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
                                                     </div>
                                                 </div>
-                                                <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap', alignItems: 'center' }}>
-                                                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', padding: '0.4rem 0.8rem', background: 'rgba(59, 130, 246, 0.1)', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 700, color: '#2563eb', border: '1px solid rgba(59, 130, 246, 0.2)' }}>
-                                                        <Users size={14} /> {record.sent_count} Sent
+                                                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                                                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.2rem', padding: '0.2rem 0.5rem', background: '#f2f2f7', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 600, color: '#007aff' }}>
+                                                        <Users size={12} /> {record.sent_count} Sent
                                                     </span>
-                                                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', padding: '0.4rem 0.8rem', background: 'rgba(168, 85, 247, 0.1)', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 700, color: '#9333ea', border: '1px solid rgba(168, 85, 247, 0.2)' }}>
+                                                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.2rem', padding: '0.2rem 0.5rem', background: '#f2f2f7', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 600, color: '#af52de' }}>
                                                         👆 {record.click_count} Clicked
                                                     </span>
-                                                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', padding: '0.4rem 0.8rem', background: record.sent_count > 0 ? `${ctrColor}15` : 'rgba(0,0,0,0.05)', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 700, color: ctrColor, border: `1px solid ${record.sent_count > 0 ? ctrColor : 'transparent'}40` }}>
+                                                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.2rem', padding: '0.2rem 0.5rem', background: record.sent_count > 0 ? `${ctrColor}15` : '#f2f2f7', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 600, color: ctrColor }}>
                                                         📈 {ctr}% CTR
                                                     </span>
-                                                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', padding: '0.4rem 0.8rem', background: 'rgba(219, 39, 119, 0.1)', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 700, color: '#be185d', border: '1px solid rgba(219, 39, 119, 0.2)' }}>
+                                                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.2rem', padding: '0.2rem 0.5rem', background: '#f2f2f7', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 600, color: '#ff2d55' }}>
                                                         🎯 {record.target}
                                                     </span>
                                                     {record.failed_count > 0 && (
-                                                        <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', padding: '0.4rem 0.8rem', background: 'rgba(239, 68, 68, 0.1)', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 700, color: '#dc2626', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
+                                                        <span style={{ display: 'flex', alignItems: 'center', gap: '0.2rem', padding: '0.2rem 0.5rem', background: '#fef2f2', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 600, color: '#ff3b30' }}>
                                                             ❌ {record.failed_count} Failed
                                                         </span>
                                                     )}
                                                 </div>
                                             </div>
                                         );
-                                    })
+                                    })}
+                                    </div>
                                 )}
                             </div>
                         )}
@@ -1154,245 +1139,232 @@ export default function AdminPanel() {
                         {/* ── Compose View ── */}
                         {broadcastView === 'compose' && <div className="broadcast-grid">
                             {/* Left Column - Editor */}
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                                <div style={{ background: 'var(--surface)', padding: '2rem', borderRadius: '24px', boxShadow: '0 4px 20px rgba(0,0,0,0.04)', border: '1px solid var(--border)' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '2rem' }}>
-                                        <div style={{ background: '#fce7f3', padding: '0.6rem', borderRadius: '12px', color: '#db2777' }}>
-                                            <Megaphone size={24} />
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', background: '#f2f2f7', padding: '1rem', borderRadius: '24px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem', padding: '0 0.5rem' }}>
+                                    <div style={{ background: '#db2777', padding: '0.5rem', borderRadius: '10px', color: '#fff' }}>
+                                        <Megaphone size={20} />
+                                    </div>
+                                    <div>
+                                        <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 800, color: '#000' }}>Compose Broadcast</h2>
+                                        <p style={{ margin: 0, fontSize: '0.8rem', color: '#8e8e93' }}>Send push notifications to your users</p>
+                                    </div>
+                                </div>
+
+                                {/* GROUP 1: Title & Message */}
+                                <div style={{ background: '#fff', borderRadius: '12px', border: '0.5px solid #e5e5ea', overflow: 'hidden' }}>
+                                    <div style={{ padding: '0.75rem 1rem', display: 'flex', alignItems: 'flex-start' }}>
+                                        <label style={{ width: '80px', fontSize: '0.95rem', color: '#000', paddingTop: '0.4rem', fontWeight: 500 }}>Title</label>
+                                        <input type="text" value={broadcastTitle} onChange={e => setBroadcastTitle(e.target.value)} placeholder="Notification Title"
+                                            style={{ flex: 1, padding: '0.4rem 0', background: 'transparent', border: 'none', color: '#000', fontSize: '1rem', outline: 'none' }} />
+                                    </div>
+                                    <div style={{ height: '0.5px', background: '#e5e5ea', marginLeft: '1rem' }} />
+                                    <div style={{ padding: '0.75rem 1rem', display: 'flex', alignItems: 'flex-start' }}>
+                                        <label style={{ width: '80px', fontSize: '0.95rem', color: '#000', paddingTop: '0.4rem', fontWeight: 500 }}>Message</label>
+                                        <textarea value={broadcastBody} onChange={e => setBroadcastBody(e.target.value)} placeholder="Keep it short and engaging..." rows={3}
+                                            style={{ flex: 1, padding: '0.4rem 0', background: 'transparent', border: 'none', color: '#000', fontSize: '1rem', outline: 'none', resize: 'none', fontFamily: 'inherit' }} />
+                                    </div>
+                                </div>
+
+                                {/* GROUP 2: Links & Media */}
+                                <div style={{ background: '#fff', borderRadius: '12px', border: '0.5px solid #e5e5ea', overflow: 'hidden' }}>
+                                    <div style={{ padding: '0.75rem 1rem', display: 'flex', alignItems: 'center' }}>
+                                        <label style={{ width: '85px', minWidth: '85px', flexShrink: 0, fontSize: '0.95rem', color: '#000', fontWeight: 500 }}>Target URL</label>
+                                        <input type="text" value={broadcastUrl} onChange={e => setBroadcastUrl(e.target.value)} placeholder="/discover"
+                                            style={{ flex: 1, minWidth: 0, padding: '0.2rem 0', background: 'transparent', border: 'none', color: '#000', fontSize: '1rem', outline: 'none' }} />
+                                    </div>
+                                    <div style={{ height: '0.5px', background: '#e5e5ea', marginLeft: '1rem' }} />
+                                    <div style={{ padding: '0.75rem 1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', flex: 1, minWidth: 0 }}>
+                                            <label style={{ width: '85px', minWidth: '85px', flexShrink: 0, fontSize: '0.95rem', color: '#000', fontWeight: 500 }}>Image URL</label>
+                                            <input type="text" value={broadcastImage} onChange={e => setBroadcastImage(e.target.value)} placeholder="https://..."
+                                                style={{ flex: 1, minWidth: 0, padding: '0.2rem 0', background: 'transparent', border: 'none', color: '#000', fontSize: '1rem', outline: 'none', textOverflow: 'ellipsis' }} />
                                         </div>
-                                        <div>
-                                            <h2 style={{ margin: 0, fontSize: '1.4rem', fontWeight: 800, color: 'var(--text)' }}>Compose Broadcast</h2>
-                                            <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-muted)' }}>Send push notifications to your users</p>
+                                        <label style={{ padding: '0.35rem 0.75rem', background: '#f2f2f7', color: '#db2777', borderRadius: '8px', cursor: 'pointer', fontWeight: 600, fontSize: '0.8rem', whiteSpace: 'nowrap', marginLeft: '0.5rem', flexShrink: 0 }}>
+                                            {isUploadingImage ? <RefreshCw size={14} style={{ animation: 'spin 1s linear infinite' }} /> : 'Upload'}
+                                            <input type="file" accept="image/*" style={{ display: 'none' }} onChange={handleImageUpload} disabled={isUploadingImage} />
+                                        </label>
+                                    </div>
+                                </div>
+
+                                {/* GROUP 3: Target Audience */}
+                                <div style={{ background: '#fff', borderRadius: '12px', border: '0.5px solid #e5e5ea', overflow: 'hidden' }}>
+                                    <div 
+                                        onClick={() => setIsBroadcastFilterOpen(!isBroadcastFilterOpen)}
+                                        style={{ padding: '0.75rem 1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', background: isBroadcastFilterOpen ? '#f9fafb' : 'transparent' }}
+                                    >
+                                        <label style={{ fontSize: '0.95rem', color: '#000', fontWeight: 500, cursor: 'pointer' }}>Target Audience</label>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                            <span style={{ fontSize: '0.95rem', color: '#8e8e93' }}>
+                                                {broadcastTargetUserIds.length > 0 ? `${broadcastTargetUserIds.length} users` : 'All Users'}
+                                            </span>
+                                            <ChevronDown size={16} color="#c7c7cc" style={{ transform: isBroadcastFilterOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
                                         </div>
                                     </div>
 
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                                        {/* Target Users */}
-                                        <div>
-                                            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text)', marginBottom: '0.5rem' }}>Target Audience</label>
-                                            <div style={{ position: 'relative' }}>
-                                                <div 
-                                                    onClick={() => setIsBroadcastFilterOpen(!isBroadcastFilterOpen)}
-                                                    style={{ 
-                                                        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                                                        padding: '0.85rem 1rem', background: 'var(--surface-2)', border: '1.5px solid var(--border)',
-                                                        borderRadius: '12px', cursor: 'pointer', transition: 'all 0.2s'
-                                                    }}
-                                                >
-                                                    <span style={{ fontSize: '0.9rem', fontWeight: 600, color: broadcastTargetUserIds.length > 0 ? 'var(--text)' : 'var(--text-muted)' }}>
-                                                        {broadcastTargetUserIds.length > 0 ? `${broadcastTargetUserIds.length} users selected` : 'All Users (Global)'}
-                                                    </span>
-                                                    <ChevronDown size={16} color="var(--text-dim)" />
+                                    {isBroadcastFilterOpen && (
+                                        <div style={{ background: '#f2f2f7', padding: '0.75rem 1rem', borderTop: '0.5px solid #e5e5ea' }}>
+                                            <div style={{ position: 'relative', marginBottom: '0.5rem' }}>
+                                                <Search size={14} color="#8e8e93" style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)' }} />
+                                                <input
+                                                    type="text" placeholder="Search users..."
+                                                    value={broadcastUserSearchTerm} onChange={(e) => setBroadcastUserSearchTerm(e.target.value)}
+                                                    style={{ width: '100%', padding: '0.4rem 0.4rem 0.4rem 28px', background: '#e3e3e8', border: 'none', borderRadius: '8px', outline: 'none', color: '#000', fontSize: '0.9rem', boxSizing: 'border-box' }}
+                                                />
+                                            </div>
+
+                                            {!broadcastUserSearchTerm && (
+                                                <div style={{ background: '#fff', borderRadius: '8px', overflow: 'hidden', border: '0.5px solid #e5e5ea', marginBottom: '0.75rem' }}>
+                                                    <button type="button" onClick={() => { setBroadcastTargetUserIds([]); setIsBroadcastFilterOpen(false); }} style={{ width: '100%', padding: '0.65rem 0.75rem', background: 'transparent', border: 'none', textAlign: 'left', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#000', fontWeight: 500, fontSize: '0.9rem', borderBottom: '0.5px solid #e5e5ea' }}>
+                                                        <Users size={16} color="#db2777" /> All Users (Global)
+                                                    </button>
+                                                    <button type="button" onClick={() => { setBroadcastTargetUserIds(users.filter(u => u.isPremium).map(u => u.id)); setIsBroadcastFilterOpen(false); }} style={{ width: '100%', padding: '0.65rem 0.75rem', background: 'transparent', border: 'none', textAlign: 'left', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#000', fontWeight: 500, fontSize: '0.9rem', borderBottom: '0.5px solid #e5e5ea' }}>
+                                                        <Crown size={16} color="#eab308" /> Premium Users
+                                                    </button>
+                                                    <button type="button" onClick={() => { setBroadcastTargetUserIds(users.filter(u => !u.isPremium).map(u => u.id)); setIsBroadcastFilterOpen(false); }} style={{ width: '100%', padding: '0.65rem 0.75rem', background: 'transparent', border: 'none', textAlign: 'left', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#000', fontWeight: 500, fontSize: '0.9rem' }}>
+                                                        <User size={16} color="#3b82f6" /> Free Users
+                                                    </button>
                                                 </div>
-                                                
-                                                {isBroadcastFilterOpen && (
-                                                    <div style={{
-                                                        position: 'absolute', top: '100%', left: 0, right: 0, marginTop: '0.5rem',
-                                                        background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '16px',
-                                                        boxShadow: '0 10px 40px rgba(0,0,0,0.1)', zIndex: 100, padding: '0.5rem',
-                                                        display: 'flex', flexDirection: 'column', gap: '0.25rem', maxHeight: '350px'
-                                                    }}>
-                                                        <div style={{ position: 'relative', marginBottom: '0.25rem' }}>
-                                                            <Search size={14} color="var(--text-dim)" style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)' }} />
-                                                            <input 
-                                                                type="text" 
-                                                                placeholder="Search users..." 
-                                                                value={broadcastUserSearchTerm}
-                                                                onChange={(e) => setBroadcastUserSearchTerm(e.target.value)}
-                                                                style={{
-                                                                    width: '100%', padding: '0.5rem 0.5rem 0.5rem 30px', 
-                                                                    background: 'var(--surface-2)', border: 'none', borderRadius: '8px', 
-                                                                    outline: 'none', color: 'var(--text)', fontSize: '0.85rem', boxSizing: 'border-box'
-                                                                }}
-                                                            />
+                                            )}
+
+                                            <div style={{ background: '#fff', borderRadius: '8px', overflow: 'hidden', maxHeight: '200px', overflowY: 'auto', border: '0.5px solid #e5e5ea' }}>
+                                                {users.filter(u => {
+                                                    if (!broadcastUserSearchTerm) return true;
+                                                    const s = broadcastUserSearchTerm.toLowerCase();
+                                                    return (u.name || '').toLowerCase().includes(s) || (u.email || '').toLowerCase().includes(s);
+                                                }).map((u, idx, arr) => (
+                                                    <label key={u.id} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.5rem 0.75rem', cursor: 'pointer', borderBottom: idx < arr.length - 1 ? '0.5px solid #e5e5ea' : 'none', background: 'transparent' }} onMouseEnter={e => e.currentTarget.style.background = '#f9fafb'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                                                        <input
+                                                            type="checkbox" checked={broadcastTargetUserIds.includes(u.id)}
+                                                            onChange={(e) => {
+                                                                if (e.target.checked) setBroadcastTargetUserIds([...broadcastTargetUserIds, u.id]);
+                                                                else setBroadcastTargetUserIds(broadcastTargetUserIds.filter(id => id !== u.id));
+                                                            }}
+                                                            style={{ accentColor: '#db2777', width: '16px', height: '16px', cursor: 'pointer' }}
+                                                        />
+                                                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                                            <span style={{ fontSize: '0.9rem', color: '#000' }}>{u.name || 'Anonymous'}</span>
+                                                            <span style={{ fontSize: '0.75rem', color: '#8e8e93' }}>{u.email}</span>
                                                         </div>
-                                                        
-                                                        {!broadcastUserSearchTerm && (
-                                                            <>
-                                                                <button type="button" onClick={() => { setBroadcastTargetUserIds([]); setIsBroadcastFilterOpen(false); }} style={{ padding: '0.65rem 0.75rem', background: 'transparent', border: 'none', textAlign: 'left', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text)', fontWeight: 600, fontSize: '0.85rem' }} onMouseEnter={e => e.currentTarget.style.background='var(--surface-2)'} onMouseLeave={e => e.currentTarget.style.background='transparent'}>
-                                                                    <Users size={16} color="#db2777" /> All Users (Global)
-                                                                </button>
-                                                                <button type="button" onClick={() => { setBroadcastTargetUserIds(users.filter(u => u.isPremium).map(u => u.id)); setIsBroadcastFilterOpen(false); }} style={{ padding: '0.65rem 0.75rem', background: 'transparent', border: 'none', textAlign: 'left', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text)', fontWeight: 600, fontSize: '0.85rem' }} onMouseEnter={e => e.currentTarget.style.background='var(--surface-2)'} onMouseLeave={e => e.currentTarget.style.background='transparent'}>
-                                                                    <Crown size={16} color="#eab308" /> Premium Users
-                                                                </button>
-                                                                <button type="button" onClick={() => { setBroadcastTargetUserIds(users.filter(u => !u.isPremium).map(u => u.id)); setIsBroadcastFilterOpen(false); }} style={{ padding: '0.65rem 0.75rem', background: 'transparent', border: 'none', textAlign: 'left', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text)', fontWeight: 600, fontSize: '0.85rem' }} onMouseEnter={e => e.currentTarget.style.background='var(--surface-2)'} onMouseLeave={e => e.currentTarget.style.background='transparent'}>
-                                                                    <User size={16} color="#3b82f6" /> Free Users
-                                                                </button>
-                                                                <div style={{ height: '1px', background: 'var(--border)', margin: '0.25rem 0' }}></div>
-                                                            </>
-                                                        )}
-                                                        
-                                                        <div style={{ overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '2px' }} className="custom-scrollbar">
-                                                            {users.filter(u => {
-                                                                if (!broadcastUserSearchTerm) return true;
-                                                                const s = broadcastUserSearchTerm.toLowerCase();
-                                                                return (u.name || '').toLowerCase().includes(s) || (u.email || '').toLowerCase().includes(s);
-                                                            }).map(u => (
-                                                                <label key={u.id} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.5rem 0.75rem', borderRadius: '8px', cursor: 'pointer', transition: 'background 0.2s' }} onMouseEnter={e => e.currentTarget.style.background='var(--surface-2)'} onMouseLeave={e => e.currentTarget.style.background='transparent'}>
-                                                                    <input 
-                                                                        type="checkbox" 
-                                                                        checked={broadcastTargetUserIds.includes(u.id)}
-                                                                        onChange={(e) => {
-                                                                            if (e.target.checked) setBroadcastTargetUserIds([...broadcastTargetUserIds, u.id]);
-                                                                            else setBroadcastTargetUserIds(broadcastTargetUserIds.filter(id => id !== u.id));
-                                                                        }}
-                                                                        style={{ accentColor: '#db2777', width: '16px', height: '16px', cursor: 'pointer' }}
-                                                                    />
-                                                                    <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                                                        <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text)' }}>{u.name || 'Anonymous'}</span>
-                                                                        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{u.email}</span>
-                                                                    </div>
-                                                                </label>
-                                                            ))}
-                                                        </div>
-                                                    </div>
+                                                    </label>
+                                                ))}
+                                                {users.filter(u => {
+                                                    if (!broadcastUserSearchTerm) return true;
+                                                    const s = broadcastUserSearchTerm.toLowerCase();
+                                                    return (u.name || '').toLowerCase().includes(s) || (u.email || '').toLowerCase().includes(s);
+                                                }).length === 0 && (
+                                                    <div style={{ padding: '1rem', textAlign: 'center', color: '#8e8e93', fontSize: '0.85rem' }}>No users found.</div>
                                                 )}
                                             </div>
                                         </div>
+                                    )}
+                                </div>
 
-                                        {/* Quick Templates */}
-                                        <div>
-                                            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text)', marginBottom: '0.5rem' }}>Quick Templates</label>
+                                {/* GROUP 4: Action Button */}
+                                <div>
+                                    <div style={{ background: '#fff', borderRadius: '12px', border: '0.5px solid #e5e5ea', overflow: 'hidden' }}>
+                                        <div style={{ padding: '0.75rem 1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                                <div style={{ width: '28px', height: '28px', background: '#007aff', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
+                                                    <Command size={16} />
+                                                </div>
+                                                <span style={{ fontSize: '1rem', color: '#000' }}>Rich Action Button</span>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() => setBroadcastActionButtonEnabled(!broadcastActionButtonEnabled)}
+                                                style={{
+                                                    position: 'relative', width: '51px', height: '31px',
+                                                    background: broadcastActionButtonEnabled ? '#34c759' : '#e9e9ea',
+                                                    borderRadius: '99px', border: 'none', cursor: 'pointer', transition: 'background 0.3s ease', padding: 0
+                                                }}
+                                            >
+                                                <div style={{
+                                                    position: 'absolute', top: '2px', left: broadcastActionButtonEnabled ? '22px' : '2px',
+                                                    width: '27px', height: '27px', background: '#fff', borderRadius: '50%',
+                                                    transition: 'left 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)', boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                                                }} />
+                                            </button>
+                                        </div>
+                                        
+                                        {broadcastActionButtonEnabled && (
+                                            <div style={{ background: '#f9fafb' }}>
+                                                <div style={{ height: '0.5px', background: '#e5e5ea' }} />
+                                                <div style={{ padding: '0.75rem 1rem', display: 'flex', alignItems: 'center' }}>
+                                                    <label style={{ width: '100px', fontSize: '0.9rem', color: '#8e8e93', fontWeight: 500 }}>Title</label>
+                                                    <input type="text" value={broadcastActionButtonTitle} onChange={e => setBroadcastActionButtonTitle(e.target.value)} placeholder="e.g. View Deal"
+                                                        style={{ flex: 1, border: 'none', background: 'transparent', outline: 'none', fontSize: '0.95rem', color: '#000' }} />
+                                                </div>
+                                                <div style={{ height: '0.5px', background: '#e5e5ea', marginLeft: '1rem' }} />
+                                                <div style={{ padding: '0.75rem 1rem', display: 'flex', alignItems: 'center' }}>
+                                                    <label style={{ width: '100px', fontSize: '0.9rem', color: '#8e8e93', fontWeight: 500 }}>URL</label>
+                                                    <input type="text" value={broadcastActionButtonUrl} onChange={e => setBroadcastActionButtonUrl(e.target.value)} placeholder="e.g. /shop/sale"
+                                                        style={{ flex: 1, border: 'none', background: 'transparent', outline: 'none', fontSize: '0.95rem', color: '#000' }} />
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div style={{ padding: '0.5rem 1rem', fontSize: '0.8rem', color: '#8e8e93' }}>
+                                        Add a custom button inside the notification.
+                                    </div>
+                                </div>
+
+                                {/* GROUP 5: Templates */}
+                                <div style={{ background: '#fff', borderRadius: '12px', border: '0.5px solid #e5e5ea', overflow: 'hidden', padding: '1rem' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+                                        <h3 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 600, color: '#000' }}>Templates</h3>
+                                        <button
+                                            type="button"
+                                            onClick={() => (broadcastTitle || broadcastBody) ? setIsPromptModalOpen(true) : showToast('Fill in a title or message first', 'error')}
+                                            style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', background: 'transparent', border: 'none', fontSize: '0.9rem', fontWeight: 500, color: '#007aff', cursor: 'pointer' }}
+                                        >
+                                            Save Current
+                                        </button>
+                                    </div>
+                                    
+                                    {customTemplates.length > 0 && (
+                                        <div style={{ marginBottom: '1rem' }}>
+                                            <div style={{ fontSize: '0.8rem', color: '#8e8e93', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>My Saved</div>
                                             <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                                                {[
-                                                    { label: "Welcome 👋", title: "Welcome to WishFlow! 🎉", body: "Start building your ultimate wishlist today, {{name}}.", url: "/", image: "" },
-                                                    { label: "Sale 🛍️", title: "Weekend Sale! 🛍️", body: "Hey {{name}}, check out our exclusive weekend discounts, just for you.", url: "/discover", image: "" },
-                                                    { label: "Cart 🛒", title: "Don't forget your items! 🛒", body: "The items in your wishlist are waiting for you!", url: "/profile", image: "" },
-                                                    { label: "Update 🚀", title: "New Feature Alert! 🚀", body: "We've just added exciting new tools to help you manage your lists.", url: "/", image: "" },
-                                                    { label: "Miss You 🥺", title: "We miss you, {{name}}! 🥺", body: "Come back and see what's trending right now on WishFlow.", url: "/discover", image: "" },
-                                                    { label: "Feedback 📝", title: "We value your feedback!", body: "Take a 1-minute survey and get a special badge on your profile.", url: "/contact", image: "" },
-                                                ].map((tpl, i) => (
-                                                    <button
-                                                        key={i} type="button"
-                                                        onClick={() => { setBroadcastTitle(tpl.title); setBroadcastBody(tpl.body); setBroadcastUrl(tpl.url || ''); setBroadcastImage(tpl.image || ''); }}
-                                                        style={{
-                                                            padding: '0.5rem 0.85rem', background: 'var(--surface-2)', border: '1px solid var(--border)', 
-                                                            borderRadius: '99px', fontSize: '0.8rem', fontWeight: 600, color: 'var(--text)', 
-                                                            cursor: 'pointer', transition: 'all 0.2s'
-                                                        }}
-                                                        onMouseEnter={e => e.currentTarget.style.background = 'var(--surface-3)'}
-                                                        onMouseLeave={e => e.currentTarget.style.background = 'var(--surface-2)'}
-                                                    >
-                                                        {tpl.label}
-                                                    </button>
+                                                {customTemplates.map((tpl, i) => (
+                                                    <div key={i} style={{ display: 'flex', alignItems: 'center', background: '#f2f2f7', borderRadius: '99px', overflow: 'hidden' }}>
+                                                        <button
+                                                            type="button" onClick={() => { setBroadcastTitle(tpl.title); setBroadcastBody(tpl.body); setBroadcastUrl(tpl.url || ''); setBroadcastImage(tpl.image || ''); }}
+                                                            style={{ padding: '0.4rem 0.75rem', background: 'transparent', border: 'none', fontSize: '0.85rem', color: '#000', cursor: 'pointer' }}
+                                                        >
+                                                            {tpl.label}
+                                                        </button>
+                                                        <button
+                                                            type="button" onClick={() => { const updated = customTemplates.filter((_, idx) => idx !== i); setCustomTemplates(updated); showToast('Template deleted'); }}
+                                                            style={{ padding: '0.4rem 0.6rem 0.4rem 0', background: 'transparent', border: 'none', cursor: 'pointer', color: '#ff3b30' }}
+                                                        >
+                                                            ✕
+                                                        </button>
+                                                    </div>
                                                 ))}
                                             </div>
                                         </div>
+                                    )}
 
-                                        {/* My Saved Templates */}
-                                        <div>
-                                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                                                <label style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text)' }}>My Saved Templates</label>
+                                    <div>
+                                        <div style={{ fontSize: '0.8rem', color: '#8e8e93', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Quick Start</div>
+                                        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                                            {[
+                                                { label: "Welcome 👋", title: "Welcome to WishFlow! 🎉", body: "Start building your ultimate wishlist today, {{name}}.", url: "/", image: "" },
+                                                { label: "Sale 🛍️", title: "Weekend Sale! 🛍️", body: "Hey {{name}}, check out our exclusive weekend discounts, just for you.", url: "/discover", image: "" },
+                                                { label: "Cart 🛒", title: "Don't forget your items! 🛒", body: "The items in your wishlist are waiting for you!", url: "/profile", image: "" },
+                                                { label: "Update 🚀", title: "New Feature Alert! 🚀", body: "We've just added exciting new tools to help you manage your lists.", url: "/", image: "" },
+                                                { label: "Miss You 🥺", title: "We miss you, {{name}}! 🥺", body: "Come back and see what's trending right now on WishFlow.", url: "/discover", image: "" },
+                                                { label: "Feedback 📝", title: "We value your feedback!", body: "Take a 1-minute survey and get a special badge on your profile.", url: "/contact", image: "" },
+                                            ].map((tpl, i) => (
                                                 <button
-                                                    type="button"
-                                                    onClick={() => (broadcastTitle || broadcastBody) ? setIsPromptModalOpen(true) : showToast('Fill in a title or message first', 'error')}
-                                                    style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', padding: '0.35rem 0.85rem', background: '#fce7f3', border: '1px solid #fbcfe8', borderRadius: '99px', fontSize: '0.78rem', fontWeight: 700, color: '#db2777', cursor: 'pointer', transition: 'all 0.2s' }}
-                                                    onMouseEnter={e => e.currentTarget.style.background = '#fbcfe8'}
-                                                    onMouseLeave={e => e.currentTarget.style.background = '#fce7f3'}
+                                                    key={i} type="button"
+                                                    onClick={() => { setBroadcastTitle(tpl.title); setBroadcastBody(tpl.body); setBroadcastUrl(tpl.url || ''); setBroadcastImage(tpl.image || ''); }}
+                                                    style={{ padding: '0.4rem 0.75rem', background: '#f2f2f7', border: 'none', borderRadius: '99px', fontSize: '0.85rem', color: '#000', cursor: 'pointer' }}
                                                 >
-                                                    <span style={{ fontSize: '0.9rem' }}>＋</span> Save Current
+                                                    {tpl.label}
                                                 </button>
-                                            </div>
-                                            {customTemplates.length === 0 ? (
-                                                <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-dim)', fontStyle: 'italic' }}>No saved templates yet — compose a message and click "Save Current".</p>
-                                            ) : (
-                                                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                                                    {customTemplates.map((tpl, i) => (
-                                                        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0', background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: '99px', overflow: 'hidden' }}>
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => { setBroadcastTitle(tpl.title); setBroadcastBody(tpl.body); setBroadcastUrl(tpl.url || ''); setBroadcastImage(tpl.image || ''); }}
-                                                                style={{ padding: '0.5rem 0.75rem', background: 'transparent', border: 'none', fontSize: '0.8rem', fontWeight: 600, color: 'var(--text)', cursor: 'pointer' }}
-                                                            >
-                                                                {tpl.label}
-                                                            </button>
-                                                            <button
-                                                                type="button"
-                                                                title="Delete template"
-                                                                onClick={() => {
-                                                                    const updated = customTemplates.filter((_, idx) => idx !== i);
-                                                                    setCustomTemplates(updated);
-                                                                    showToast('Template deleted');
-                                                                }}
-                                                                style={{ padding: '0.5rem 0.6rem 0.5rem 0', background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-dim)', display: 'flex', alignItems: 'center', lineHeight: 1, fontSize: '0.85rem', transition: 'color 0.15s' }}
-                                                                onMouseEnter={e => e.currentTarget.style.color = '#ef4444'}
-                                                                onMouseLeave={e => e.currentTarget.style.color = 'var(--text-dim)'}
-                                                            >
-                                                                ✕
-                                                            </button>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            )}
+                                            ))}
                                         </div>
-
-                                        {/* Title & Body */}
-                                        <div>
-                                            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text)', marginBottom: '0.5rem' }}>Title</label>
-                                            <input type="text" value={broadcastTitle} onChange={e => setBroadcastTitle(e.target.value)} placeholder="Notification Title"
-                                                style={{ width: '100%', padding: '0.85rem 1rem', background: 'var(--surface-2)', border: '1.5px solid var(--border)', borderRadius: '12px', color: 'var(--text)', fontSize: '0.95rem', outline: 'none', transition: 'border-color 0.2s', boxSizing: 'border-box' }}
-                                                onFocus={e => e.target.style.borderColor = '#db2777'} onBlur={e => e.target.style.borderColor = 'var(--border)'} />
-                                        </div>
-                                        <div>
-                                            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text)', marginBottom: '0.5rem' }}>Message</label>
-                                            <textarea value={broadcastBody} onChange={e => setBroadcastBody(e.target.value)} placeholder="Keep it short and engaging..." rows={3}
-                                                style={{ width: '100%', padding: '0.85rem 1rem', background: 'var(--surface-2)', border: '1.5px solid var(--border)', borderRadius: '12px', color: 'var(--text)', fontSize: '0.95rem', outline: 'none', transition: 'border-color 0.2s', resize: 'vertical', boxSizing: 'border-box', fontFamily: 'inherit' }}
-                                                onFocus={e => e.target.style.borderColor = '#db2777'} onBlur={e => e.target.style.borderColor = 'var(--border)'} />
-                                        </div>
-
-                                        {/* URLs */}
-                                        {/* URLs */}
-                                        <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-                                            <div style={{ flex: '1 1 200px' }}>
-                                                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text)', marginBottom: '0.5rem' }}>Target URL (Optional)</label>
-                                                <input type="text" value={broadcastUrl} onChange={e => setBroadcastUrl(e.target.value)} placeholder="/discover"
-                                                    style={{ width: '100%', padding: '0.85rem 1rem', background: 'var(--surface-2)', border: '1.5px solid var(--border)', borderRadius: '12px', color: 'var(--text)', fontSize: '0.9rem', outline: 'none', boxSizing: 'border-box' }} />
-                                            </div>
-                                            <div style={{ flex: '1 1 200px' }}>
-                                                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text)', marginBottom: '0.5rem' }}>Image URL (Optional)</label>
-                                                <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                                    <input type="text" value={broadcastImage} onChange={e => setBroadcastImage(e.target.value)} placeholder="https://..."
-                                                        style={{ flex: 1, width: '100%', padding: '0.85rem 1rem', background: 'var(--surface-2)', border: '1.5px solid var(--border)', borderRadius: '12px', color: 'var(--text)', fontSize: '0.9rem', outline: 'none', boxSizing: 'border-box' }} />
-                                                    <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 1rem', background: '#db2777', color: '#fff', borderRadius: '12px', cursor: 'pointer', fontWeight: 700, fontSize: '0.85rem', whiteSpace: 'nowrap' }}>
-                                                        {isUploadingImage ? <RefreshCw size={16} style={{ animation: 'spin 1s linear infinite' }} /> : 'Upload'}
-                                                        <input type="file" accept="image/*" style={{ display: 'none' }} onChange={handleImageUpload} disabled={isUploadingImage} />
-                                                    </label>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {/* Action Button */}
-                                        <div style={{ padding: '1.25rem', background: 'var(--surface-2)', borderRadius: '16px', border: '1px solid var(--border)' }}>
-                                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: broadcastActionButtonEnabled ? '1rem' : '0' }}>
-                                                <div>
-                                                    <div style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text)' }}>Rich Action Button</div>
-                                                    <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>Add a custom button inside the notification</div>
-                                                </div>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setBroadcastActionButtonEnabled(!broadcastActionButtonEnabled)}
-                                                    style={{ width: '44px', height: '24px', background: broadcastActionButtonEnabled ? '#22c55e' : 'var(--border)', borderRadius: '12px', position: 'relative', cursor: 'pointer', border: 'none', transition: 'background 0.2s' }}
-                                                >
-                                                    <div style={{ width: '20px', height: '20px', background: '#fff', borderRadius: '50%', position: 'absolute', top: '2px', left: broadcastActionButtonEnabled ? '22px' : '2px', transition: 'left 0.2s', boxShadow: '0 2px 4px rgba(0,0,0,0.2)' }} />
-                                                </button>
-                                            </div>
-                                            
-                                            {broadcastActionButtonEnabled && (
-                                                <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-                                                    <div style={{ flex: '1 1 150px' }}>
-                                                        <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text)', marginBottom: '0.4rem' }}>Button Title</label>
-                                                        <input type="text" value={broadcastActionButtonTitle} onChange={e => setBroadcastActionButtonTitle(e.target.value)} placeholder="e.g. View Deal"
-                                                            style={{ width: '100%', padding: '0.75rem', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '10px', color: 'var(--text)', fontSize: '0.85rem', outline: 'none', boxSizing: 'border-box' }} />
-                                                    </div>
-                                                    <div style={{ flex: '1 1 200px' }}>
-                                                        <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text)', marginBottom: '0.4rem' }}>Button URL</label>
-                                                        <input type="text" value={broadcastActionButtonUrl} onChange={e => setBroadcastActionButtonUrl(e.target.value)} placeholder="/shop/sale"
-                                                            style={{ width: '100%', padding: '0.75rem', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '10px', color: 'var(--text)', fontSize: '0.85rem', outline: 'none', boxSizing: 'border-box' }} />
-                                                    </div>
-                                                </div>
-                                            )}
-                                        </div>
-
                                     </div>
                                 </div>
                             </div>
@@ -1400,7 +1372,7 @@ export default function AdminPanel() {
                             {/* Right Column - iOS Preview */}
                             <div className="broadcast-preview-col">
                                 {/* iPhone Mockup */}
-                                <div style={{ 
+                                <div style={{
                                     width: '320px', height: '650px', background: '#000', borderRadius: '50px',
                                     padding: '14px', boxSizing: 'border-box', position: 'relative',
                                     boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25), inset 0 0 0 2px #333, inset 0 0 0 8px #111'
@@ -1410,7 +1382,7 @@ export default function AdminPanel() {
                                         <div style={{ position: 'absolute', top: '12px', left: '50%', transform: 'translateX(-50%)', width: '50px', height: '8px', background: '#111', borderRadius: '10px' }}></div>
                                         <div style={{ position: 'absolute', top: '10px', right: '25px', width: '12px', height: '12px', background: '#111', borderRadius: '50%' }}></div>
                                     </div>
-                                    
+
                                     {/* Screen */}
                                     <div style={{ width: '100%', height: '100%', borderRadius: '38px', overflow: 'hidden', position: 'relative', background: 'url(https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1400&auto=format&fit=crop) center/cover' }}>
                                         {/* Status Bar */}
@@ -1483,7 +1455,7 @@ export default function AdminPanel() {
                     </div>
                 )}
 
-{/* Global Settings tab content */}
+                {/* Global Settings tab content */}
                 {activeTab === 'global-settings' && (
                     <div style={{ width: '100%' }}>
                         <div style={{
@@ -1499,159 +1471,131 @@ export default function AdminPanel() {
                             <Settings size={120} style={{ position: 'absolute', right: '-10px', top: '50%', transform: 'translateY(-50%)', opacity: 0.1 }} />
                         </div>
 
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1.5rem', marginBottom: '2rem' }}>
-                            <div style={{ background: 'var(--surface)', padding: '2rem', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', border: '1px solid #f1f5f9' }}>
-                                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '2rem' }}>
-                                    <div>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
-                                            <div style={{ background: '#fef2f2', padding: '0.5rem', borderRadius: '8px', color: '#ef4444' }}>
-                                                <span style={{ fontSize: '1.5rem' }}>🔥</span>
-                                            </div>
-                                            <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 700, color: '#0f172a' }}>Roast Me Button</h3>
-                                        </div>
-
+                        <div style={{
+                            background: '#fff',
+                            borderRadius: '12px',
+                            border: '0.5px solid #e5e5ea',
+                            marginBottom: '2rem',
+                            overflow: 'hidden'
+                        }}>
+                            {/* Roast Feature Row */}
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.7rem 1rem', background: '#fff' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                                    <div style={{ width: '28px', height: '28px', background: '#ff3b30', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '0.9rem' }}>
+                                        🔥
                                     </div>
-                                    <div style={{ marginTop: '0.5rem' }}>
-                                        <button
-                                            disabled={togglingRoast}
-                                            onClick={async () => {
-                                                setTogglingRoast(true);
-                                                try {
-                                                    const headers = await getAuthHeaders();
-                                                    const res = await fetch(`${API}/api/admin/feature/toggle`, {
-                                                        method: 'PATCH',
-                                                        headers,
-                                                        body: JSON.stringify({ key: 'roast_feature_enabled', enabled: !roastFeatureEnabled })
-                                                    });
-                                                    if (res.ok) {
-                                                        setRoastFeatureEnabled(!roastFeatureEnabled);
-                                                        showToast(!roastFeatureEnabled ? 'Roast Feature Enabled' : 'Roast Feature Disabled');
-                                                    } else {
-                                                        showToast('Failed to toggle feature', 'error');
-                                                    }
-                                                } catch (e) {
-                                                    showToast('Network error', 'error');
-                                                } finally {
-                                                    setTogglingRoast(false);
-                                                }
-                                            }}
-                                            style={{
-                                                position: 'relative', width: '52px', height: '28px',
-                                                background: roastFeatureEnabled ? '#10b981' : '#cbd5e1',
-                                                borderRadius: '99px', border: 'none', cursor: togglingRoast ? 'wait' : 'pointer',
-                                                transition: 'background 0.2s', padding: 0
-                                            }}
-                                        >
-                                            <div style={{
-                                                position: 'absolute', top: '3px', left: roastFeatureEnabled ? '27px' : '3px',
-                                                width: '22px', height: '22px', background: 'var(--surface)', borderRadius: '50%',
-                                                transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-                                            }} />
-                                        </button>
-                                    </div>
+                                    <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 400, color: '#000' }}>Roast Feature</h3>
                                 </div>
-                                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '2rem', marginTop: '1.5rem', paddingTop: '1.5rem', borderTop: '1px solid #f1f5f9' }}>
-                                    <div>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
-                                            <div style={{ background: '#f8fafc', padding: '0.5rem', borderRadius: '8px', color: '#64748b' }}>
-                                                <span style={{ fontSize: '1.5rem' }}>🖱️</span>
-                                            </div>
-                                            <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 700, color: '#0f172a' }}>Custom Magnetic Cursor</h3>
-                                        </div>
-                                    </div>
-                                    <div style={{ marginTop: '0.5rem' }}>
-                                        <button
-                                            disabled={togglingCursor}
-                                            onClick={async () => {
-                                                setTogglingCursor(true);
-                                                try {
-                                                    const headers = await getAuthHeaders();
-                                                    const res = await fetch(`${API}/api/admin/feature/toggle`, {
-                                                        method: 'PATCH',
-                                                        headers,
-                                                        body: JSON.stringify({ key: 'custom_cursor_enabled', enabled: !customCursorEnabled })
-                                                    });
-                                                    if (res.ok) {
-                                                        setCustomCursorEnabled(!customCursorEnabled);
-                                                        window.dispatchEvent(new CustomEvent('cursorSettingChanged', { detail: { enabled: !customCursorEnabled } }));
-                                                        showToast(!customCursorEnabled ? 'Custom Cursor Enabled' : 'Custom Cursor Disabled');
-                                                    } else {
-                                                        showToast('Failed to toggle feature', 'error');
-                                                    }
-                                                } catch (e) {
-                                                    showToast('Network error', 'error');
-                                                } finally {
-                                                    setTogglingCursor(false);
-                                                }
-                                            }}
-                                            style={{
-                                                position: 'relative', width: '52px', height: '28px',
-                                                background: customCursorEnabled ? '#10b981' : '#cbd5e1',
-                                                borderRadius: '99px', border: 'none', cursor: togglingCursor ? 'wait' : 'pointer',
-                                                transition: 'background 0.2s', padding: 0
-                                            }}
-                                        >
-                                            <div style={{
-                                                position: 'absolute', top: '3px', left: customCursorEnabled ? '27px' : '3px',
-                                                width: '22px', height: '22px', background: 'var(--surface)', borderRadius: '50%',
-                                                transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-                                            }} />
-                                        </button>
-                                    </div>
-                                </div>
+                                <button
+                                    disabled={togglingRoast}
+                                    onClick={async () => {
+                                        setTogglingRoast(true);
+                                        try {
+                                            const headers = await getAuthHeaders();
+                                            const res = await fetch(`${API}/api/admin/feature/toggle`, { method: 'PATCH', headers, body: JSON.stringify({ key: 'roast_feature_enabled', enabled: !roastFeatureEnabled }) });
+                                            if (res.ok) {
+                                                setRoastFeatureEnabled(!roastFeatureEnabled);
+                                                showToast(!roastFeatureEnabled ? 'Enabled' : 'Disabled');
+                                            } else throw new Error();
+                                        } catch (e) {
+                                            showToast('Error', 'error');
+                                        } finally {
+                                            setTogglingRoast(false);
+                                        }
+                                    }}
+                                    style={{
+                                        position: 'relative', width: '51px', height: '31px',
+                                        background: roastFeatureEnabled ? '#34c759' : '#e9e9ea',
+                                        borderRadius: '99px', border: 'none', cursor: togglingRoast ? 'wait' : 'pointer',
+                                        transition: 'background 0.3s ease', padding: 0
+                                    }}
+                                >
+                                    <div style={{
+                                        position: 'absolute', top: '2px', left: roastFeatureEnabled ? '22px' : '2px',
+                                        width: '27px', height: '27px', background: '#fff', borderRadius: '50%',
+                                        transition: 'left 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)', boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                                    }} />
+                                </button>
                             </div>
 
-                            {/* Profile Refresh Feature Toggle */}
-                            <div style={{ background: 'var(--surface)', padding: '2rem', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', border: '1px solid #f1f5f9' }}>
-                                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '2rem' }}>
-                                    <div>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
-                                            <div style={{ background: '#f0fdf4', padding: '0.5rem', borderRadius: '8px', color: '#16a34a' }}>
-                                                <RefreshCw size={24} />
-                                            </div>
-                                            <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 700, color: '#0f172a' }}>Profile Refresh Icon</h3>
-                                        </div>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.7rem 1rem', background: '#fff' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                                    <div style={{ width: '28px', height: '28px', background: '#007aff', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '0.9rem' }}>
+                                        🖱️
                                     </div>
-                                    <div style={{ marginTop: '0.5rem' }}>
-                                        <button
-                                            disabled={togglingRefresh}
-                                            onClick={async () => {
-                                                setTogglingRefresh(true);
-                                                try {
-                                                    const res = await fetch(`${API}/api/admin/feature/toggle`, {
-                                                        method: 'PATCH',
-                                                        headers,
-                                                        body: JSON.stringify({ key: 'refresh_feature_enabled', enabled: !refreshFeatureEnabled })
-                                                    });
-                                                    if (res.ok) {
-                                                        setRefreshFeatureEnabled(!refreshFeatureEnabled);
-                                                        showToast(!refreshFeatureEnabled ? 'Refresh Feature Enabled' : 'Refresh Feature Disabled');
-                                                    } else {
-                                                        showToast('Failed to toggle feature', 'error');
-                                                    }
-                                                } catch (e) {
-                                                    showToast('Network error', 'error');
-                                                } finally {
-                                                    setTogglingRefresh(false);
-                                                }
-                                            }}
-                                            style={{
-                                                position: 'relative', width: '52px', height: '28px',
-                                                background: refreshFeatureEnabled ? '#10b981' : '#cbd5e1',
-                                                borderRadius: '99px', border: 'none', cursor: togglingRefresh ? 'wait' : 'pointer',
-                                                transition: 'background 0.2s', padding: 0
-                                            }}
-                                        >
-                                            <div style={{
-                                                position: 'absolute', top: '3px', left: refreshFeatureEnabled ? '27px' : '3px',
-                                                width: '22px', height: '22px', background: 'var(--surface)', borderRadius: '50%',
-                                                transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-                                            }} />
-                                        </button>
-                                    </div>
+                                    <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 400, color: '#000' }}>Magnetic Cursor</h3>
                                 </div>
+                                <button
+                                    disabled={togglingCursor}
+                                    onClick={async () => {
+                                        setTogglingCursor(true);
+                                        try {
+                                            const headers = await getAuthHeaders();
+                                            const res = await fetch(`${API}/api/admin/feature/toggle`, { method: 'PATCH', headers, body: JSON.stringify({ key: 'custom_cursor_enabled', enabled: !customCursorEnabled }) });
+                                            if (res.ok) {
+                                                setCustomCursorEnabled(!customCursorEnabled);
+                                                window.dispatchEvent(new CustomEvent('cursorSettingChanged', { detail: { enabled: !customCursorEnabled } }));
+                                                showToast(!customCursorEnabled ? 'Enabled' : 'Disabled');
+                                            } else throw new Error();
+                                        } catch (e) {
+                                            showToast('Error', 'error');
+                                        } finally {
+                                            setTogglingCursor(false);
+                                        }
+                                    }}
+                                    style={{
+                                        position: 'relative', width: '51px', height: '31px',
+                                        background: customCursorEnabled ? '#34c759' : '#e9e9ea',
+                                        borderRadius: '99px', border: 'none', cursor: togglingCursor ? 'wait' : 'pointer',
+                                        transition: 'background 0.3s ease', padding: 0
+                                    }}
+                                >
+                                    <div style={{
+                                        position: 'absolute', top: '2px', left: customCursorEnabled ? '22px' : '2px',
+                                        width: '27px', height: '27px', background: '#fff', borderRadius: '50%',
+                                        transition: 'left 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)', boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                                    }} />
+                                </button>
                             </div>
 
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.7rem 1rem', background: '#fff' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                                    <div style={{ width: '28px', height: '28px', background: '#34c759', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
+                                        <RefreshCw size={16} />
+                                    </div>
+                                    <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 400, color: '#000' }}>Pull to Refresh</h3>
+                                </div>
+                                <button
+                                    disabled={togglingRefresh}
+                                    onClick={async () => {
+                                        setTogglingRefresh(true);
+                                        try {
+                                            const headers = await getAuthHeaders();
+                                            const res = await fetch(`${API}/api/admin/feature/toggle`, { method: 'PATCH', headers, body: JSON.stringify({ key: 'refresh_feature_enabled', enabled: !refreshFeatureEnabled }) });
+                                            if (res.ok) {
+                                                setRefreshFeatureEnabled(!refreshFeatureEnabled);
+                                                showToast(!refreshFeatureEnabled ? 'Enabled' : 'Disabled');
+                                            } else throw new Error();
+                                        } catch (e) {
+                                            showToast('Error', 'error');
+                                        } finally {
+                                            setTogglingRefresh(false);
+                                        }
+                                    }}
+                                    style={{
+                                        position: 'relative', width: '51px', height: '31px',
+                                        background: refreshFeatureEnabled ? '#34c759' : '#e9e9ea',
+                                        borderRadius: '99px', border: 'none', cursor: togglingRefresh ? 'wait' : 'pointer',
+                                        transition: 'background 0.3s ease', padding: 0
+                                    }}
+                                >
+                                    <div style={{
+                                        position: 'absolute', top: '2px', left: refreshFeatureEnabled ? '22px' : '2px',
+                                        width: '27px', height: '27px', background: '#fff', borderRadius: '50%',
+                                        transition: 'left 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)', boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                                    }} />
+                                </button>
+                            </div>
                         </div>
                     </div>
                 )}
@@ -2594,14 +2538,14 @@ export default function AdminPanel() {
                         <p style={{ margin: '0 0 1.5rem 0', fontSize: '0.9rem', color: '#64748b', lineHeight: 1.5 }}>
                             Select how much broadcast history you want to permanently delete.
                         </p>
-                        
+
                         <div style={{ marginBottom: '2rem' }}>
                             <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: '#334155', marginBottom: '0.5rem' }}>Timeframe</label>
                             <div style={{ position: 'relative' }}>
-                                <div 
+                                <div
                                     onClick={() => setIsTimeframeDropdownOpen(!isTimeframeDropdownOpen)}
-                                    style={{ 
-                                        width: '100%', padding: '0.9rem 1.2rem', borderRadius: '16px', background: '#f8fafc', border: '1px solid #e2e8f0', 
+                                    style={{
+                                        width: '100%', padding: '0.9rem 1.2rem', borderRadius: '16px', background: '#f8fafc', border: '1px solid #e2e8f0',
                                         display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer',
                                         fontSize: '0.95rem', fontWeight: 600, color: '#0f172a', transition: 'all 0.2s',
                                         boxShadow: isTimeframeDropdownOpen ? '0 0 0 4px rgba(219,39,119,0.1)' : 'none',
@@ -2610,17 +2554,17 @@ export default function AdminPanel() {
                                 >
                                     <span>
                                         {deleteHistoryTimeframe === '1day' ? 'Older than 1 Day' :
-                                         deleteHistoryTimeframe === '1week' ? 'Older than 1 Week' :
-                                         deleteHistoryTimeframe === '1month' ? 'Older than 1 Month' : 'Delete All History'}
+                                            deleteHistoryTimeframe === '1week' ? 'Older than 1 Week' :
+                                                deleteHistoryTimeframe === '1month' ? 'Older than 1 Month' : 'Delete All History'}
                                     </span>
                                     <ChevronDown size={18} style={{ transform: isTimeframeDropdownOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s', color: '#94a3b8' }} />
                                 </div>
 
                                 {isTimeframeDropdownOpen && (
                                     <>
-                                        <div 
-                                            style={{ position: 'fixed', inset: 0, zIndex: 100 }} 
-                                            onClick={() => setIsTimeframeDropdownOpen(false)} 
+                                        <div
+                                            style={{ position: 'fixed', inset: 0, zIndex: 100 }}
+                                            onClick={() => setIsTimeframeDropdownOpen(false)}
                                         />
                                         <div style={{
                                             position: 'absolute', top: 'calc(100% + 8px)', left: 0, right: 0, zIndex: 101,
@@ -2634,7 +2578,7 @@ export default function AdminPanel() {
                                                 { id: '1month', label: 'Older than 1 Month' },
                                                 { id: 'all', label: 'Delete All History', isDestructive: true }
                                             ].map((option) => (
-                                                <div 
+                                                <div
                                                     key={option.id}
                                                     onClick={() => {
                                                         setDeleteHistoryTimeframe(option.id);
