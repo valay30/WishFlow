@@ -8,7 +8,19 @@ export const AdminContext = createContext(null);
 
 // Builds auth headers with the live Supabase JWT — called fresh before every request
 const getAuthHeaders = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
+    let { data: { session } } = await supabase.auth.getSession();
+
+    // Proactively refresh the token if it's expired or about to expire (within 1 min)
+    if (session?.expires_at && Date.now() > (session.expires_at * 1000) - 60000) {
+        const { data, error } = await supabase.auth.refreshSession();
+        if (error || !data?.session) {
+            await supabase.auth.signOut();
+            window.location.href = '/login';
+            throw new Error('Session expired');
+        }
+        session = data.session;
+    }
+
     return {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${session?.access_token ?? ''}`,

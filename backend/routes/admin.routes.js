@@ -1,6 +1,6 @@
 import express from 'express';
 import { adminGuard } from '../middleware/adminGuard.js';
-import { getAllUsers, grantPremium, revokePremium, deleteUser, getActivityFeed, getAllItems, getAllBlogPosts, createBlogPost, updateBlogPost, deleteBlogPost, toggleBlogPublish, runPriceDropNow, runTargetedPriceDrop, getPriceDropStatusLive, toggleGlobalFeature, updateGlobalSetting, broadcastNotification, getBroadcastHistory, deleteBroadcastHistory } from '../controllers/admin.controller.js';
+import { getAllUsers, grantPremium, revokePremium, deleteUser, getActivityFeed, getAllItems, getAllBlogPosts, createBlogPost, updateBlogPost, deleteBlogPost, toggleBlogPublish, runPriceDropNow, runTargetedPriceDrop, getPriceDropStatusLive, toggleGlobalFeature, updateGlobalSetting, broadcastNotification, getBroadcastHistory, deleteBroadcastHistory, updateItemDetails } from '../controllers/admin.controller.js';
 
 const router = express.Router();
 
@@ -12,7 +12,9 @@ router.post('/grant-premium', grantPremium);
 router.post('/revoke-premium', revokePremium);
 router.delete('/users/:userId', deleteUser);
 router.get('/activity', getActivityFeed);
+// Items
 router.get('/items', getAllItems);
+router.patch('/items/:id', updateItemDetails);
 
 // Blog CMS
 router.get('/blog', getAllBlogPosts);

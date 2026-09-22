@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
 import {
     Crown, Users, ArrowLeft, RefreshCw, Search, Trash2, Package,
-    Filter, Calendar, ChevronLeft, ChevronRight, ChevronDown, XCircle, Menu, X, Plus, Link as LinkIcon, BookOpen, TrendingDown, Play, Clock, Settings, Eye, User, Palette, Rocket, Command, Info, LogOut, Megaphone, Type, AlignLeft, Image as ImageIcon, Send, Save, Check
+    Filter, Calendar, ChevronLeft, ChevronRight, ChevronDown, XCircle, Menu, X, Plus, Link as LinkIcon, BookOpen, TrendingDown, Play, Clock, Settings, Eye, User, Palette, Rocket, Command, Info, LogOut, Megaphone, Type, AlignLeft, Image as ImageIcon, Send, Save, Check, Edit2
 } from 'lucide-react';
 import { API_URL as API } from '../config';
 import { supabase } from '../db';
@@ -22,8 +22,13 @@ const getAuthHeaders = async () => {
 
     // Proactively refresh the token if it's expired or about to expire (within 1 min)
     if (session?.expires_at && Date.now() > (session.expires_at * 1000) - 60000) {
-        const { data } = await supabase.auth.refreshSession();
-        session = data?.session || session;
+        const { data, error } = await supabase.auth.refreshSession();
+        if (error || !data?.session) {
+            await supabase.auth.signOut();
+            window.location.href = '/login';
+            throw new Error('Session expired');
+        }
+        session = data.session;
     }
 
     return {
@@ -62,6 +67,10 @@ export default function AdminPanel() {
     const [roastFeatureEnabled, setRoastFeatureEnabled] = useState(true);
     const [togglingRoast, setTogglingRoast] = useState(false);
     const [roastEnabledThemes, setRoastEnabledThemes] = useState([]);
+
+    // Edit Item state
+    const [editingItem, setEditingItem] = useState(null);
+    const [isSavingItem, setIsSavingItem] = useState(false);
 
     const { darkMode } = useSettings();
 
@@ -1976,19 +1985,20 @@ export default function AdminPanel() {
                             <>
                                 {/* Items Table */}
                                 <div className="admin-table-wrapper" style={{ background: 'var(--surface)', border: '1px solid #e2e8f0', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
-                                    <div className="admin-table-header" style={{ display: 'grid', gridTemplateColumns: '2fr 1.5fr 1fr 1fr 1fr', padding: '1rem 1.5rem', background: '#f8fafc', borderBottom: '1px solid #e2e8f0', fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                    <div className="admin-table-header" style={{ display: 'grid', gridTemplateColumns: '2fr 1.5fr 1fr 1fr 1fr 0.5fr', padding: '1rem 1.5rem', background: '#f8fafc', borderBottom: '1px solid #e2e8f0', fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                                         <span>Item Details</span>
                                         <span>Created By</span>
                                         <span>Price</span>
                                         <span>Date Added</span>
                                         <span>Link</span>
+                                        <span>Actions</span>
                                     </div>
 
                                     <div style={{ display: 'flex', flexDirection: 'column' }}>
                                         {loadingItems ? (
                                             <div style={{ display: 'flex', flexDirection: 'column' }}>
                                                 {Array.from({ length: 6 }).map((_, i) => (
-                                                    <div key={i} style={{ display: 'grid', gridTemplateColumns: '2fr 1.5fr 1fr 1fr 1fr', padding: '1.25rem 1.5rem', alignItems: 'center', borderBottom: i < 5 ? '1px solid #f1f5f9' : 'none', gap: '1rem' }}>
+                                                    <div key={i} style={{ display: 'grid', gridTemplateColumns: '2fr 1.5fr 1fr 1fr 1fr 0.5fr', padding: '1.25rem 1.5rem', alignItems: 'center', borderBottom: i < 5 ? '1px solid #f1f5f9' : 'none', gap: '1rem' }}>
                                                         {/* Item details col */}
                                                         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                                                             <div className="skeleton-shimmer" style={{ width: '48px', height: '48px', borderRadius: '8px', flexShrink: 0 }} />
@@ -2005,6 +2015,8 @@ export default function AdminPanel() {
                                                         <div className="skeleton-shimmer" style={{ height: '13px', width: '70px' }} />
                                                         {/* Link col */}
                                                         <div className="skeleton-shimmer" style={{ height: '30px', width: '70px', borderRadius: '8px' }} />
+                                                        {/* Actions col */}
+                                                        <div className="skeleton-shimmer" style={{ height: '30px', width: '30px', borderRadius: '8px' }} />
                                                     </div>
                                                 ))}
                                             </div>
@@ -2019,7 +2031,7 @@ export default function AdminPanel() {
                                                     <div key={item.id}>
                                                         {/* ===== DESKTOP TABLE ROW ===== */}
                                                         <div className="admin-table-row admin-desktop-row" style={{
-                                                            display: 'grid', gridTemplateColumns: '2fr 1.5fr 1fr 1fr 1fr', padding: '1.25rem 1.5rem',
+                                                            display: 'grid', gridTemplateColumns: '2fr 1.5fr 1fr 1fr 1fr 0.5fr', padding: '1.25rem 1.5rem',
                                                             alignItems: 'center', borderBottom: i !== currentItems.length - 1 ? '1px solid #f1f5f9' : 'none',
                                                             transition: 'background 0.2s', position: 'relative', overflow: 'hidden'
                                                         }}>
@@ -2074,6 +2086,19 @@ export default function AdminPanel() {
                                                                     </span>
                                                                 )}
                                                             </div>
+                                                            <div>
+                                                                <button
+                                                                    onClick={() => setEditingItem(item)}
+                                                                    style={{
+                                                                        background: '#f1f5f9', border: 'none', color: '#475569',
+                                                                        padding: '0.4rem', borderRadius: '8px', cursor: 'pointer',
+                                                                        display: 'flex', alignItems: 'center', justifyContent: 'center'
+                                                                    }}
+                                                                    title="Edit Item"
+                                                                >
+                                                                    <Edit2 size={16} />
+                                                                </button>
+                                                            </div>
                                                         </div>
 
                                                         {/* ===== MOBILE CARD ===== */}
@@ -2116,21 +2141,34 @@ export default function AdminPanel() {
                                                                     </div>
                                                                 </div>
 
-                                                                <a
-                                                                    href={item.link || '#'}
-                                                                    target="_blank"
-                                                                    rel="noopener noreferrer"
-                                                                    style={{
-                                                                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
-                                                                        width: '100%', padding: '0.75rem', borderRadius: '15px',
-                                                                        background: item.link ? '#eef2ff' : '#f1f5f9',
-                                                                        color: item.link ? '#4f46e5' : '#94a3b8',
-                                                                        fontWeight: 700, fontSize: '0.9rem', textDecoration: 'none',
-                                                                        pointerEvents: item.link ? 'auto' : 'none'
-                                                                    }}
-                                                                >
-                                                                    <LinkIcon size={16} /> {item.link ? 'Link' : 'No Link'}
-                                                                </a>
+                                                                <div style={{ display: 'flex', gap: '0.5rem', width: '100%' }}>
+                                                                    <a
+                                                                        href={item.link || '#'}
+                                                                        target="_blank"
+                                                                        rel="noopener noreferrer"
+                                                                        style={{
+                                                                            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
+                                                                            flex: 1, padding: '0.75rem', borderRadius: '15px',
+                                                                            background: item.link ? '#eef2ff' : '#f1f5f9',
+                                                                            color: item.link ? '#4f46e5' : '#94a3b8',
+                                                                            fontWeight: 700, fontSize: '0.9rem', textDecoration: 'none',
+                                                                            pointerEvents: item.link ? 'auto' : 'none'
+                                                                        }}
+                                                                    >
+                                                                        <LinkIcon size={16} /> {item.link ? 'Link' : 'No Link'}
+                                                                    </a>
+                                                                    <button
+                                                                        onClick={() => setEditingItem(item)}
+                                                                        style={{
+                                                                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                                            width: '45px', padding: '0.75rem', borderRadius: '15px',
+                                                                            background: '#f1f5f9', color: '#475569',
+                                                                            border: 'none', cursor: 'pointer'
+                                                                        }}
+                                                                    >
+                                                                        <Edit2 size={16} />
+                                                                    </button>
+                                                                </div>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -2559,6 +2597,160 @@ export default function AdminPanel() {
                     }
                     }
                 `}</style>
+
+            {/* Edit Item Modal */}
+            {editingItem && (
+                <div style={{
+                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                    background: 'rgba(0, 0, 0, 0.4)', zIndex: 99999,
+                    display: 'flex', alignItems: window.innerWidth > 768 ? 'center' : 'flex-end', justifyContent: 'center',
+                    padding: window.innerWidth > 768 ? '2rem' : '0',
+                    backdropFilter: 'blur(4px)',
+                    WebkitBackdropFilter: 'blur(4px)'
+                }}>
+                    <div style={{
+                        background: '#F2F2F7',
+                        borderRadius: window.innerWidth > 768 ? '14px' : '20px 20px 0 0',
+                        width: '100%', maxWidth: '500px',
+                        display: 'flex', flexDirection: 'column', overflow: 'hidden',
+                        boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)',
+                        animation: 'slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
+                    }}>
+                        {/* iOS Header */}
+                        <div style={{
+                            padding: '14px 16px',
+                            borderBottom: '0.5px solid #C6C6C8',
+                            display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                            background: '#F2F2F7'
+                        }}>
+                            <button onClick={() => setEditingItem(null)} style={{
+                                background: 'transparent', border: 'none', cursor: 'pointer',
+                                color: '#007AFF', fontSize: '17px', fontWeight: 400, padding: 0,
+                                fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
+                            }}>
+                                Cancel
+                            </button>
+                            <h3 style={{
+                                margin: 0, fontSize: '17px', fontWeight: 600, color: '#000',
+                                fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
+                            }}>Edit Item</h3>
+                            <button
+                                disabled={isSavingItem}
+                                onClick={async () => {
+                                    setIsSavingItem(true);
+                                    try {
+                                        const headers = await getAuthHeaders();
+                                        const res = await fetch(`${API}/api/admin/items/${editingItem.id}`, {
+                                            method: 'PATCH',
+                                            headers,
+                                            body: JSON.stringify({
+                                                name: editingItem.name,
+                                                price: editingItem.price,
+                                                link: editingItem.link,
+                                                image: editingItem.image
+                                            })
+                                        });
+                                        const data = await res.json();
+                                        if (data.success) {
+                                            showToast('Item updated successfully!');
+                                            setEditingItem(null);
+                                            setItems(prev => prev.map(item => item.id === editingItem.id ? { ...item, ...data.item } : item));
+                                        } else {
+                                            showToast(data.error || 'Failed to update item', 'error');
+                                        }
+                                    } catch (e) {
+                                        showToast('Network error', 'error');
+                                    } finally {
+                                        setIsSavingItem(false);
+                                    }
+                                }}
+                                style={{
+                                    background: 'transparent', border: 'none', cursor: isSavingItem ? 'not-allowed' : 'pointer',
+                                    color: isSavingItem ? '#999' : '#007AFF', fontSize: '17px', fontWeight: 600, padding: 0,
+                                    display: 'flex', alignItems: 'center', gap: '0.3rem',
+                                    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
+                                }}
+                            >
+                                {isSavingItem ? <RefreshCw size={16} className="spin" /> : null}
+                                Save
+                            </button>
+                        </div>
+                        
+                        {/* iOS Form Body */}
+                        <div style={{
+                            padding: '24px 16px', display: 'flex', flexDirection: 'column', gap: '24px',
+                            maxHeight: window.innerWidth > 768 ? '70vh' : '85vh', overflowY: 'auto'
+                        }}>
+                            {/* Group 1 */}
+                            <div style={{ background: '#FFFFFF', borderRadius: '10px', overflow: 'hidden' }}>
+                                {/* Row: Name */}
+                                <div style={{ display: 'flex', paddingLeft: '16px', alignItems: 'center', minHeight: '44px' }}>
+                                    <span style={{ width: '90px', fontWeight: 400, fontSize: '17px', color: '#000', fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}>Name</span>
+                                    <div style={{ flex: 1, borderBottom: '0.5px solid #C6C6C8', paddingRight: '16px', display: 'flex', alignItems: 'center', minHeight: '44px' }}>
+                                        <input
+                                            type="text"
+                                            value={editingItem.name || ''}
+                                            onChange={(e) => setEditingItem({ ...editingItem, name: e.target.value })}
+                                            style={{ width: '100%', border: 'none', outline: 'none', fontSize: '17px', color: '#000', background: 'transparent', padding: '11px 0', fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}
+                                            placeholder="Item Name"
+                                        />
+                                    </div>
+                                </div>
+                                {/* Row: Price */}
+                                <div style={{ display: 'flex', paddingLeft: '16px', alignItems: 'center', minHeight: '44px' }}>
+                                    <span style={{ width: '90px', fontWeight: 400, fontSize: '17px', color: '#000', fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}>Price</span>
+                                    <div style={{ flex: 1, paddingRight: '16px', display: 'flex', alignItems: 'center', minHeight: '44px' }}>
+                                        <input
+                                            type="number"
+                                            value={editingItem.price || ''}
+                                            onChange={(e) => setEditingItem({ ...editingItem, price: Number(e.target.value) || 0 })}
+                                            style={{ width: '100%', border: 'none', outline: 'none', fontSize: '17px', color: '#000', background: 'transparent', padding: '11px 0', fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}
+                                            placeholder="0"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            {/* Group 2 */}
+                            <div style={{ background: '#FFFFFF', borderRadius: '10px', overflow: 'hidden' }}>
+                                {/* Row: Link */}
+                                <div style={{ display: 'flex', paddingLeft: '16px', alignItems: 'center', minHeight: '44px' }}>
+                                    <span style={{ width: '90px', fontWeight: 400, fontSize: '17px', color: '#000', fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}>URL</span>
+                                    <div style={{ flex: 1, borderBottom: '0.5px solid #C6C6C8', paddingRight: '16px', display: 'flex', alignItems: 'center', minHeight: '44px' }}>
+                                        <input
+                                            type="url"
+                                            value={editingItem.link || ''}
+                                            onChange={(e) => setEditingItem({ ...editingItem, link: e.target.value })}
+                                            style={{ width: '100%', border: 'none', outline: 'none', fontSize: '17px', color: '#007AFF', background: 'transparent', padding: '11px 0', fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}
+                                            placeholder="https://"
+                                        />
+                                    </div>
+                                </div>
+                                {/* Row: Image */}
+                                <div style={{ display: 'flex', paddingLeft: '16px', alignItems: 'flex-start', minHeight: '44px' }}>
+                                    <span style={{ width: '90px', fontWeight: 400, fontSize: '17px', color: '#000', fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif', paddingTop: '11px' }}>Image</span>
+                                    <div style={{ flex: 1, paddingRight: '16px', display: 'flex', alignItems: 'center', minHeight: '44px' }}>
+                                        <textarea
+                                            value={editingItem.image || ''}
+                                            onChange={(e) => setEditingItem({ ...editingItem, image: e.target.value })}
+                                            rows={2}
+                                            style={{ width: '100%', border: 'none', outline: 'none', fontSize: '17px', color: '#007AFF', background: 'transparent', padding: '11px 0', resize: 'none', fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif', wordBreak: 'break-all', lineHeight: '1.4' }}
+                                            placeholder="https://"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            {/* Image Preview */}
+                            {editingItem.image && (
+                                <div style={{ display: 'flex', justifyContent: 'center', marginTop: '-8px', marginBottom: '16px' }}>
+                                    <img src={editingItem.image} alt="Preview" style={{ width: '120px', height: '120px', objectFit: 'cover', borderRadius: '12px', border: '0.5px solid #C6C6C8', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }} />
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
 
             <AlertModal
                 isOpen={grantTargetUserId !== null}

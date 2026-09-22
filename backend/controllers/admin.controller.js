@@ -581,3 +581,30 @@ export const deleteBroadcastHistory = async (req, res) => {
         res.status(500).json({ error: 'Failed to delete broadcast history' });
     }
 };
+
+export const updateItemDetails = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { name, price, link, image } = req.body;
+
+        if (!id) {
+            return res.status(400).json({ error: 'Item ID is required' });
+        }
+
+        const { data, error } = await supabase
+            .from('items')
+            .update({ name, price, link, image })
+            .eq('id', id)
+            .select()
+            .single();
+
+        if (error) {
+            throw error;
+        }
+
+        res.json({ success: true, item: data });
+    } catch (err) {
+        console.error('Admin update item error:', err);
+        res.status(500).json({ error: 'Failed to update item details' });
+    }
+};
