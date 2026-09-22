@@ -754,16 +754,32 @@ export default function AdminPanel() {
                                                         const headers = await getAuthHeaders();
                                                         const res = await fetch(`${API}/api/admin/price-drop/run`, { method: 'POST', headers });
                                                         const data = await res.json();
-                                                        if (data.success) {
-                                                            setPriceAlertStatus(prev => ({ ...prev, lastRun: data.summary.startedAt, lastSummary: data.summary, isRunning: false }));
-                                                            showToast(`Done! ${data.summary.dropsFound} drop(s) found, ${data.summary.notificationsSent} sent.`);
-                                                            fetchItems();
-                                                        } else {
-                                                            showToast(data.error || 'Job failed', 'error');
+                                                        if (!data.started) {
+                                                            showToast(data.error || 'Could not start job', 'error');
+                                                            setPriceAlertRunning(false);
+                                                            return;
                                                         }
+                                                        // Poll until done
+                                                        const poll = setInterval(async () => {
+                                                            try {
+                                                                const ph = await getAuthHeaders();
+                                                                const pr = await fetch(`${API}/api/admin/price-drop/status-live`, { headers: ph });
+                                                                const pd = await pr.json();
+                                                                if (!pd.running) {
+                                                                    clearInterval(poll);
+                                                                    setPriceAlertRunning(false);
+                                                                    if (pd.error) {
+                                                                        showToast('Job error: ' + pd.error, 'error');
+                                                                    } else if (pd.summary) {
+                                                                        setPriceAlertStatus(prev => ({ ...prev, lastRun: pd.summary.startedAt, lastSummary: pd.summary }));
+                                                                        showToast(`Done! ${pd.summary.dropsFound} drop(s) found, ${pd.summary.notificationsSent} sent.`);
+                                                                        fetchItems();
+                                                                    }
+                                                                }
+                                                            } catch { /* ignore poll errors */ }
+                                                        }, 3000);
                                                     } catch (e) {
-                                                        showToast('Network error', 'error');
-                                                    } finally {
+                                                        showToast('Could not reach backend', 'error');
                                                         setPriceAlertRunning(false);
                                                     }
                                                 }}
@@ -849,16 +865,32 @@ export default function AdminPanel() {
                                                             body: JSON.stringify({ itemIds: selectedTargetItems })
                                                         });
                                                         const data = await res.json();
-                                                        if (data.success) {
-                                                            showToast(`Done! ${data.summary.dropsFound} drop(s) found, ${data.summary.notificationsSent} sent.`);
-                                                            setSelectedTargetItems([]);
-                                                            fetchItems();
-                                                        } else {
-                                                            showToast(data.error || 'Job failed', 'error');
+                                                        if (!data.started) {
+                                                            showToast(data.error || 'Could not start job', 'error');
+                                                            setTargetedPriceAlertRunning(false);
+                                                            return;
                                                         }
+                                                        setSelectedTargetItems([]);
+                                                        // Poll until done
+                                                        const poll = setInterval(async () => {
+                                                            try {
+                                                                const ph = await getAuthHeaders();
+                                                                const pr = await fetch(`${API}/api/admin/price-drop/status-live`, { headers: ph });
+                                                                const pd = await pr.json();
+                                                                if (!pd.running) {
+                                                                    clearInterval(poll);
+                                                                    setTargetedPriceAlertRunning(false);
+                                                                    if (pd.error) {
+                                                                        showToast('Job error: ' + pd.error, 'error');
+                                                                    } else if (pd.summary) {
+                                                                        showToast(`Done! ${pd.summary.dropsFound} drop(s) found, ${pd.summary.notificationsSent} sent.`);
+                                                                        fetchItems();
+                                                                    }
+                                                                }
+                                                            } catch { /* ignore poll errors */ }
+                                                        }, 3000);
                                                     } catch (e) {
-                                                        showToast('Network error', 'error');
-                                                    } finally {
+                                                        showToast('Could not reach backend', 'error');
                                                         setTargetedPriceAlertRunning(false);
                                                     }
                                                 }}

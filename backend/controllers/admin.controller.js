@@ -321,19 +321,38 @@ export const toggleBlogPublish = async (req, res) => {
 /* --- Price Drop Admin Handlers --- */
 
 let jobRunning = false;
+// In-memory live status — updated as job runs
+const jobStatus = { running: false, type: null, startedAt: null, summary: null, error: null };
+
+export const getPriceDropStatusLive = (req, res) => {
+    res.json({ ...jobStatus });
+};
+
+async function _runJobAsync(itemIds = []) {
+    if (jobRunning) return; // guard
+    jobRunning = true;
+    jobStatus.running = true;
+    jobStatus.type = itemIds.length > 0 ? 'targeted' : 'global';
+    jobStatus.startedAt = new Date().toISOString();
+    jobStatus.summary = null;
+    jobStatus.error = null;
+    try {
+        const summary = await runPriceDrop(itemIds);
+        jobStatus.summary = summary;
+    } catch (err) {
+        console.error('[Admin] job async error:', err.message);
+        jobStatus.error = err.message;
+    } finally {
+        jobRunning = false;
+        jobStatus.running = false;
+    }
+}
 
 export const runPriceDropNow = async (req, res) => {
     if (jobRunning) return res.status(409).json({ error: 'Job is already running. Please wait.' });
-    jobRunning = true;
-    try {
-        const summary = await runPriceDrop();
-        res.json({ success: true, summary });
-    } catch (err) {
-        console.error('[Admin] runPriceDropNow error:', err.message);
-        res.status(500).json({ error: 'Job failed: ' + err.message });
-    } finally {
-        jobRunning = false;
-    }
+    // Fire and forget — do NOT await
+    _runJobAsync([]);
+    res.json({ started: true });
 };
 
 export const runTargetedPriceDrop = async (req, res) => {
@@ -341,18 +360,10 @@ export const runTargetedPriceDrop = async (req, res) => {
     if (!itemIds || !Array.isArray(itemIds) || itemIds.length === 0) {
         return res.status(400).json({ error: 'Valid itemIds array is required' });
     }
-    
     if (jobRunning) return res.status(409).json({ error: 'Job is already running. Please wait.' });
-    jobRunning = true;
-    try {
-        const summary = await runPriceDrop(itemIds);
-        res.json({ success: true, summary });
-    } catch (err) {
-        console.error('[Admin] runTargetedPriceDrop error:', err.message);
-        res.status(500).json({ error: 'Job failed: ' + err.message });
-    } finally {
-        jobRunning = false;
-    }
+    // Fire and forget — do NOT await
+    _runJobAsync(itemIds);
+    res.json({ started: true });
 };
 
 // Scheduler functions removed

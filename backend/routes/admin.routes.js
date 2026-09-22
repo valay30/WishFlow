@@ -1,6 +1,6 @@
 import express from 'express';
 import { adminGuard } from '../middleware/adminGuard.js';
-import { getAllUsers, grantPremium, revokePremium, deleteUser, getActivityFeed, getAllItems, getAllBlogPosts, createBlogPost, updateBlogPost, deleteBlogPost, toggleBlogPublish, runPriceDropNow, runTargetedPriceDrop, toggleGlobalFeature, updateGlobalSetting, broadcastNotification, getBroadcastHistory, deleteBroadcastHistory } from '../controllers/admin.controller.js';
+import { getAllUsers, grantPremium, revokePremium, deleteUser, getActivityFeed, getAllItems, getAllBlogPosts, createBlogPost, updateBlogPost, deleteBlogPost, toggleBlogPublish, runPriceDropNow, runTargetedPriceDrop, getPriceDropStatusLive, toggleGlobalFeature, updateGlobalSetting, broadcastNotification, getBroadcastHistory, deleteBroadcastHistory } from '../controllers/admin.controller.js';
 
 const router = express.Router();
 
@@ -24,6 +24,7 @@ router.patch('/blog/:id/publish', toggleBlogPublish);
 // Price Drop Alerts
 router.post('/price-drop/run', runPriceDropNow);
 router.post('/price-drop/run-targeted', runTargetedPriceDrop);
+router.get('/price-drop/status-live', getPriceDropStatusLive);
 router.patch('/feature/toggle', toggleGlobalFeature);
 router.patch('/setting/update', updateGlobalSetting);
 router.post('/broadcast-notification', broadcastNotification);
