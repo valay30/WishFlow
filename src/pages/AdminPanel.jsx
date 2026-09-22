@@ -56,6 +56,9 @@ export default function AdminPanel() {
     const [priceAlertStatus, setPriceAlertStatus] = useState(null);
     const [priceAlertLoading, setPriceAlertLoading] = useState(false);
     const [priceAlertRunning, setPriceAlertRunning] = useState(false);
+    const [targetedItemSearch, setTargetedItemSearch] = useState('');
+    const [selectedTargetItems, setSelectedTargetItems] = useState([]);
+    const [targetedPriceAlertRunning, setTargetedPriceAlertRunning] = useState(false);
     const [roastFeatureEnabled, setRoastFeatureEnabled] = useState(true);
     const [togglingRoast, setTogglingRoast] = useState(false);
     const [roastEnabledThemes, setRoastEnabledThemes] = useState([]);
@@ -468,15 +471,7 @@ export default function AdminPanel() {
                                             .then(d => {
                                                 setPriceAlertStatus(d);
                                                 if (d.cronExpression) {
-                                                    const parts = d.cronExpression.split(' ');
-                                                    if (parts.length >= 2) {
-                                                        const utcH = parseInt(parts[1]) || 19;
-                                                        const utcM = parseInt(parts[0]) || 30;
-                                                        const istM = (utcM + 30) % 60;
-                                                        const istH = (utcH + 5 + (utcM + 30 >= 60 ? 1 : 0)) % 24;
-                                                        setScheduleHour(istH);
-                                                        setScheduleMinute(istM);
-                                                    }
+                                                    // Scheduler configuration removed
                                                 }
                                             })
                                             .catch(() => { })
@@ -558,21 +553,8 @@ export default function AdminPanel() {
                                 .then(r => r.json())
                                 .then(d => {
                                     setPriceAlertStatus(d);
-                                    // Parse cron to set time pickers
                                     if (d.cronExpression) {
-                                        const parts = d.cronExpression.split(' ');
-                                        if (parts.length >= 2) {
-                                            const utcH = parseInt(parts[1]) || 19;
-                                            const utcM = parseInt(parts[0]) || 30;
-                                            // Convert UTC to IST (+5:30)
-                                            const istM = (utcM + 30) % 60;
-                                            const istH = (utcH + 5 + (utcM + 30 >= 60 ? 1 : 0)) % 24;
-                                            setScheduleHour(istH);
-                                            setScheduleMinute(istM);
-                                        }
-                                    }
-                                    if (d.schedulerEnabled !== undefined) {
-                                        setSchedulerEnabled(d.schedulerEnabled);
+                                        // Scheduler configuration removed
                                     }
 
                                 })
@@ -673,34 +655,15 @@ export default function AdminPanel() {
 
                 {/* Price Alerts tab content */}
                 {activeTab === 'price-alerts' && (
-                    <div style={{ width: '100%' }}>
-                        {/* ── Hero Banner ── */}
-                        <div style={{
-                            background: 'linear-gradient(135deg, #92400e 0%, #d97706 50%, #f59e0b 100%)',
-                            borderRadius: '24px',
-                            padding: '2rem 2.5rem',
-                            marginBottom: '2rem',
-                            position: 'relative',
-                            overflow: 'hidden',
-                            boxShadow: '0 20px 40px -12px rgba(217, 119, 6, 0.35)',
-                        }}>
-                            {/* Decorative blobs */}
-                            <div style={{ position: 'absolute', top: '-40px', right: '-40px', width: '180px', height: '180px', borderRadius: '50%', background: 'rgba(255,255,255,0.07)', pointerEvents: 'none' }} />
-                            <div style={{ position: 'absolute', bottom: '-30px', right: '120px', width: '100px', height: '100px', borderRadius: '50%', background: 'rgba(255,255,255,0.05)', pointerEvents: 'none' }} />
-                            <div style={{ position: 'relative', zIndex: 1 }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
-                                    <div style={{ background: 'rgba(255,255,255,0.2)', borderRadius: '12px', padding: '0.5rem', display: 'flex' }}>
-                                        <TrendingDown size={22} color="#fff" />
-                                    </div>
-                                    <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'rgba(255,255,255,0.8)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Price Intelligence</span>
-                                </div>
-                                <h1 style={{ margin: '0 0 0.4rem', fontSize: 'clamp(1.5rem, 4vw, 2.25rem)', fontWeight: 900, color: '#fff', letterSpacing: '-0.03em', lineHeight: 1.1 }}>
-                                    Price Drop Alerts
-                                </h1>
-                                <p style={{ margin: 0, color: 'rgba(255,255,255,0.8)', fontSize: '0.95rem', maxWidth: '480px', lineHeight: 1.6 }}>
-                                    Automatically re-scrapes saved items and sends push notifications the moment a price drops.
-                                </p>
-                            </div>
+                    <div className="pa-main-container" style={{ width: '100%', background: '#F2F2F7', borderRadius: '24px', minHeight: '80vh', boxSizing: 'border-box' }}>
+                        {/* ── Apple Style Header ── */}
+                        <div style={{ marginBottom: '2.5rem' }}>
+                            <h1 style={{ margin: '0 0 0.4rem', fontSize: '2.3rem', fontWeight: 700, color: '#000', letterSpacing: '-0.04em' }}>
+                                Price Drop Alerts
+                            </h1>
+                            <p style={{ margin: 0, color: '#8E8E93', fontSize: '1.05rem', maxWidth: '500px', lineHeight: 1.4 }}>
+                                Automatically re-scrapes saved items and sends push notifications the moment a price drops.
+                            </p>
                         </div>
 
                         {priceAlertLoading ? (
@@ -737,15 +700,13 @@ export default function AdminPanel() {
                                             },
                                         ].map(card => (
                                             <div key={card.label} style={{
-                                                background: 'var(--surface)',
-                                                border: '1px solid #f1f5f9',
-                                                borderRadius: '18px',
+                                                background: '#ffffff',
+                                                borderRadius: '20px',
                                                 padding: '1.25rem',
-                                                boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+                                                boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
                                                 display: 'flex',
                                                 flexDirection: 'column',
                                                 gap: '0.5rem',
-                                                transition: 'transform 0.2s, box-shadow 0.2s',
                                             }}>
                                                 <div style={{
                                                     width: '36px', height: '36px',
@@ -762,82 +723,183 @@ export default function AdminPanel() {
                                 )}
 
                                 {/* ── Two Column Layout ── */}
-                                <div className="pa-two-col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem', alignItems: 'start' }}>
+                                <div className="pa-two-col" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: '1.5rem', alignItems: 'stretch', boxSizing: 'border-box' }}>
 
                                     {/* Run Now Card */}
-                                    <div style={{ background: 'var(--surface)', border: '1px solid #f1f5f9', borderRadius: '20px', padding: '1.75rem', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.5rem' }}>
-                                            <div style={{ width: '32px', height: '32px', background: 'linear-gradient(135deg, #fef3c7, #fde68a)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem' }}>⚡</div>
-                                            <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 800, color: '#0f172a' }}>Run Job Now</h3>
-                                        </div>
-                                        <p style={{ margin: '0 0 1.5rem', color: '#64748b', fontSize: '0.875rem', lineHeight: 1.6 }}>
-                                            Manually trigger a full price check for all saved items with product links.
-                                        </p>
-
-                                        {/* Progress indicator when running */}
-                                        {priceAlertRunning && (
-                                            <div style={{ background: '#fef3c7', borderRadius: '12px', padding: '0.85rem 1rem', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.75rem', border: '1px solid #fde68a' }}>
-                                                <div style={{ width: '14px', height: '14px', border: '2px solid #d97706', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.7s linear infinite', flexShrink: 0 }} />
-                                                <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#92400e' }}>Scanning products... This may take a few minutes.</span>
+                                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                        <span style={{ marginLeft: '1rem', marginBottom: '0.5rem', fontSize: '0.8rem', fontWeight: 600, color: '#8E8E93', textTransform: 'uppercase' }}>Global Action</span>
+                                        <div className="pa-card" style={{ background: '#ffffff', borderRadius: '16px', display: 'flex', flexDirection: 'column', height: '100%' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
+                                                <div style={{ width: '30px', height: '30px', background: '#F2F2F7', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem' }}>⚡</div>
+                                                <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 600, color: '#000' }}>Run Job Now</h3>
                                             </div>
-                                        )}
+                                            <p style={{ margin: '0 0 1.5rem', color: '#8E8E93', fontSize: '0.9rem', lineHeight: 1.4 }}>
+                                                Manually trigger a full price check for all saved items with product links.
+                                            </p>
 
-                                        <button
-                                            id="price-drop-run-now"
-                                            disabled={priceAlertRunning}
-                                            onClick={async () => {
-                                                setPriceAlertRunning(true);
-                                                try {
-                                                    const headers = await getAuthHeaders();
-                                                    const res = await fetch(`${API}/api/admin/price-drop/run`, { method: 'POST', headers });
-                                                    const data = await res.json();
-                                                    if (data.success) {
-                                                        setPriceAlertStatus(prev => ({ ...prev, lastRun: data.summary.startedAt, lastSummary: data.summary, isRunning: false }));
-                                                        showToast(`Done! ${data.summary.dropsFound} drop(s) found, ${data.summary.notificationsSent} sent.`);
-                                                        fetchItems();
-                                                    } else {
-                                                        showToast(data.error || 'Job failed', 'error');
+                                            {/* Progress indicator when running */}
+                                            {priceAlertRunning && (
+                                                <div style={{ background: '#F2F2F7', borderRadius: '12px', padding: '0.85rem 1rem', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                                    <div style={{ width: '14px', height: '14px', border: '2px solid #8E8E93', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.7s linear infinite', flexShrink: 0 }} />
+                                                    <span style={{ fontSize: '0.85rem', fontWeight: 500, color: '#3A3A3C' }}>Scanning products... This may take a few minutes.</span>
+                                                </div>
+                                            )}
+
+                                            <button
+                                                id="price-drop-run-now"
+                                                disabled={priceAlertRunning}
+                                                onClick={async () => {
+                                                    setPriceAlertRunning(true);
+                                                    try {
+                                                        const headers = await getAuthHeaders();
+                                                        const res = await fetch(`${API}/api/admin/price-drop/run`, { method: 'POST', headers });
+                                                        const data = await res.json();
+                                                        if (data.success) {
+                                                            setPriceAlertStatus(prev => ({ ...prev, lastRun: data.summary.startedAt, lastSummary: data.summary, isRunning: false }));
+                                                            showToast(`Done! ${data.summary.dropsFound} drop(s) found, ${data.summary.notificationsSent} sent.`);
+                                                            fetchItems();
+                                                        } else {
+                                                            showToast(data.error || 'Job failed', 'error');
+                                                        }
+                                                    } catch (e) {
+                                                        showToast('Network error', 'error');
+                                                    } finally {
+                                                        setPriceAlertRunning(false);
                                                     }
-                                                } catch (e) {
-                                                    showToast('Network error', 'error');
-                                                } finally {
-                                                    setPriceAlertRunning(false);
-                                                }
-                                            }}
-                                            style={{
-                                                width: '100%',
-                                                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.6rem',
-                                                padding: '0.9rem 1.5rem',
-                                                background: priceAlertRunning
-                                                    ? '#f1f5f9'
-                                                    : 'linear-gradient(135deg, #d97706, #f59e0b)',
-                                                color: priceAlertRunning ? '#94a3b8' : '#fff',
-                                                border: 'none', borderRadius: '14px',
-                                                fontWeight: 700, fontSize: '0.95rem',
-                                                cursor: priceAlertRunning ? 'not-allowed' : 'pointer',
-                                                transition: 'all 0.25s',
-                                                boxShadow: priceAlertRunning ? 'none' : '0 4px 12px rgba(217,119,6,0.3)',
-                                                fontFamily: 'inherit',
-                                            }}
-                                        >
-                                            {priceAlertRunning
-                                                ? <><RefreshCw size={17} style={{ animation: 'spin 1s linear infinite' }} /> Scanning…</>
-                                                : <><Play size={17} fill="currentColor" /> Run Price Check</>}
-                                        </button>
+                                                }}
+                                                style={{
+                                                    width: '100%',
+                                                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
+                                                    padding: '0.85rem 1rem',
+                                                    background: priceAlertRunning ? '#F2F2F7' : '#007AFF',
+                                                    color: priceAlertRunning ? '#8E8E93' : '#fff',
+                                                    border: 'none', borderRadius: '12px',
+                                                    fontWeight: 600, fontSize: '1rem',
+                                                    cursor: priceAlertRunning ? 'not-allowed' : 'pointer',
+                                                    transition: 'opacity 0.2s',
+                                                    fontFamily: 'inherit',
+                                                    marginTop: 'auto',
+                                                    boxSizing: 'border-box'
+                                                }}
+                                            >
+                                                {priceAlertRunning
+                                                    ? <><RefreshCw size={17} style={{ animation: 'spin 1s linear infinite' }} /> Scanning…</>
+                                                    : 'Run Price Check'}
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    {/* Targeted Check Card */}
+                                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                        <span style={{ marginLeft: '1rem', marginBottom: '0.5rem', fontSize: '0.8rem', fontWeight: 600, color: '#8E8E93', textTransform: 'uppercase' }}>Targeted Check</span>
+                                        <div className="pa-card" style={{ background: '#ffffff', borderRadius: '16px', display: 'flex', flexDirection: 'column', height: '100%', boxSizing: 'border-box' }}>
+                                            <div style={{ position: 'relative', marginBottom: '1rem' }}>
+                                                <Search size={18} color="#8E8E93" style={{ position: 'absolute', left: '0.85rem', top: '50%', transform: 'translateY(-50%)' }} />
+                                                <input
+                                                    type="text"
+                                                    placeholder="Search item or user email..."
+                                                    value={targetedItemSearch}
+                                                    onChange={(e) => setTargetedItemSearch(e.target.value)}
+                                                    style={{
+                                                        width: '100%', padding: '0.75rem 1rem 0.75rem 2.5rem', borderRadius: '10px', border: 'none', background: '#F2F2F7',
+                                                        fontSize: '1rem', outline: 'none', color: '#000'
+                                                    }}
+                                                />
+                                            </div>
 
+                                            <div style={{
+                                                flex: 1, maxHeight: '240px', overflowY: 'auto', border: '1px solid #E5E5EA',
+                                                borderRadius: '12px', marginBottom: '1.25rem', padding: '0',
+                                            }}>
+                                                {items
+                                                    .filter(i => i.link && (i.name?.toLowerCase().includes(targetedItemSearch.toLowerCase()) || users.find(u => u.id === i.user_id)?.email?.toLowerCase().includes(targetedItemSearch.toLowerCase())))
+                                                    .slice(0, 50)
+                                                    .map((item, idx, arr) => {
+                                                        const userEmail = users.find(u => u.id === item.user_id)?.email || 'Unknown User';
+                                                        const isSelected = selectedTargetItems.includes(item.id);
+                                                        return (
+                                                            <label key={item.id} onClick={(e) => { e.preventDefault(); if (isSelected) setSelectedTargetItems(selectedTargetItems.filter(id => id !== item.id)); else setSelectedTargetItems([...selectedTargetItems, item.id]); }} style={{
+                                                                display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.75rem 1rem', borderBottom: idx === arr.length - 1 ? 'none' : '1px solid #E5E5EA',
+                                                                cursor: 'pointer', background: 'transparent',
+                                                            }}>
+                                                                <div style={{ 
+                                                                    width: '22px', height: '22px', borderRadius: '50%', border: isSelected ? 'none' : '1px solid #C7C7CC', 
+                                                                    background: isSelected ? '#007AFF' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
+                                                                }}>
+                                                                    {isSelected && <Check size={14} color="#fff" strokeWidth={3} />}
+                                                                </div>
+                                                                <div style={{ minWidth: 0, flex: 1 }}>
+                                                                    <div style={{ fontSize: '0.95rem', fontWeight: 400, color: '#000', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.name}</div>
+                                                                    <div style={{ fontSize: '0.85rem', color: '#8E8E93', marginTop: '0.1rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{userEmail} &bull; <span style={{ color: '#3A3A3C' }}>Rs.{item.price}</span></div>
+                                                                </div>
+                                                            </label>
+                                                        );
+                                                    })}
+                                            </div>
+
+                                            <button
+                                                disabled={targetedPriceAlertRunning || selectedTargetItems.length === 0}
+                                                onClick={async () => {
+                                                    setTargetedPriceAlertRunning(true);
+                                                    try {
+                                                        const headers = await getAuthHeaders();
+                                                        const res = await fetch(`${API}/api/admin/price-drop/run-targeted`, {
+                                                            method: 'POST',
+                                                            headers,
+                                                            body: JSON.stringify({ itemIds: selectedTargetItems })
+                                                        });
+                                                        const data = await res.json();
+                                                        if (data.success) {
+                                                            showToast(`Done! ${data.summary.dropsFound} drop(s) found, ${data.summary.notificationsSent} sent.`);
+                                                            setSelectedTargetItems([]);
+                                                            fetchItems();
+                                                        } else {
+                                                            showToast(data.error || 'Job failed', 'error');
+                                                        }
+                                                    } catch (e) {
+                                                        showToast('Network error', 'error');
+                                                    } finally {
+                                                        setTargetedPriceAlertRunning(false);
+                                                    }
+                                                }}
+                                                style={{
+                                                    width: '100%',
+                                                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
+                                                    padding: '0.85rem 1rem',
+                                                    background: targetedPriceAlertRunning || selectedTargetItems.length === 0 ? '#F2F2F7' : '#007AFF',
+                                                    color: targetedPriceAlertRunning || selectedTargetItems.length === 0 ? '#8E8E93' : '#fff',
+                                                    border: 'none', borderRadius: '12px',
+                                                    fontWeight: 600, fontSize: '1rem',
+                                                    cursor: targetedPriceAlertRunning || selectedTargetItems.length === 0 ? 'not-allowed' : 'pointer',
+                                                    fontFamily: 'inherit',
+                                                    marginTop: 'auto',
+                                                    boxSizing: 'border-box'
+                                                }}
+                                            >
+                                                {targetedPriceAlertRunning
+                                                    ? <><RefreshCw size={17} style={{ animation: 'spin 1s linear infinite' }} /> Scanning…</>
+                                                    : `Run for ${selectedTargetItems.length} Item${selectedTargetItems.length !== 1 ? 's' : ''}`}
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
 
                                 {/* Responsive CSS for this tab */}
                                 <style>{`
+                            .pa-main-container { padding: 2.5rem; }
+                            .pa-card { padding: 1.5rem; box-sizing: border-box; width: 100%; max-width: 100%; overflow: hidden; }
                             .pa-stats-grid { grid-template-columns: repeat(4, 1fr); }
-                            .pa-two-col { grid-template-columns: 1fr 1fr; }
+                            .pa-two-col { grid-template-columns: 1fr 1fr; width: 100%; max-width: 100%; }
                             .pa-how-grid { grid-template-columns: repeat(4, 1fr); }
+                            .pa-list-item-text { flex: 1; min-width: 0; }
+                            .pa-list-item-title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
                             @media (max-width: 900px) {
                                 .pa-stats-grid { grid-template-columns: repeat(2, 1fr) !important; }
                                 .pa-how-grid { grid-template-columns: repeat(2, 1fr) !important; }
                             }
                             @media (max-width: 600px) {
+                                .pa-main-container { padding: 1.25rem !important; }
+                                .pa-card { padding: 1.25rem !important; }
                                 .pa-stats-grid { 
                                     display: grid !important;
                                     grid-template-columns: repeat(4, 1fr) !important;
@@ -866,7 +928,7 @@ export default function AdminPanel() {
                                 .pa-stats-grid > div:nth-child(1) > p:nth-child(3) {
                                     font-size: 0.7rem !important;
                                 }
-                                .pa-two-col { grid-template-columns: 1fr !important; }
+                                .pa-two-col { grid-template-columns: minmax(0, 1fr) !important; gap: 1.25rem !important; }
                                 .pa-how-grid { grid-template-columns: repeat(2, 1fr) !important; }
                             }
                             @keyframes shimmer {

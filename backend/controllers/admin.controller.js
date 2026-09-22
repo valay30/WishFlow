@@ -336,6 +336,25 @@ export const runPriceDropNow = async (req, res) => {
     }
 };
 
+export const runTargetedPriceDrop = async (req, res) => {
+    const { itemIds } = req.body;
+    if (!itemIds || !Array.isArray(itemIds) || itemIds.length === 0) {
+        return res.status(400).json({ error: 'Valid itemIds array is required' });
+    }
+    
+    if (jobRunning) return res.status(409).json({ error: 'Job is already running. Please wait.' });
+    jobRunning = true;
+    try {
+        const summary = await runPriceDrop(itemIds);
+        res.json({ success: true, summary });
+    } catch (err) {
+        console.error('[Admin] runTargetedPriceDrop error:', err.message);
+        res.status(500).json({ error: 'Job failed: ' + err.message });
+    } finally {
+        jobRunning = false;
+    }
+};
+
 // Scheduler functions removed
 export const toggleGlobalFeature = async (req, res) => {
     const { key, enabled } = req.body;

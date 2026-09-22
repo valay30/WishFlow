@@ -708,12 +708,18 @@ export async function scrapePriceOnly(url) {
         const directPromise = fetchDirect(url, 15000).catch(() => null);
         const proxyPromise = isDifficultDomain ? fetchViaProxy(url).catch(() => null) : Promise.resolve(null);
 
-        const HARD_TIMEOUT = new Promise((_, reject) => setTimeout(() => reject(new Error('Hard timeout exceeded')), 30000));
+        let hardTimeoutId;
+        const HARD_TIMEOUT = new Promise((_, reject) => {
+            hardTimeoutId = setTimeout(() => reject(new Error('Hard timeout exceeded')), 30000);
+        });
         
         let directResult = null;
         try {
             directResult = await Promise.race([directPromise, HARD_TIMEOUT]);
-        } catch { }
+        } catch { 
+        } finally {
+            clearTimeout(hardTimeoutId);
+        }
 
         let html = directResult?.html || '';
         let finalUrl = directResult?.finalUrl || url;

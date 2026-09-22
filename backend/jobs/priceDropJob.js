@@ -41,25 +41,32 @@ async function runWithConcurrency(tasks, limit = 5) {
     return Promise.all(results);
 }
 
-export async function runPriceDrop() {
+export async function runPriceDrop(itemIds = []) {
     const startedAt = new Date().toISOString();
-    console.log(`[PriceDrop] Job started at ${startedAt}`);
+    const isTargeted = itemIds && itemIds.length > 0;
+    console.log(`[PriceDrop] Job started at ${startedAt}${isTargeted ? ' (Targeted)' : ''}`);
 
     const summary = { startedAt, itemsChecked: 0, dropsFound: 0, notificationsSent: 0, errors: 0, finishedAt: null };
 
     try {
-        const { data: items, error } = await supabase
+        let query = supabase
             .from("items")
             .select("id, name, link, price, user_id, image")
             .not("link", "is", null)
             .not("price", "is", null)
             .gt("price", 0);
 
+        if (isTargeted) {
+            query = query.in("id", itemIds);
+        }
+
+        const { data: items, error } = await query;
+
         if (error) throw error;
 
         if (!items || items.length === 0) {
             summary.finishedAt = new Date().toISOString();
-            await saveSummary(summary);
+            if (!isTargeted) await saveSummary(summary);
             return summary;
         }
 
@@ -115,7 +122,7 @@ export async function runPriceDrop() {
 
     summary.finishedAt = new Date().toISOString();
     console.log(`[PriceDrop] Done. Checked: ${summary.itemsChecked}, Drops: ${summary.dropsFound}, Sent: ${summary.notificationsSent}`);
-    await saveSummary(summary);
+    if (!isTargeted) await saveSummary(summary);
     return summary;
 }
 
