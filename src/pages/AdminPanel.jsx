@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import SEO from '../components/SEO';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
 import {
@@ -404,6 +405,7 @@ export default function AdminPanel() {
 
     return (
         <div className="admin-container" style={{ display: 'flex', minHeight: '100vh', background: 'var(--surface)', fontFamily: "'Outfit', sans-serif", color: 'var(--text)' }}>
+            <SEO title="Admin Panel" description="Manage WishFlow users, content, and application settings." />
             {/* Mobile Header Bar */}
             <div className="admin-mobile-header" style={{ display: 'none', alignItems: 'center', justifyContent: 'space-between', padding: '1rem 1.5rem', background: 'var(--surface)', position: 'sticky', top: 0, zIndex: 100 }}>
                 <button

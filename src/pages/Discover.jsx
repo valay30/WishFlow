@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
+import SEO from '../components/SEO';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
 import { useIsland } from '../context/IslandContext';
@@ -442,6 +443,7 @@ export default function Discover() {
 
     return (
         <div style={{ minHeight: 'calc(100vh + 350px)', background: 'var(--bg)', paddingBottom: 'calc(var(--bottom-nav) + 1rem)', fontFamily: FONT }}>
+            <SEO title="Discover" description="Discover trending products, popular wishlists, and curated collections shared by the community." />
             <style>{`
                 @keyframes disc-shimmer {
                     0%   { background-position: 200% 0; }

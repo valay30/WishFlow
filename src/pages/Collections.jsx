@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import SEO from '../components/SEO';
 import { createPortal } from 'react-dom';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { db } from '../db';
@@ -805,6 +806,7 @@ export default function Collections() {
     /* ── Main Collections grid ── */
     return (
         <PullToRefresh onRefresh={reload}>
+            <SEO title="Collections" description="Organize your wishlist into beautiful collections for any occasion, from birthdays to festivals." />
         <div style={{ minHeight: '100vh', background: BG, padding: '0 0 var(--bottom-nav)' }}>
 
             {/* Page Header */}

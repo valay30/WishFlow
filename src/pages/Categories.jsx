@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import SEO from '../components/SEO';
 import { db } from '../db';
 import { Trash2, Edit2, Plus, X, Check, ArrowLeft, Tag, Layers, GripVertical, LayoutGrid, LayoutList } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -388,6 +389,7 @@ export default function Categories() {
 
     return (
         <div style={{ minHeight: '100%', background: BG }}>
+            <SEO title="Categories" description="Browse your wishlist items organized neatly by category for a seamless shopping experience." />
             {/* ── Hero Section ── */}
             <div style={{
                 background: `linear-gradient(160deg, color-mix(in srgb, var(--primary) 40%, #000) 0%, color-mix(in srgb, var(--primary) 70%, #000) 55%, var(--primary) 100%)`,

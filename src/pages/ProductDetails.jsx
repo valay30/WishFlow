@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import SEO from '../components/SEO';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { db } from '../db';
 import { Trash2, Edit, ArrowLeft, ExternalLink, Upload, X, Check, PackageCheck, Copy, Share2 } from 'lucide-react';
@@ -432,6 +433,7 @@ export default function ProductDetails() {
 
     return (
         <div style={{ minHeight: '100%', background: `linear-gradient(160deg, var(--primary-dk) 0%, var(--primary-dk) 45%, var(--primary) 100%)`, display: 'flex', flexDirection: 'column' }}>
+            <SEO title="Product Details" description="View specific details, price history, and availability of your saved product." />
 
             {/* ── Back Button ── */}
             <div style={{ padding: '1.5rem 2rem 0' }}>

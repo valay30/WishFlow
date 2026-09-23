@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import SEO from '../components/SEO';
 import { createPortal } from 'react-dom';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
@@ -231,6 +232,7 @@ export default function Profile() {
 
     return (
         <div style={{ minHeight: '100%', background: BG }}>
+            <SEO title="Profile" description="Manage your WishFlow account, upgrade to Premium, and customize your wishlist settings." />
             {/* ── Hero Section ── */}
             <div style={{
                 background: `linear-gradient(160deg, var(--primary-dk) 0%, var(--primary-dk) 45%, var(--primary) 100%)`,

@@ -40,6 +40,7 @@ const Discover = lazy(() => import('./pages/Discover'));
 const Blog = lazy(() => import('./pages/Blog'));
 const BlogPost = lazy(() => import('./pages/BlogPost'));
 const RoastPreview = lazy(() => import('./pages/RoastPreview'));
+const NotFound = lazy(() => import('./pages/NotFound'));
 // ────────────────────────────────────────────────────────────────────────────
 
 /** Minimal full-screen spinner shown while a lazy page chunk is loading */
@@ -211,6 +212,9 @@ function AppRoutes() {
             {/* Admin — own full-page layout */}
             <Route path="/admin" element={<AdminPanel />} />
           </Route>
+
+          {/* ── Global 404 Catch-All ── */}
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>
 

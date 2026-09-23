@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
+import SEO from '../components/SEO';
 import { createPortal } from 'react-dom';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { db, supabase } from '../db';
@@ -442,6 +443,7 @@ export default function Home() {
 
     return (
         <>
+            <SEO title="Home" description="View and manage your saved wishlist items, track price drops, and keep everything you love in one place." />
             {/* ── Modal ── */}
             {shouldShowAddModal && <AddProductModal categories={categories} onAdd={handleAdd} onClose={closeModal} shareUrl={shareUrl} />}
 
@@ -505,53 +507,53 @@ export default function Home() {
                             boxSizing: 'border-box'
                         }}>
                             <ElasticScroll gap="2px" style={{ minWidth: '100%' }}>
-                                    {catCards.map(cat => {
-                                        const isActive = cat.id === null ? selectedCategory === null : selectedCategory === cat.id;
-                                        return (
-                                            <button
-                                                key={cat.id ?? 'all'}
-                                                onClick={(e) => {
-                                                    selectCat(cat.id);
-                                                    e.currentTarget.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
-                                                }}
-                                                style={{
-                                                    position: 'relative',
-                                                    flexShrink: 0,
-                                                    flex: 1,
-                                                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.45rem',
-                                                    padding: '0.5rem 1.15rem',
-                                                    borderRadius: '10px',
-                                                    border: 'none',
-                                                    background: 'transparent',
-                                                    color: isActive ? (darkMode ? '#fff' : '#000') : 'var(--text-dim)',
-                                                    fontWeight: isActive ? 800 : 600,
-                                                    fontSize: '0.85rem',
-                                                    fontFamily: 'inherit',
-                                                    cursor: 'pointer',
-                                                    transition: 'color 0.2s ease',
-                                                    whiteSpace: 'nowrap',
-                                                    zIndex: 1
-                                                }}
-                                            >
-                                                {isActive && (
-                                                    <motion.div
-                                                        layoutId="activeCategoryTab"
-                                                        style={{
-                                                            position: 'absolute',
-                                                            inset: 0,
-                                                            background: darkMode ? '#333' : '#fff',
-                                                            borderRadius: '10px',
-                                                            boxShadow: darkMode ? '0 2px 10px rgba(0,0,0,0.5)' : '0 2px 8px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04)',
-                                                            zIndex: -1
-                                                        }}
-                                                        transition={{ type: 'spring', stiffness: 500, damping: 35 }}
-                                                    />
-                                                )}
-                                                {cat.id !== null && <GetCategoryIcon name={cat.name} size={15} color={isActive ? (darkMode ? '#fff' : '#000') : 'var(--text-dim)'} style={{ position: 'relative', zIndex: 1 }} />}
-                                                <span style={{ position: 'relative', zIndex: 1 }}>{cat.name}</span>
-                                            </button>
-                                        );
-                                    })}
+                                {catCards.map(cat => {
+                                    const isActive = cat.id === null ? selectedCategory === null : selectedCategory === cat.id;
+                                    return (
+                                        <button
+                                            key={cat.id ?? 'all'}
+                                            onClick={(e) => {
+                                                selectCat(cat.id);
+                                                e.currentTarget.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+                                            }}
+                                            style={{
+                                                position: 'relative',
+                                                flexShrink: 0,
+                                                flex: 1,
+                                                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.45rem',
+                                                padding: '0.5rem 1.15rem',
+                                                borderRadius: '10px',
+                                                border: 'none',
+                                                background: 'transparent',
+                                                color: isActive ? (darkMode ? '#fff' : '#000') : 'var(--text-dim)',
+                                                fontWeight: isActive ? 800 : 600,
+                                                fontSize: '0.85rem',
+                                                fontFamily: 'inherit',
+                                                cursor: 'pointer',
+                                                transition: 'color 0.2s ease',
+                                                whiteSpace: 'nowrap',
+                                                zIndex: 1
+                                            }}
+                                        >
+                                            {isActive && (
+                                                <motion.div
+                                                    layoutId="activeCategoryTab"
+                                                    style={{
+                                                        position: 'absolute',
+                                                        inset: 0,
+                                                        background: darkMode ? '#333' : '#fff',
+                                                        borderRadius: '10px',
+                                                        boxShadow: darkMode ? '0 2px 10px rgba(0,0,0,0.5)' : '0 2px 8px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04)',
+                                                        zIndex: -1
+                                                    }}
+                                                    transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+                                                />
+                                            )}
+                                            {cat.id !== null && <GetCategoryIcon name={cat.name} size={15} color={isActive ? (darkMode ? '#fff' : '#000') : 'var(--text-dim)'} style={{ position: 'relative', zIndex: 1 }} />}
+                                            <span style={{ position: 'relative', zIndex: 1 }}>{cat.name}</span>
+                                        </button>
+                                    );
+                                })}
                             </ElasticScroll>
                         </div>
 

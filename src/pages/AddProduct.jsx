@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import SEO from '../components/SEO';
 import { createPortal } from 'react-dom';
 import { db, supabase } from '../db';
 import { Upload, X, ArrowLeft, Sparkles, Crown } from 'lucide-react';
@@ -178,6 +179,7 @@ export default function AddProduct() {
 
     return (
         <div className="form-page-layout">
+            <SEO title="Add Item" description="Quickly save any product to your wishlist by pasting the URL from any shopping website." />
             <button
                 onClick={() => navigate(-1)}
                 className="btn btn-ghost"

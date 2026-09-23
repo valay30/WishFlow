@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import SEO from '../components/SEO';
 import { db } from '../db';
 import { Package, ArrowLeft, Trash2, RotateCcw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -56,6 +57,7 @@ export default function Archive() {
 
     return (
         <div style={{ minHeight: '100%', background: BG }}>
+            <SEO title="Archive" description="Access your archived wishlist items that you've purchased or saved for later." />
             {/* ── Hero Section ── */}
             <div style={{
                 background: `linear-gradient(160deg, color-mix(in srgb, var(--primary) 40%, #000) 0%, color-mix(in srgb, var(--primary) 70%, #000) 55%, var(--primary) 100%)`,
