@@ -24,7 +24,7 @@ export default function MobileHeader({ user, onLogout }) {
                 <Link to="/categories" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '2.2rem', height: '2.2rem', borderRadius: '10px', background: isActive('/categories') ? 'rgba(var(--primary-rgb),0.1)' : 'transparent', color: isActive('/categories') ? ORANGE : 'var(--text-dim)', textDecoration: 'none', transition: 'all 0.2s' }}>
                     <List size={20} />
                 </Link>
-                <Link to="/archive" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '2.2rem', height: '2.2rem', borderRadius: '10px', background: isActive('/archive') ? 'rgba(var(--primary-rgb),0.1)' : 'transparent', color: isActive('/archive') ? ORANGE : 'var(--text-dim)', textDecoration: 'none', transition: 'all 0.2s' }}>
+                <Link to="/purchased" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '2.2rem', height: '2.2rem', borderRadius: '10px', background: isActive('/purchased') ? 'rgba(var(--primary-rgb),0.1)' : 'transparent', color: isActive('/purchased') ? ORANGE : 'var(--text-dim)', textDecoration: 'none', transition: 'all 0.2s' }}>
                     <Package size={20} />
                 </Link>
                 <Link to="/profile" style={{ display: 'inline-flex', textDecoration: 'none', position: 'relative' }}>

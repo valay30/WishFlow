@@ -24,7 +24,7 @@ const AddProduct = lazy(() => import('./pages/AddProduct'));
 const Categories = lazy(() => import('./pages/Categories'));
 const ProductDetails = lazy(() => import('./pages/ProductDetails'));
 const Profile = lazy(() => import('./pages/Profile'));
-const Archive = lazy(() => import('./pages/Archive'));
+const Purchased = lazy(() => import('./pages/Purchased'));
 const AdminPanel = lazy(() => import('./pages/AdminPanel'));
 const Collections = lazy(() => import('./pages/Collections'));
 const LandingPage = lazy(() => import('./pages/LandingPage'));
@@ -206,7 +206,8 @@ function AppRoutes() {
               <Route path="/categories" element={<Categories />} />
               <Route path="/collections" element={<Collections />} />
               <Route path="/product/:id" element={<ProductDetails />} />
-              <Route path="/archive" element={<Archive />} />
+              <Route path="/purchased" element={<Purchased />} />
+              <Route path="/archive" element={<Navigate to="/purchased" replace />} />
               <Route path="/profile" element={<Profile />} />
             </Route>
             {/* Admin — own full-page layout */}

@@ -9,7 +9,7 @@ const NAV_LINKS = [
     { to: '/categories', icon: List, label: 'Categories' },
     { to: '/collections', icon: FolderHeart, label: 'Collections' },
     { to: '/discover', icon: Compass, label: 'Discover' },
-    { to: '/archive', icon: Package, label: 'Purchased' },
+    { to: '/purchased', icon: Package, label: 'Purchased' },
 ];
 
 // Blurred lock overlay used over the nav + footer for guests

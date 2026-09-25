@@ -36,9 +36,9 @@ export default function BottomNav({ user }) {
                 </Link>
 
                 <Link
-                    to="/archive"
+                    to="/purchased"
                     onClick={handleRestrictedClick}
-                    className={`bottom-nav-item${isActive('/archive') ? ' active' : ''}`}
+                    className={`bottom-nav-item${isActive('/purchased') ? ' active' : ''}`}
                     style={isGuest ? { filter: 'blur(1.5px)', opacity: 0.6 } : {}}
                 >
                     <Package size={22} />
