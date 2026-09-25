@@ -4,7 +4,7 @@ import { createPortal } from 'react-dom';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
 import { ChevronUp, ChevronDown, Settings, LogOut, Check, Palette, List as ListIcon, ShieldCheck, Crown, Upload, FolderHeart, LayoutGrid, Columns, User, ArrowLeft, Shield, Bell, Lock, X, RefreshCw, Sparkles } from 'lucide-react';
-import RoastCard from '../components/RoastCard';
+import RoastCard, { prefetchRoast } from '../components/RoastCard';
 import { useSettings } from '../context/SettingsContext';
 import { db, supabase } from '../db';
 import TierBadgeCard from '../components/TierBadgeCard';
@@ -265,6 +265,7 @@ export default function Profile() {
                         <button
                             disabled={!user?.isPremium}
                             onClick={() => setShowRoast(true)}
+                            onPointerEnter={() => { if (user?.isPremium) prefetchRoast(currency); }}
                             style={{
                                 display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
                                 background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)',

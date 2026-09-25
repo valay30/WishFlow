@@ -3,34 +3,56 @@ import { createPortal } from "react-dom";
 import html2canvas from "html2canvas";
 import { db } from "../db";
 import { useSettings } from "../context/SettingsContext";
-import { GoogleGenerativeAI } from "@google/generative-ai";
 import CardVisual from "./CardVisual";
-
-const GEMINI_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 
 import { API_URL as API } from "../config";
 import { ROAST_THEMES } from "./CardVisual";
 
-async function generateRoast(items, currency) {
-  if (!GEMINI_KEY) throw new Error("VITE_GEMINI_API_KEY is not set in your .env file!");
-  const productList = items.slice(0, 30).map((item) => `- ${item.name}${item.price ? ` (Rs.${item.price})` : ""}`).join("\n");
-  let prompt = `You are a brutally honest, witty, sarcastic friend who loves roasting people shopping wishlists.\nHere is a user wishlist:\n${productList}\n\nWrite a SHORT, funny roast in 2-3 sentences max. Be specific about what you see in the list.\nBe playful and clever, not mean. Use a conversational tone.\nDo NOT use hashtags, emojis or markdown. Just plain witty text.`;
-  if (currency === "INR") prompt += `\n\nCRITICAL INSTRUCTION: Write the entire roast in "Hinglish" (a witty, sarcastic mix of Hindi and English written in Latin script), using popular Gen-Z Indian slang. Make it hilarious.`;
-  const genAI = new GoogleGenerativeAI(GEMINI_KEY);
-  const models = ["gemini-3.5-flash", "gemini-3.5-flash-lite", "gemini-flash-latest"];
-  let lastError;
-  for (const modelName of models) {
-    try {
-      const model = genAI.getGenerativeModel({ model: modelName });
-      const result = await model.generateContent(prompt);
-      const text = result.response.text().trim();
-      if (text) return text;
-    } catch (err) {
-      console.warn(`[RoastCard] Model ${modelName} failed:`, err.message);
-      lastError = err;
-    }
+// ── Module-level pre-warm cache ──────────────────────────────────────────────
+// Stores a { promise, itemsKey } so that if the user hovers the button before
+// clicking, the API request is already in-flight when the card mounts.
+let _prewarmCache = null;
+
+function makeItemsKey(items) {
+  return items
+    .slice(0, 15)
+    .map((i) => i.id || i.name)
+    .join(',');
+}
+
+async function fetchRoast(items, currency) {
+  const res = await fetch(`${API}/api/ai/roast`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      items: items.slice(0, 15).map(({ name, price }) => ({ name, price })),
+      currency,
+    }),
+  });
+
+  if (!res.ok) {
+    const { error } = await res.json().catch(() => ({}));
+    throw new Error(error || `Server error ${res.status}`);
   }
-  throw lastError;
+
+  const { roast } = await res.json();
+  if (!roast) throw new Error('Empty roast received from server.');
+  return roast;
+}
+
+/**
+ * Call this on hover / pointer-enter of the "Roast Me" button.
+ * It kicks off the API request early so the result is ready (or nearly ready)
+ * by the time the user actually clicks.
+ */
+export function prefetchRoast(currency) {
+  db.items.getAll().then((items) => {
+    if (!items?.length) return;
+    const key = makeItemsKey(items);
+    // Don't double-fetch if the cache already covers these items
+    if (_prewarmCache?.key === key) return;
+    _prewarmCache = { key, promise: fetchRoast(items, currency) };
+  }).catch(() => {});
 }
 
 export default function RoastCard({ user, onClose }) {
@@ -65,13 +87,30 @@ export default function RoastCard({ user, onClose }) {
           setPhase("ready");
           return;
         }
-        const roast = await generateRoast(items, currency);
+
+        const key = makeItemsKey(items);
+        let roastPromise;
+
+        if (_prewarmCache?.key === key) {
+          // ✅ Pre-warm hit — reuse the already in-flight (or resolved) promise
+          roastPromise = _prewarmCache.promise;
+        } else {
+          // Cache miss — fire now
+          roastPromise = fetchRoast(items, currency);
+          _prewarmCache = { key, promise: roastPromise };
+        }
+
+        const roast = await roastPromise;
         setRoastText(roast);
         setPhase("ready");
+
+        // Clear the cache after use so a fresh roast is generated next time
+        _prewarmCache = null;
       } catch (err) {
         console.error("[RoastCard]", err);
         setRoastText("Error: " + (err.message || "Failed to generate roast."));
         setPhase("error");
+        _prewarmCache = null;
       }
     })();
   }, []);

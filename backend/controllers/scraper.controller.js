@@ -3,9 +3,9 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 
 // ── Gemini candidate models — race them ALL in parallel, take first success ───
 const CANDIDATE_MODELS = [
-    'gemini-1.5-flash',
-    'gemini-1.5-flash-8b',       // Lightweight fast fallback
-    'gemini-1.5-flash-latest',
+    'gemini-3.5-flash',        // Primary: stable and confirmed working
+    'gemini-3.8-flash',        // Secondary: newest (may 503 under high demand)
+    'gemini-3.5-flash-lite',   // Last resort: lightest model
 ];
 
 async function generateWithGemini(prompt) {

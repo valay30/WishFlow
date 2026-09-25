@@ -73,6 +73,16 @@ export default function CommandPalette() {
 
         const query = searchQuery.toLowerCase();
         
+        const NAVIGATION_COMMANDS = [
+            { id: 'nav-home', name: 'Go to Home', path: '/home', _type: 'navigation', _icon: <ChevronRight size={16} /> },
+            { id: 'nav-purchased', name: 'Go to Purchased Items', path: '/purchased', _type: 'navigation', _icon: <ChevronRight size={16} /> },
+            { id: 'nav-categories', name: 'Go to Categories', path: '/categories', _type: 'navigation', _icon: <ChevronRight size={16} /> },
+            { id: 'nav-collections', name: 'Go to Collections', path: '/collections', _type: 'navigation', _icon: <ChevronRight size={16} /> },
+            { id: 'nav-profile', name: 'Go to Profile / Settings', path: '/profile', _type: 'navigation', _icon: <ChevronRight size={16} /> }
+        ];
+
+        const filteredNavs = NAVIGATION_COMMANDS.filter(n => n.name.toLowerCase().includes(query) || n.path.toLowerCase().includes(query));
+        
         const filteredCollections = collections
             .filter(c => c.name.toLowerCase().includes(query))
             .map(c => ({ ...c, _type: 'collection', _icon: c.emoji || <FolderHeart size={16} /> }));
@@ -85,7 +95,7 @@ export default function CommandPalette() {
             .filter(i => i.name.toLowerCase().includes(query))
             .map(i => ({ ...i, _type: 'item', _icon: <ShoppingBag size={16} /> }));
 
-        setResults([...filteredCollections, ...filteredCategories, ...filteredItems]);
+        setResults([...filteredNavs, ...filteredCollections, ...filteredCategories, ...filteredItems]);
         setSelectedIndex(0);
     }, [searchQuery, items, collections, categories]);
 
@@ -117,7 +127,9 @@ export default function CommandPalette() {
 
     const handleSelect = (item) => {
         setIsOpen(false);
-        if (item._type === 'item') {
+        if (item._type === 'navigation') {
+            navigate(item.path);
+        } else if (item._type === 'item') {
             navigate(`/product/${item.id}`);
         } else if (item._type === 'collection') {
             sessionStorage.setItem('activeCollectionId', item.id);
@@ -233,9 +245,26 @@ export default function CommandPalette() {
                                             {result._icon}
                                         </div>
                                         <div style={{ flex: 1, minWidth: 0 }}>
-                                            <p style={{ margin: 0, fontWeight: 500, fontSize: '1rem', color: isSelected ? '#FFF' : 'var(--text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                                {result.name}
-                                            </p>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                <p style={{ margin: 0, fontWeight: 500, fontSize: '1rem', color: isSelected ? '#FFF' : 'var(--text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                                    {result.name}
+                                                </p>
+                                                {result._type === 'item' && result.is_purchased && (
+                                                    <span style={{
+                                                        background: '#22c55e',
+                                                        color: '#FFF',
+                                                        padding: '2px 6px',
+                                                        borderRadius: '4px',
+                                                        fontSize: '0.65rem',
+                                                        fontWeight: 700,
+                                                        letterSpacing: '0.02em',
+                                                        textTransform: 'uppercase',
+                                                        flexShrink: 0
+                                                    }}>
+                                                        Purchased
+                                                    </span>
+                                                )}
+                                            </div>
                                             <p style={{ margin: '2px 0 0 0', fontWeight: 400, fontSize: '0.8rem', color: isSelected ? 'rgba(255,255,255,0.8)' : 'var(--text-muted)' }}>
                                                 {result._type.charAt(0).toUpperCase() + result._type.slice(1)}
                                             </p>

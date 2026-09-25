@@ -8,6 +8,7 @@ import adminRoutes from './routes/admin.routes.js';
 import notificationRoutes from './routes/notifications.routes.js';
 import scraperRoutes from './routes/scraper.routes.js';
 import blogRoutes from './routes/blog.routes.js';
+import aiRoutes from './routes/ai.routes.js';
 const app = express();
 const PORT = process.env.PORT || 5000;
 
@@ -55,6 +56,7 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/scraper', scraperRoutes);
 app.use('/api/blog', blogRoutes);
+app.use('/api/ai', aiRoutes);
 
 // Start the server
 app.listen(PORT, () => {
